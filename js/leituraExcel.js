@@ -1,666 +1,388 @@
 // ==========================================
 // CONFERÊNCIA PREMMIA
 // leituraExcel.js
+// Leitura das planilhas Excel / CSV
 // ==========================================
 
 
+// ==========================================
 // ELEMENTOS
+// ==========================================
 
-const arquivoPremmia = document.getElementById("arquivoPremmia");
-const arquivoInterno = document.getElementById("arquivoInterno");
+const arquivoPremmia =
+    document.getElementById("arquivoPremmia");
 
-const nomePremmia = document.getElementById("nomePremmia");
-const nomeInterno = document.getElementById("nomeInterno");
-
-const btnConferir = document.getElementById("btnConferir");
-
-const statusSistema = document.getElementById("statusSistema");
-
-const contadorDados = document.getElementById("contadorDados");
+const arquivoInterno =
+    document.getElementById("arquivoInterno");
 
 
+const nomePremmia =
+    document.getElementById("nomePremmia");
 
+const nomeInterno =
+    document.getElementById("nomeInterno");
+
+
+const btnConferir =
+    document.getElementById("btnConferir");
+
+
+
+// ==========================================
 // DADOS GLOBAIS
+// ==========================================
 
-window.dadosPremmia = [];
-window.dadosInterno = [];
+let dadosPremmia = [];
 
+let dadosInterno = [];
 
 
 
 // ==========================================
-// EVENTOS
+// EVENTO ARQUIVO PREMMIA
 // ==========================================
 
-
-arquivoPremmia.addEventListener(
-"change",
-function(){
-
-    nomePremmia.textContent =
-    "Arquivo selecionado: " + this.files[0].name;
+if(arquivoPremmia){
 
 
-    lerArquivo(
-        this.files[0],
-        "PREMMIA"
+    arquivoPremmia.addEventListener(
+        "change",
+        function(){
+
+
+            if(this.files.length){
+
+
+                nomePremmia.textContent =
+                    "Arquivo selecionado: " +
+                    this.files[0].name;
+
+
+                nomePremmia.style.color =
+                    "#006b3c";
+
+
+                lerArquivoPremmia(
+                    this.files[0]
+                );
+
+
+            }
+
+
+            verificarArquivos();
+
+
+        }
     );
 
 
-});
+}
 
 
 
 
-
-arquivoInterno.addEventListener(
-"change",
-function(){
-
-    nomeInterno.textContent =
-    "Arquivo selecionado: " + this.files[0].name;
+// ==========================================
+// EVENTO ARQUIVO INTERNO
+// ==========================================
 
 
-    lerArquivo(
-        this.files[0],
-        "INTERNO"
+if(arquivoInterno){
+
+
+    arquivoInterno.addEventListener(
+        "change",
+        function(){
+
+
+            if(this.files.length){
+
+
+                nomeInterno.textContent =
+                    "Arquivo selecionado: " +
+                    this.files[0].name;
+
+
+                nomeInterno.style.color =
+                    "#006b3c";
+
+
+                lerArquivoInterno(
+                    this.files[0]
+                );
+
+
+            }
+
+
+            verificarArquivos();
+
+
+        }
     );
 
 
-});
-
+}
 
 
 
 
 // ==========================================
-// LEITURA DO EXCEL
-// ==========================================
-
-
-function lerArquivo(file,tipo){
-
-
-const reader =
-new FileReader();
-
-
-
-reader.onload=function(e){
-
-
-const dados =
-new Uint8Array(
-e.target.result
-);
-
-
-
-const workbook =
-XLSX.read(
-dados,
-{
-type:"array",
-cellDates:true
-}
-);
-
-
-
-const aba =
-workbook.SheetNames[0];
-
-
-
-const planilha =
-workbook.Sheets[aba];
-
-
-
-const linhas =
-XLSX.utils.sheet_to_json(
-planilha,
-{
-header:1,
-defval:""
-}
-);
-
-
-
-console.log(
-tipo,
-linhas.slice(0,5)
-);
-
-
-
-if(tipo==="PREMMIA"){
-
-
-window.dadosPremmia =
-transformarPremmia(linhas);
-
-
-}
-
-
-
-if(tipo==="INTERNO"){
-
-
-window.dadosInterno =
-transformarInterno(linhas);
-
-
-}
-
-
-
-
-atualizarStatus();
-
-
-verificarArquivos();
-
-
-
-};
-
-
-reader.readAsArrayBuffer(file);
-
-
-}
-
-
-
-
-
-
-// ==========================================
-// VERIFICA BOTÃO
+// VERIFICAR ARQUIVOS
 // ==========================================
 
 
 function verificarArquivos(){
 
 
-if(
-
-window.dadosPremmia.length > 0
-&&
-window.dadosInterno.length > 0
-
-){
-
-btnConferir.disabled=false;
-
-
-statusSistema.innerHTML =
-"✅ Planilhas carregadas. Clique em conferir vendas.";
-
-
-}
-
-else{
-
-
-btnConferir.disabled=true;
-
-
-}
+    if(!btnConferir)
+        return;
 
 
 
-}
+    if(
+        arquivoPremmia &&
+        arquivoInterno &&
+        arquivoPremmia.files.length > 0 &&
+        arquivoInterno.files.length > 0 &&
+        dadosPremmia.length > 0 &&
+        dadosInterno.length > 0
+    ){
 
 
+        btnConferir.disabled = false;
 
 
-function atualizarStatus(){
+    }else{
 
 
-contadorDados.innerHTML =
+        btnConferir.disabled = true;
 
-`
-Premmia: ${window.dadosPremmia.length}
-registros |
-Interno: ${window.dadosInterno.length}
-registros
-`;
 
+    }
+
+
+    atualizarContador();
 
 
 }
-
-
-
 
 
 
 
 // ==========================================
-// PREMMIA
+// LER PREMMIA
 // ==========================================
 
 
-function transformarPremmia(linhas){
+function lerArquivoPremmia(file){
 
 
-let resultado=[];
+    const reader =
+        new FileReader();
 
 
-linhas.forEach((linha,index)=>{
 
+    reader.onload =
+    function(e){
 
-if(index===0)
-return;
 
+        try{
 
 
-let item={
+            const dados =
+                new Uint8Array(
+                    e.target.result
+                );
 
 
-cpf:
-limpar(linha[0]),
 
+            const workbook =
+                XLSX.read(
+                    dados,
+                    {
+                        type:"array",
+                        cellDates:true
+                    }
+                );
 
-cliente:
-limpar(linha[1]),
 
 
-operacao:
-limpar(linha[2]),
+            const aba =
+                workbook.SheetNames[0];
 
 
-valor:
-converterValor(linha[3]),
 
+            const planilha =
+                workbook.Sheets[aba];
 
-dataHora:
-limpar(linha[4]),
 
 
-data:
-extrairData(linha[4]),
+            const linhas =
+                XLSX.utils.sheet_to_json(
+                    planilha,
+                    {
+                        header:1,
+                        defval:""
+                    }
+                );
 
 
-hora:
-extrairHora(linha[4]),
 
+            dadosPremmia =
+                transformarPremmia(
+                    linhas
+                );
 
-autorizacao:
-limpar(linha[5]),
 
 
-pagamento:
-limpar(linha[6])
+            window.dadosPremmia =
+                dadosPremmia;
 
 
-};
 
+            console.log(
+                "Premmia:",
+                dadosPremmia
+            );
 
 
-if(
-item.autorizacao &&
-item.valor!==null
-){
 
-resultado.push(item);
+            verificarArquivos();
 
-}
 
 
+        }
+        catch(err){
 
-});
 
+            console.error(err);
 
-return resultado;
 
+            alert(
+                "Erro ao carregar Portal Premmia."
+            );
 
-}
 
+        }
 
 
 
+    };
 
 
 
-// ==========================================
-// INTERNO AUTOMÁTICO
-// ==========================================
-
-
-function transformarInterno(linhas){
-
-
-
-if(!linhas.length)
-return [];
-
-
-
-let cabecalho =
-linhas[0]
-.map(normalizar);
-
-
-
-console.log(
-"COLUNAS INTERNAS:",
-cabecalho
-);
-
-
-
-function coluna(possiveis){
-
-
-for(let nome of possiveis){
-
-
-let index =
-cabecalho.indexOf(
-normalizar(nome)
-);
-
-
-
-if(index!==-1)
-return index;
+    reader.readAsArrayBuffer(file);
 
 
 }
-
-
-return -1;
-
-
-}
-
-
-
-
-const colValor =
-coluna([
-"valor",
-"valor bruto",
-"valor total"
-]);
-
-
-
-const colData =
-coluna([
-"data",
-"data venda"
-]);
-
-
-
-const colHora =
-coluna([
-"hora"
-]);
-
-
-
-const colOperador =
-coluna([
-"operador",
-"usuario"
-]);
-
-
-
-const colAutorizacao =
-coluna([
-"autorizacao",
-"autorização",
-"identificador",
-"nsu"
-]);
-
-
-
-
-console.log(
-"COLUNA VALOR:",
-colValor,
-"COLUNA AUT:",
-colAutorizacao
-);
-
-
-
-let resultado=[];
-
-
-
-for(
-let i=1;
-i<linhas.length;
-i++
-){
-
-
-let linha =
-linhas[i];
-
-
-
-let item={
-
-
-
-valor:
-
-colValor>=0
-?
-converterValor(linha[colValor])
-:
-null,
-
-
-
-data:
-
-colData>=0
-?
-limpar(linha[colData])
-:
-"",
-
-
-
-hora:
-
-colHora>=0
-?
-limpar(linha[colHora])
-:
-"",
-
-
-
-operador:
-
-colOperador>=0
-?
-limpar(linha[colOperador])
-:
-"",
-
-
-
-
-autorizacao:
-
-colAutorizacao>=0
-?
-limpar(linha[colAutorizacao])
-:
-""
-
-
-};
-
-
-
-
-
-if(
-
-item.autorizacao
-&&
-item.valor!==null
-
-){
-
-resultado.push(item);
-
-}
-
-
-
-}
-
-
-
-return resultado;
-
-
-}
-
-
-
-
 
 
 
 
 // ==========================================
-// FUNÇÕES
+// LER SISTEMA INTERNO
 // ==========================================
 
 
-function limpar(valor){
+function lerArquivoInterno(file){
 
 
-if(valor===undefined||valor===null)
-return "";
-
-
-return String(valor)
-.trim();
-
-
-}
+    const reader =
+        new FileReader();
 
 
 
-
-function normalizar(valor){
-
-
-return limpar(valor)
-.toLowerCase()
-.normalize("NFD")
-.replace(/[\u0300-\u036f]/g,"");
+    reader.onload =
+    function(e){
 
 
-}
+        try{
 
 
+            const dados =
+                new Uint8Array(
+                    e.target.result
+                );
 
 
 
-function converterValor(valor){
-
-
-if(valor===null||valor===undefined||valor==="")
-return null;
-
-
-
-if(typeof valor==="number")
-return Number(valor.toFixed(2));
-
-
-
-let texto =
-String(valor)
-.replace(/\./g,"")
-.replace(",", ".");
+            const workbook =
+                XLSX.read(
+                    dados,
+                    {
+                        type:"array",
+                        cellDates:true
+                    }
+                );
 
 
 
-let numero =
-Number(texto);
+            const aba =
+                workbook.SheetNames[0];
 
 
 
-return isNaN(numero)
-?
-null
-:
-Number(numero.toFixed(2));
-
-
-}
+            const planilha =
+                workbook.Sheets[aba];
 
 
 
-
-function extrairData(valor){
-
-
-let texto =
-limpar(valor);
-
-
-
-let r =
-texto.match(
-/\d{2}\/\d{2}\/\d{4}/
-);
+            const linhas =
+                XLSX.utils.sheet_to_json(
+                    planilha,
+                    {
+                        header:1,
+                        defval:""
+                    }
+                );
 
 
 
-return r?r[0]:"";
-
-
-}
-
-
-
-
-
-function extrairHora(valor){
-
-
-let texto =
-limpar(valor);
+            dadosInterno =
+                transformarInterno(
+                    linhas
+                );
 
 
 
-let r =
-texto.match(
-/\d{2}:\d{2}:\d{2}/
-);
+            window.dadosInterno =
+                dadosInterno;
 
 
 
-return r?r[0]:"";
+            console.log(
+                "Interno:",
+                dadosInterno
+            );
+
+
+
+            verificarArquivos();
+
+
+
+        }
+        catch(err){
+
+
+            console.error(err);
+
+
+            alert(
+                "Erro ao carregar sistema interno."
+            );
+
+
+        }
+
+
+
+    };
+
+
+
+    reader.readAsArrayBuffer(file);
 
 
 }
-
-
-
-
-
-console.log(
-"leituraExcel.js carregado"
-);
