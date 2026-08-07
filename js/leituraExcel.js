@@ -32,24 +32,23 @@ document.getElementById("btnConferir");
 
 
 // ==========================================
-// PREMMIA
+// EVENTO PREMMIA
 // ==========================================
 
-
 if(arquivoPremmia){
-
 
 arquivoPremmia.addEventListener(
 "change",
 function(){
 
 
-if(this.files.length){
+if(this.files.length > 0){
 
 
 nomePremmia.textContent =
 "Arquivo selecionado: "+
 this.files[0].name;
+
 
 
 lerArquivoPremmia(
@@ -66,10 +65,11 @@ this.files[0]
 
 
 
-// ==========================================
-// INTERNO
-// ==========================================
 
+
+// ==========================================
+// EVENTO INTERNO
+// ==========================================
 
 if(arquivoInterno){
 
@@ -79,12 +79,13 @@ arquivoInterno.addEventListener(
 function(){
 
 
-if(this.files.length){
+if(this.files.length > 0){
 
 
 nomeInterno.textContent =
 "Arquivo selecionado: "+
 this.files[0].name;
+
 
 
 lerArquivoInterno(
@@ -95,6 +96,7 @@ this.files[0]
 }
 
 
+
 });
 
 }
@@ -102,12 +104,15 @@ this.files[0]
 
 
 
+
 // ==========================================
-// LER EXCEL
+// ABRIR EXCEL
 // ==========================================
 
-
-function abrirExcel(file, callback){
+function abrirExcel(
+file,
+callback
+){
 
 
 const reader =
@@ -136,13 +141,13 @@ cellDates:true
 
 
 
-const aba =
+const primeiraAba =
 workbook.SheetNames[0];
 
 
 
 const planilha =
-workbook.Sheets[aba];
+workbook.Sheets[primeiraAba];
 
 
 
@@ -157,7 +162,9 @@ defval:""
 
 
 
-callback(linhas);
+callback(
+linhas
+);
 
 
 
@@ -165,7 +172,9 @@ callback(linhas);
 
 
 
-reader.readAsArrayBuffer(file);
+reader.readAsArrayBuffer(
+file
+);
 
 
 }
@@ -173,10 +182,10 @@ reader.readAsArrayBuffer(file);
 
 
 
+
 // ==========================================
 // LER PREMMIA
 // ==========================================
-
 
 function lerArquivoPremmia(file){
 
@@ -195,7 +204,6 @@ transformarPremmia
 // ==========================================
 // LER INTERNO
 // ==========================================
-
 
 function lerArquivoInterno(file){
 
@@ -218,61 +226,7 @@ dadosPremmia = [];
 
 
 
-if(!linhas || !linhas.length){
-
-    return;
-
-}
-
-
-
-
-// procura cabeçalho automaticamente
-
-let cabecalho = -1;
-
-
-
 for(let i=0;i<linhas.length;i++){
-
-
-    const texto =
-    linhas[i]
-    .join(" ")
-    .toLowerCase();
-
-
-
-    if(
-        texto.includes("cpf") &&
-        texto.includes("nome") &&
-        texto.includes("código")
-    ){
-
-        cabecalho=i;
-        break;
-
-    }
-
-
-}
-
-
-
-if(cabecalho === -1){
-
-    cabecalho=0;
-
-}
-
-
-
-
-for(
-let i=cabecalho+1;
-i<linhas.length;
-i++
-){
 
 
 const linha =
@@ -280,21 +234,45 @@ linhas[i];
 
 
 
-if(!linha || linha.length<6){
+if(!linha){
 
-    continue;
+continue;
 
 }
 
 
 
-const registro={
+
+const texto =
+linha.join(" ")
+.toLowerCase();
 
 
-origem:"PREMMIA",
 
 
-// CPF
+// ignora cabeçalho
+
+if(
+texto.includes("cpf") &&
+texto.includes("nome") &&
+texto.includes("produto")
+){
+
+continue;
+
+}
+
+
+
+
+
+const registro = {
+
+
+origem:
+"PREMMIA",
+
+
 
 cpf:
 limparTexto(
@@ -303,16 +281,12 @@ linha[0]
 
 
 
-// NOME
-
 cliente:
 limparTexto(
 linha[1]
 ),
 
 
-
-// PRODUTO
 
 produto:
 limparTexto(
@@ -321,16 +295,12 @@ linha[2]
 
 
 
-// VALOR LIQUIDO
-
 valor:
 converterValor(
 linha[3]
 ),
 
 
-
-// DATA HORA
 
 dataHora:
 limparTexto(
@@ -353,8 +323,6 @@ linha[4]
 
 
 
-// CODIGO TRANSACAO
-
 autorizacao:
 limparTexto(
 linha[5]
@@ -375,6 +343,7 @@ linha[7]
 )
 
 
+
 };
 
 
@@ -382,10 +351,8 @@ linha[7]
 
 
 if(
-registro.autorizacao &&
-registro.valor !== null
+registro.autorizacao !== ""
 ){
-
 
 dadosPremmia.push(
 registro
@@ -397,6 +364,7 @@ registro
 
 
 }
+
 
 
 
@@ -432,58 +400,7 @@ dadosInterno=[];
 
 
 
-if(!linhas || !linhas.length){
-
-return;
-
-}
-
-
-
-
-let cabecalho=-1;
-
-
-
 for(let i=0;i<linhas.length;i++){
-
-
-const texto =
-linhas[i]
-.join(" ")
-.toLowerCase();
-
-
-
-if(
-texto.includes("administradora") &&
-texto.includes("autorização")
-){
-
-cabecalho=i;
-break;
-
-}
-
-
-}
-
-
-
-if(cabecalho===-1){
-
-cabecalho=0;
-
-}
-
-
-
-
-for(
-let i=cabecalho+1;
-i<linhas.length;
-i++
-){
 
 
 const linha =
@@ -491,7 +408,7 @@ linhas[i];
 
 
 
-if(!linha || linha.length<10){
+if(!linha){
 
 continue;
 
@@ -501,13 +418,42 @@ continue;
 
 
 
-const registro={
+const texto =
+linha.join(" ")
+.toLowerCase();
 
 
-origem:"INTERNO",
 
 
-// VALOR
+// pula cabeçalho
+
+if(
+texto.includes("administradora") &&
+texto.includes("autorização")
+){
+
+continue;
+
+}
+
+
+
+
+
+const registro = {
+
+
+origem:
+"INTERNO",
+
+
+
+administradora:
+limparTexto(
+linha[0]
+),
+
+
 
 valor:
 converterValor(
@@ -558,6 +504,13 @@ linha[10]
 
 
 
+centroCusto:
+limparTexto(
+linha[11]
+),
+
+
+
 autorizacao:
 limparTexto(
 linha[12]
@@ -571,11 +524,22 @@ linha[12]
 
 
 
-if(
-registro.autorizacao &&
-registro.valor !== null
-){
 
+console.log(
+"Interno linha:",
+registro
+);
+
+
+
+
+
+
+// aceita somente com autorização
+
+if(
+registro.autorizacao !== ""
+){
 
 dadosInterno.push(
 registro
@@ -587,6 +551,7 @@ registro
 
 
 }
+
 
 
 
@@ -605,36 +570,39 @@ dadosInterno
 atualizarContador();
 
 
-
 verificarArquivos();
 
 
 }
- // ==========================================
+// ==========================================
 // VERIFICAR ARQUIVOS
 // ==========================================
-
 
 function verificarArquivos(){
 
 
+if(!btnConferir){
+
+return;
+
+}
+
+
+
 if(
-btnConferir &&
-dadosPremmia.length>0 &&
-dadosInterno.length>0
+dadosPremmia.length > 0 &&
+dadosInterno.length > 0
 ){
 
-btnConferir.disabled=false;
+
+btnConferir.disabled = false;
+
 
 
 }else{
 
 
-if(btnConferir){
-
-btnConferir.disabled=true;
-
-}
+btnConferir.disabled = true;
 
 
 }
@@ -642,7 +610,6 @@ btnConferir.disabled=true;
 
 
 }
-
 
 
 
@@ -652,6 +619,7 @@ btnConferir.disabled=true;
 
 
 function atualizarContador(){
+
 
 
 const contador =
@@ -685,9 +653,10 @@ Interno: ${dadosInterno.length} registros
 if(status){
 
 
+
 if(
-dadosPremmia.length>0 &&
-dadosInterno.length>0
+dadosPremmia.length > 0 &&
+dadosInterno.length > 0
 ){
 
 
@@ -701,6 +670,8 @@ status.innerHTML =
 
 status.innerHTML =
 "Aguardando carregamento das planilhas.";
+
+
 
 }
 
@@ -720,19 +691,20 @@ verificarArquivos();
 
 
 
+
 // ==========================================
-// CONVERSÃO VALOR
+// CONVERTER VALOR
 // ==========================================
 
 
 function converterValor(valor){
 
 
-if(
-valor===null ||
-valor===undefined ||
-valor===""
 
+if(
+valor === null ||
+valor === undefined ||
+valor === ""
 ){
 
 return null;
@@ -742,7 +714,7 @@ return null;
 
 
 if(
-typeof valor==="number"
+typeof valor === "number"
 ){
 
 return Number(
@@ -761,13 +733,33 @@ String(valor)
 
 texto =
 texto
+.replace(/\s/g,"")
+.replace("R$","");
+
+
+
+if(
+texto.includes(",") &&
+texto.includes(".")
+){
+
+
+texto =
+texto
 .replace(/\./g,"")
-.replace(",",".")
-.replace(/[^\d.-]/g,"");
+.replace(",",".");
+
+
+}else{
+
+
+texto =
+texto.replace(",",".")
+}
 
 
 
-let numero =
+const numero =
 Number(texto);
 
 
@@ -785,7 +777,9 @@ numero.toFixed(2)
 );
 
 
+
 }
+
 
 
 
@@ -798,9 +792,10 @@ numero.toFixed(2)
 function limparTexto(valor){
 
 
+
 if(
-valor===null ||
-valor===undefined
+valor === null ||
+valor === undefined
 ){
 
 return "";
@@ -814,13 +809,15 @@ return String(valor)
 .replace(/\s+/g," ");
 
 
+
 }
 
 
 
 
+
 // ==========================================
-// DATA
+// EXTRAIR DATA
 // ==========================================
 
 
@@ -840,18 +837,19 @@ String(valor);
 
 
 
-const resultado =
+const retorno =
 texto.match(
 /\d{2}\/\d{2}\/\d{4}/
 );
 
 
 
-return resultado
+return retorno
 ?
-resultado[0]
+retorno[0]
 :
 texto;
+
 
 
 }
@@ -859,12 +857,14 @@ texto;
 
 
 
+
 // ==========================================
-// HORA
+// EXTRAIR HORA
 // ==========================================
 
 
 function extrairHora(valor){
+
 
 
 if(!valor){
@@ -880,22 +880,38 @@ String(valor);
 
 
 
-const resultado =
+const retorno =
 texto.match(
 /\d{2}:\d{2}(:\d{2})?/
 );
 
 
 
-return resultado
+return retorno
 ?
-resultado[0]
+retorno[0]
 :
 "";
 
 
+
 }
 
+
+
+
+
+// ==========================================
+// INICIALIZA
+// ==========================================
+
+
+window.dadosPremmia =
+dadosPremmia;
+
+
+window.dadosInterno =
+dadosInterno;
 
 
 
