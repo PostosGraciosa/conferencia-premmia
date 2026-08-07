@@ -7,19 +7,19 @@
 let resultadosConferencia = [];
 
 
-// mantém atualizado para exportar
 
 Object.defineProperty(
-    window,
-    "resultadosConferencia",
-    {
-        get:function(){
+window,
+"resultadosConferencia",
+{
+get:function(){
 
-            return resultadosConferencia;
+    return resultadosConferencia;
 
-        }
-    }
-);
+}
+
+});
+
 
 
 
@@ -28,469 +28,363 @@ Object.defineProperty(
 // ==========================================
 
 document.addEventListener(
-    "DOMContentLoaded",
-    ()=>{
+"DOMContentLoaded",
+()=>{
 
 
-        const btn =
-            document.getElementById(
-                "btnConferir"
-            );
-
-
-        if(btn){
-
-            btn.addEventListener(
-                "click",
-                iniciarConferencia
-            );
-
-        }
-
-
-    }
+const btn =
+document.getElementById(
+"btnConferir"
 );
+
+
+
+if(btn){
+
+btn.addEventListener(
+"click",
+iniciarConferencia
+);
+
+}
+
+
+
+});
 
 
 
 
 // ==========================================
-// INICIAR CONFERÊNCIA
+// INICIAR
 // ==========================================
 
 function iniciarConferencia(){
 
 
-    const premmia =
-        window.dadosPremmia || [];
 
+const premmia =
+window.dadosPremmia || [];
 
-    const interno =
-        window.dadosInterno || [];
 
 
+const interno =
+window.dadosInterno || [];
 
-    console.log(
-        "Conferindo:",
-        premmia.length,
-        interno.length
-    );
 
 
-    console.log(
-        "PRIMEIRA PREMMIA:",
-        premmia[0]
-    );
+console.log(
+"Conferindo:",
+premmia.length,
+interno.length
+);
 
 
-    console.log(
-        "PRIMEIRO INTERNO:",
-        interno[0]
-    );
 
+if(
+premmia.length===0 ||
+interno.length===0
+){
 
+alert(
+"Carregue as duas planilhas antes de conferir."
+);
 
-    if(
-        premmia.length === 0 ||
-        interno.length === 0
-    ){
+return;
 
-        alert(
-            "Carregue as duas planilhas antes de conferir."
-        );
+}
 
-        return;
 
-    }
 
+resultadosConferencia=[];
 
 
-    resultadosConferencia = [];
 
+const utilizados =
+new Set();
 
 
-    const indiceInterno =
-        criarIndice(
-            interno
-        );
 
+premmia.forEach(
+venda=>{
 
 
-    const utilizados =
-        new Set();
 
+let encontrado = null;
 
 
 
+// ======================================
+// 1 - TENTA POR AUTORIZAÇÃO
+// ======================================
 
-    // ======================================
-    // ANALISA PREMMIA
-    // ======================================
 
+if(
+venda.autorizacao
+){
 
-    premmia.forEach(
-        venda=>{
 
+encontrado =
+interno.find(item=>{
 
-            const chave =
-                normalizarAutorizacao(
-                    venda.autorizacao
-                );
 
+return (
 
+normalizarAutorizacao(
+item.autorizacao
+)
 
-            if(!chave){
+===
 
+normalizarAutorizacao(
+venda.autorizacao
+)
 
-                resultadosConferencia.push(
+&&
 
-                    criarResultado(
+!utilizados.has(item)
 
-                        "AUTORIZACAO_DIVERGENTE",
+);
 
-                        venda,
 
-                        null,
 
-                        "Venda sem código de transação."
-
-                    )
-
-                );
-
-
-                return;
-
-            }
-
-
-
-
-
-            const encontrados =
-                indiceInterno[chave] || [];
-
-
-
-
-
-            // NÃO ENCONTROU NO INTERNO
-
-            if(
-                encontrados.length === 0
-            ){
-
-
-                console.log(
-                    "NÃO ENCONTROU:",
-                    venda.autorizacao,
-                    "CHAVE:",
-                    chave
-                );
-
-
-                resultadosConferencia.push(
-
-                    criarResultado(
-
-                        "NAO_LANCADA",
-
-                        venda,
-
-                        null,
-
-                        "Venda Premmia não localizada no sistema interno."
-
-                    )
-
-                );
-
-
-                return;
-
-            }
-
-
-
-
-
-            let internoEncontrado =
-                null;
-
-
-
-
-            encontrados.forEach(
-                item=>{
-
-
-                    if(
-                        internoEncontrado === null &&
-                        !utilizados.has(item._id)
-                    ){
-
-                        internoEncontrado =
-                            item;
-
-                    }
-
-
-                }
-            );
-
-
-
-
-
-            if(!internoEncontrado){
-
-                return;
-
-            }
-
-
-
-
-
-            utilizados.add(
-                internoEncontrado._id
-            );
-
-
-
-
-
-            const valorPremmia =
-                Number(
-                    venda.valor || 0
-                );
-
-
-
-            const valorInterno =
-                Number(
-                    internoEncontrado.valor || 0
-                );
-
-
-
-
-            const diferenca =
-                Number(
-                    (
-                        valorPremmia -
-                        valorInterno
-                    )
-                    .toFixed(2)
-                );
-
-
-
-
-
-            if(
-                Math.abs(diferenca) < 0.01
-            ){
-
-
-                resultadosConferencia.push(
-
-                    criarResultado(
-
-                        "CORRETA",
-
-                        venda,
-
-                        internoEncontrado,
-
-                        "Venda conferida corretamente."
-
-                    )
-
-                );
-
-
-
-            }else{
-
-
-                resultadosConferencia.push(
-
-                    criarResultado(
-
-                        "VALOR_DIVERGENTE",
-
-                        venda,
-
-                        internoEncontrado,
-
-                        "Autorização encontrada, porém valor diferente.",
-
-                        diferenca
-
-                    )
-
-                );
-
-
-            }
-
-
-
-
-        }
-
-    );
-
-
-
-
-
-    // ======================================
-    // VERIFICA LANÇAMENTOS INTERNOS
-    // ======================================
-
-
-    interno.forEach(
-        item=>{
-
-
-            if(
-                utilizados.has(item._id)
-            ){
-
-                return;
-
-            }
-
-
-
-
-            const chave =
-                normalizarAutorizacao(
-                    item.autorizacao
-                );
-
-
-
-            if(!chave){
-
-                return;
-
-            }
-
-
-
-
-
-            const existePremmia =
-                premmia.some(
-                    venda=>
-
-
-                        normalizarAutorizacao(
-                            venda.autorizacao
-                        ) === chave
-
-
-                );
-
-
-
-
-            if(existePremmia){
-
-                return;
-
-            }
-
-
-
-
-
-            resultadosConferencia.push(
-
-                criarResultado(
-
-                    "LANCADA_A_MAIS",
-
-                    null,
-
-                    item,
-
-                    "Lançamento encontrado somente no sistema interno."
-
-                )
-
-            );
-
-
-
-        }
-
-    );
-
-
-
-    mostrarResultados();
+});
 
 
 
 }
+
+
+
+
+
+// ======================================
+// 2 - VALE / DESCONTO
+// PROCURA PELO VALOR
+// ======================================
+
+
+if(
+!encontrado &&
+
+(
+venda.operacao.includes("VALE")
+
+||
+
+venda.operacao.includes("DESCONTO")
+
+)
+
+){
+
+
+
+encontrado =
+interno.find(item=>{
+
+
+return (
+
+!utilizados.has(item)
+
+&&
+
+mesmoValor(
+venda.valor,
+item.valor
+)
+
+);
+
+
+
+});
+
+
+
+}
+
+
+
+
+
+// ======================================
+// NÃO ACHOU
+// ======================================
+
+
+if(!encontrado){
+
+
+resultadosConferencia.push(
+
+criarResultado(
+
+"NAO_LANCADA",
+
+venda,
+
+null,
+
+"Venda não localizada."
+
+)
+
+);
+
+
+return;
+
+
+}
+
+
+
+
+utilizados.add(
+encontrado
+);
+
+
+
+
+// ======================================
+// COMPARA VALOR
+// ======================================
+
+
+if(
+mesmoValor(
+venda.valor,
+encontrado.valor
+)
+
+){
+
+
+resultadosConferencia.push(
+
+criarResultado(
+
+"CORRETA",
+
+venda,
+
+encontrado,
+
+"Venda conferida."
+
+)
+
+);
+
+
+
+}else{
+
+
+resultadosConferencia.push(
+
+criarResultado(
+
+"VALOR_DIVERGENTE",
+
+venda,
+
+encontrado,
+
+"Valor diferente."
+
+)
+
+);
+
+
+
+}
+
+
+
+});
+
+
+
+
+
+// ======================================
+// VERIFICA SOBRAS INTERNAS
+// ======================================
+
+
+interno.forEach(
+item=>{
+
+
+if(
+utilizados.has(item)
+){
+
+return;
+
+}
+
+
+
+resultadosConferencia.push(
+
+criarResultado(
+
+"LANCADA_A_MAIS",
+
+null,
+
+item,
+
+"Lançamento interno sem correspondência."
+
+)
+
+);
+
+
+
+});
+
+
+
+
+
+mostrarResultados();
+
+
+
+}
+
+
+
+
+
+
 // ==========================================
-// CRIA ÍNDICE POR AUTORIZAÇÃO
+// COMPARAÇÃO VALOR
 // ==========================================
 
-function criarIndice(lista){
-
-    const indice = {};
+function mesmoValor(a,b){
 
 
-    lista.forEach(
-        (item,index)=>{
+return (
 
+Number(a || 0)
+.toFixed(2)
 
-            item._id =
-                index;
+===
 
+Number(b || 0)
+.toFixed(2)
 
+);
 
-            const chave =
-                normalizarAutorizacao(
-                    item.autorizacao
-                );
-
-
-
-            if(!chave){
-
-                return;
-
-            }
-
-
-
-            if(
-                !indice[chave]
-            ){
-
-                indice[chave] = [];
-
-            }
-
-
-
-            indice[chave].push(
-                item
-            );
-
-
-        }
-
-    );
-
-
-    return indice;
 
 }
 
@@ -499,37 +393,34 @@ function criarIndice(lista){
 
 
 // ==========================================
-// NORMALIZAR AUTORIZAÇÃO
+// NORMALIZA AUTORIZAÇÃO
 // ==========================================
 
 function normalizarAutorizacao(valor){
 
 
-    if(
-        valor === null ||
-        valor === undefined
-    ){
+if(
+valor===null ||
+valor===undefined
+){
 
-        return "";
+return "";
 
-    }
+}
 
 
 
-    return String(valor)
+return String(valor)
 
-        .trim()
+.trim()
 
-        .toUpperCase()
+.toUpperCase()
 
-        // remove espaços
-        .replace(/\s/g,"")
+.replace(/\s/g,"")
 
-        // remove .0 do Excel
-        .replace(/\.0$/,"")
+.replace(/\.0$/,"")
 
-        // remove caracteres especiais
-        .replace(/[^\w]/g,"");
+.replace(/[^\w]/g,"");
 
 
 }
@@ -538,113 +429,106 @@ function normalizarAutorizacao(valor){
 
 
 
+
 // ==========================================
-// CRIAR RESULTADO
+// RESULTADO
 // ==========================================
 
 function criarResultado(
-    status,
-    premmia,
-    interno,
-    observacao,
-    diferenca = 0
+status,
+premmia,
+interno,
+observacao
 ){
 
 
-    return {
+
+return {
 
 
-        status,
+status,
 
 
-        data:
+data:
 
-            premmia?.data ||
-            interno?.data ||
-            "",
-
-
-
-        hora:
-
-            premmia?.hora ||
-            interno?.hora ||
-            "",
+premmia?.data ||
+interno?.data ||
+"",
 
 
 
-        cliente:
+hora:
 
-            premmia?.cliente ||
-            "",
-
-
-
-        autorizacaoPremmia:
-
-            premmia?.autorizacao ||
-            "",
+premmia?.hora ||
+interno?.hora ||
+"",
 
 
 
-        autorizacaoInterno:
+cliente:
 
-            interno?.autorizacao ||
-            "",
-
-
-
-        valorPremmia:
-
-            premmia?.valor ??
-            null,
+premmia?.cliente ||
+"",
 
 
 
-        valorInterno:
+autorizacaoPremmia:
 
-            interno?.valor ??
-            null,
-
-
-
-        diferenca,
+premmia?.autorizacao ||
+"",
 
 
 
-        operador:
+autorizacaoInterno:
 
-            interno?.operador ||
-            "",
-
-
-
-        filial:
-
-            interno?.filial ||
-            "",
+interno?.autorizacao ||
+"",
 
 
 
-        tipo:
+valorPremmia:
 
-            premmia?.operacao ||
-            interno?.tipo ||
-            "",
-
-
-
-        pagamento:
-
-            premmia?.pagamento ||
-            "",
+premmia?.valor ??
+null,
 
 
 
-        observacao
+valorInterno:
+
+interno?.valor ??
+null,
 
 
-    };
+
+operador:
+
+interno?.operador ||
+"",
+
+
+
+filial:
+
+interno?.filial ||
+"",
+
+
+
+tipo:
+
+premmia?.operacao ||
+interno?.tipo ||
+"",
+
+
+
+observacao
+
+
+
+};
+
+
 
 }
 
@@ -653,67 +537,33 @@ function criarResultado(
 
 
 // ==========================================
-// MOSTRAR RESULTADOS
+// MOSTRAR
 // ==========================================
 
 function mostrarResultados(){
 
 
-    const resultado =
-        document.getElementById(
-            "resultado"
-        );
+
+if(
+typeof atualizarResumo==="function"
+){
+
+atualizarResumo();
+
+}
 
 
 
-    const tabela =
-        document.getElementById(
-            "tabelaResultado"
-        );
+if(
+typeof renderizarTabela==="function"
+){
 
+renderizarTabela(
+resultadosConferencia
+);
 
+}
 
-    if(resultado){
-
-        resultado.style.display =
-            "block";
-
-    }
-
-
-
-    if(tabela){
-
-        tabela.style.display =
-            "block";
-
-    }
-
-
-
-    atualizarResumo();
-
-
-
-    if(
-        typeof renderizarTabela === "function"
-    ){
-
-        renderizarTabela(
-            resultadosConferencia
-        );
-
-    }
-
-
-
-    if(resultado){
-
-        resultado.scrollIntoView({
-            behavior:"smooth"
-        });
-
-    }
 
 
 }
@@ -729,71 +579,72 @@ function mostrarResultados(){
 function atualizarResumo(){
 
 
-    const total = {
+let total={
 
 
-        CORRETA:0,
+CORRETA:0,
 
-        NAO_LANCADA:0,
+NAO_LANCADA:0,
 
-        LANCADA_A_MAIS:0,
+LANCADA_A_MAIS:0,
 
-        VALOR_DIVERGENTE:0,
+VALOR_DIVERGENTE:0,
 
-        AUTORIZACAO_DIVERGENTE:0
-
-
-    };
+AUTORIZACAO_DIVERGENTE:0
 
 
-
-    resultadosConferencia.forEach(
-        item=>{
-
-
-            if(
-                total[item.status] !== undefined
-            ){
-
-                total[item.status]++;
-
-            }
-
-
-        }
-
-    );
+};
 
 
 
-    alterarTexto(
-        "totalCorretas",
-        total.CORRETA
-    );
+resultadosConferencia.forEach(item=>{
 
 
-    alterarTexto(
-        "totalNaoLancadas",
-        total.NAO_LANCADA
-    );
+if(total[item.status]!==undefined){
+
+total[item.status]++;
+
+}
 
 
-    alterarTexto(
-        "totalLancadasMais",
-        total.LANCADA_A_MAIS
-    );
+});
 
 
-    alterarTexto(
-        "totalValorErrado",
-        total.VALOR_DIVERGENTE
-    );
 
 
-    alterarTexto(
-        "totalAutorizacao",
-        total.AUTORIZACAO_DIVERGENTE
-    );
+alterarTexto(
+"totalCorretas",
+total.CORRETA
+);
+
+
+
+alterarTexto(
+"totalNaoLancadas",
+total.NAO_LANCADA
+);
+
+
+
+alterarTexto(
+"totalLancadasMais",
+total.LANCADA_A_MAIS
+);
+
+
+
+alterarTexto(
+"totalValorErrado",
+total.VALOR_DIVERGENTE
+);
+
+
+
+alterarTexto(
+"totalAutorizacao",
+total.AUTORIZACAO_DIVERGENTE
+);
+
 
 
 }
@@ -801,148 +652,21 @@ function atualizarResumo(){
 
 
 
-
-function alterarTexto(
-    id,
-    valor
-){
+function alterarTexto(id,valor){
 
 
-    const elemento =
-        document.getElementById(
-            id
-        );
+const el =
+document.getElementById(id);
 
 
 
-    if(elemento){
+if(el){
 
-        elemento.textContent =
-            valor;
-
-    }
-
+el.textContent =
+valor;
 
 }
 
-
-
-
-
-// ==========================================
-// RENDERIZAR TABELA
-// ==========================================
-
-function renderizarTabela(lista){
-
-
-    const corpo =
-        document.getElementById(
-            "corpoTabela"
-        );
-
-
-
-    if(!corpo){
-
-        return;
-
-    }
-
-
-
-    corpo.innerHTML = "";
-
-
-
-    lista.forEach(
-        item=>{
-
-
-            const linha =
-                document.createElement(
-                    "tr"
-                );
-
-
-
-            linha.innerHTML = `
-
-<td>${nomeStatus(item.status)}</td>
-
-<td>${item.data || "-"}</td>
-
-<td>${item.hora || "-"}</td>
-
-<td>${item.cliente || "-"}</td>
-
-<td>${item.autorizacaoPremmia || "-"}</td>
-
-<td>${item.autorizacaoInterno || "-"}</td>
-
-<td>${formatarMoeda(item.valorPremmia)}</td>
-
-<td>${formatarMoeda(item.valorInterno)}</td>
-
-<td>${formatarMoeda(item.diferenca)}</td>
-
-<td>${item.operador || item.filial || "-"}</td>
-
-            `;
-
-
-
-            corpo.appendChild(
-                linha
-            );
-
-
-        }
-
-    );
-
-
-}
-
-
-
-
-
-// ==========================================
-// STATUS
-// ==========================================
-
-function nomeStatus(status){
-
-
-    const nomes = {
-
-
-        CORRETA:
-        "CORRETA",
-
-
-        NAO_LANCADA:
-        "NÃO LANÇADA",
-
-
-        LANCADA_A_MAIS:
-        "LANÇADA A MAIS",
-
-
-        VALOR_DIVERGENTE:
-        "VALOR DIVERGENTE",
-
-
-        AUTORIZACAO_DIVERGENTE:
-        "AUTORIZAÇÃO DIVERGENTE"
-
-
-    };
-
-
-
-    return nomes[status] || status;
 
 }
 
@@ -957,26 +681,87 @@ function nomeStatus(status){
 function formatarMoeda(valor){
 
 
-    if(
-        valor === null ||
-        valor === undefined ||
-        valor === ""
-    ){
+if(valor===null || valor===undefined){
 
-        return "R$ 0,00";
+return "R$ 0,00";
 
-    }
+}
 
 
 
-    return Number(valor)
-    .toLocaleString(
-        "pt-BR",
-        {
-            style:"currency",
-            currency:"BRL"
-        }
-    );
+return Number(valor)
+
+.toLocaleString(
+"pt-BR",
+{
+style:"currency",
+currency:"BRL"
+}
+);
+
+
+}
+
+
+
+
+// ==========================================
+// TABELA
+// ==========================================
+
+function renderizarTabela(lista){
+
+
+
+const corpo =
+document.getElementById(
+"corpoTabela"
+);
+
+
+
+if(!corpo)
+return;
+
+
+
+corpo.innerHTML="";
+
+
+
+lista.forEach(item=>{
+
+
+const tr =
+document.createElement("tr");
+
+
+
+tr.innerHTML=`
+
+<td>${item.status}</td>
+
+<td>${item.cliente || "-"}</td>
+
+<td>${item.autorizacaoPremmia || "-"}</td>
+
+<td>${item.autorizacaoInterno || "-"}</td>
+
+<td>${formatarMoeda(item.valorPremmia)}</td>
+
+<td>${formatarMoeda(item.valorInterno)}</td>
+
+<td>${item.operador || item.filial || "-"}</td>
+
+`;
+
+
+
+corpo.appendChild(tr);
+
+
+
+});
 
 
 }
@@ -985,63 +770,6 @@ function formatarMoeda(valor){
 
 
 
-// ==========================================
-// FILTROS
-// ==========================================
-
-document
-.querySelectorAll(".filtro")
-.forEach(
-botao=>{
-
-
-    botao.addEventListener(
-        "click",
-        ()=>{
-
-
-            const filtro =
-                botao.dataset.filtro;
-
-
-
-            if(
-                filtro === "TODOS"
-            ){
-
-                renderizarTabela(
-                    resultadosConferencia
-                );
-
-                return;
-
-            }
-
-
-
-            renderizarTabela(
-
-                resultadosConferencia.filter(
-
-                    item=>
-                    item.status === filtro
-
-                )
-
-            );
-
-
-        }
-
-    );
-
-
-});
-
-
-
-
-
 console.log(
-    "conferencia.js carregado - versão corrigida"
+"conferencia.js carregado"
 );
