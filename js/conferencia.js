@@ -7,20 +7,21 @@
 let resultadosConferencia = [];
 
 
-// Mantém disponível para exportação
+
+// mantém atualizado para exportação
 
 Object.defineProperty(
 window,
 "resultadosConferencia",
 {
-
 get:function(){
 
 return resultadosConferencia;
 
 }
 
-});
+}
+);
 
 
 
@@ -28,6 +29,7 @@ return resultadosConferencia;
 // ==========================================
 // BOTÃO CONFERIR
 // ==========================================
+
 
 document.addEventListener(
 "DOMContentLoaded",
@@ -43,15 +45,19 @@ document.getElementById(
 
 if(btn){
 
+
 btn.addEventListener(
 "click",
 iniciarConferencia
 );
 
+
 }
 
 
-});
+
+}
+);
 
 
 
@@ -60,6 +66,7 @@ iniciarConferencia
 // ==========================================
 // INICIAR CONFERÊNCIA
 // ==========================================
+
 
 function iniciarConferencia(){
 
@@ -76,9 +83,10 @@ window.dadosInterno || [];
 
 
 
+
 if(
-premmia.length===0 ||
-interno.length===0
+premmia.length === 0 ||
+interno.length === 0
 ){
 
 
@@ -88,6 +96,7 @@ alert(
 
 
 return;
+
 
 }
 
@@ -100,10 +109,13 @@ resultadosConferencia=[];
 
 
 
-const indiceInterno =
-criarIndice(
+
+const mapaInterno =
+criarMapaInterno(
 interno
 );
+
+
 
 
 
@@ -114,32 +126,38 @@ new Set();
 
 
 
+
+
 // ==========================================
-// COMPARA PORTAL
+// ANALISA PREMMIA
 // ==========================================
 
 
 premmia.forEach(
-(item)=>{
+(venda)=>{
+
 
 
 const chave =
 normalizar(
-item.autorizacao
+venda.autorizacao
 );
 
 
 
-const encontrado =
-indiceInterno[chave] || [];
+
+
+const encontrados =
+mapaInterno[chave] || [];
 
 
 
 
 
-// NÃO ENCONTRADO
+if(
+encontrados.length === 0
+){
 
-if(encontrado.length===0){
 
 
 resultadosConferencia.push(
@@ -148,18 +166,20 @@ criarResultado(
 
 "NAO_LANCADA",
 
-item,
+venda,
 
 null,
 
-"Venda do Portal Premmia não encontrada no sistema."
+"Venda do Premmia não encontrada no sistema interno."
 
 )
 
 );
 
 
+
 return;
+
 
 }
 
@@ -167,35 +187,42 @@ return;
 
 
 
-let internoEncontrado =
-null;
+let encontrado=null;
 
 
 
-for(let registro of encontrado){
+
+
+for(
+let item of encontrados
+){
+
 
 
 if(
 !usados.has(
-registro._id
+item._id
 )
 ){
 
-internoEncontrado =
-registro;
+
+encontrado=item;
 
 break;
 
-}
-
 
 }
 
 
 
+}
 
 
-if(!internoEncontrado){
+
+
+
+
+if(!encontrado){
 
 
 resultadosConferencia.push(
@@ -206,13 +233,14 @@ criarResultado(
 
 null,
 
-encontrado[0],
+encontrados[0],
 
-"Lançamento duplicado no sistema."
+"Existe duplicidade no sistema interno."
 
 )
 
 );
+
 
 
 return;
@@ -224,24 +252,40 @@ return;
 
 
 
+
 usados.add(
-internoEncontrado._id
+encontrado._id
 );
 
 
 
 
 
-// COMPARA VALOR
+const valorPremmia =
+Number(
+venda.valor || 0
+);
+
+
+
+
+const valorInterno =
+Number(
+encontrado.valor || 0
+);
+
+
+
 
 
 const diferenca =
 Number(
 (
-item.valor -
-internoEncontrado.valor
-)
-.toFixed(2)
+valorPremmia -
+valorInterno
+
+).toFixed(2)
+
 );
 
 
@@ -253,17 +297,18 @@ Math.abs(diferenca)<0.01
 ){
 
 
+
 resultadosConferencia.push(
 
 criarResultado(
 
 "CORRETA",
 
-item,
+venda,
 
-internoEncontrado,
+encontrado,
 
-"Venda conferida."
+"Venda conferida corretamente."
 
 )
 
@@ -271,8 +316,8 @@ internoEncontrado,
 
 
 
-}
-else{
+}else{
+
 
 
 resultadosConferencia.push(
@@ -281,11 +326,11 @@ criarResultado(
 
 "VALOR_DIVERGENTE",
 
-item,
+venda,
 
-internoEncontrado,
+encontrado,
 
-"Autorização encontrada, porém valor diferente.",
+"Autorização encontrada, porém valor divergente.",
 
 diferenca
 
@@ -294,55 +339,10 @@ diferenca
 );
 
 
-}
-
-
-
-}
-
-);
-
-
-
-
-
-
-// ==========================================
-// PROCURA SOBRAS DO SISTEMA
-// ==========================================
-
-
-interno.forEach(
-(item)=>{
-
-
-if(
-usados.has(
-item._id
-)
-){
-
-return;
 
 }
 
 
-
-resultadosConferencia.push(
-
-criarResultado(
-
-"LANCADA_A_MAIS",
-
-null,
-
-item,
-
-"Existe lançamento no sistema sem venda Premmia."
-
-)
-
-);
 
 
 
@@ -351,342 +351,3 @@ item,
 );
 
 
-
-
-
-window.resultadosConferencia =
-resultadosConferencia;
-
-
-
-mostrarResultados();
-
-
-
-}
-
-
-
-
-
-// ==========================================
-// CRIA ÍNDICE
-// ==========================================
-
-function criarIndice(lista){
-
-
-const indice={};
-
-
-
-lista.forEach(
-(item)=>{
-
-
-const chave =
-normalizar(
-item.autorizacao
-);
-
-
-
-if(!chave){
-
-return;
-
-}
-
-
-
-if(
-!indice[chave]
-){
-
-indice[chave]=[];
-
-}
-
-
-
-indice[chave].push(
-item
-);
-
-
-
-}
-
-);
-
-
-
-return indice;
-
-}
-
-
-
-
-
-// ==========================================
-// NORMALIZA AUTORIZAÇÃO
-// ==========================================
-
-function normalizar(valor){
-
-
-return String(
-valor || ""
-)
-.trim()
-.toUpperCase()
-.replace(/\s/g,"");
-
-
-}
-
-
-
-
-
-
-// ==========================================
-// RESULTADO
-// ==========================================
-
-function criarResultado(
-
-status,
-
-premmia,
-
-interno,
-
-observacao,
-
-diferenca=0
-
-){
-
-
-
-return{
-
-
-status,
-
-
-cliente:
-premmia?.nome || "",
-
-
-cpf:
-premmia?.cpf || "",
-
-
-
-data:
-"",
-
-
-
-autorizacaoPremmia:
-premmia?.autorizacao || "",
-
-
-
-autorizacaoInterno:
-interno?.autorizacao || "",
-
-
-
-valorPremmia:
-premmia?.valor ?? null,
-
-
-
-valorInterno:
-interno?.valor ?? null,
-
-
-
-pdv:
-interno?.pdv || "",
-
-
-
-diferenca,
-
-
-
-observacao
-
-
-
-};
-
-
-
-}
-
-
-
-
-
-
-
-// ==========================================
-// MOSTRAR RESULTADO
-// ==========================================
-
-function mostrarResultados(){
-
-
-
-const resultado =
-document.getElementById(
-"resultado"
-);
-
-
-
-const tabela =
-document.getElementById(
-"tabelaResultado"
-);
-
-
-
-if(resultado){
-
-resultado.style.display="block";
-
-}
-
-
-
-if(tabela){
-
-tabela.style.display="block";
-
-}
-
-
-
-if(
-typeof renderizarTabela==="function"
-){
-
-renderizarTabela(
-resultadosConferencia
-);
-
-}
-
-
-
-atualizarResumo();
-
-
-
-}
-
-
-
-
-
-
-
-// ==========================================
-// RESUMO
-// ==========================================
-
-function atualizarResumo(){
-
-
-const total={
-
-
-CORRETA:0,
-
-NAO_LANCADA:0,
-
-LANCADA_A_MAIS:0,
-
-VALOR_DIVERGENTE:0
-
-
-};
-
-
-
-resultadosConferencia.forEach(
-(r)=>{
-
-
-if(total[r.status]!==undefined){
-
-total[r.status]++;
-
-}
-
-
-});
-
-
-
-const ids={
-
-
-totalCorretas:
-total.CORRETA,
-
-
-totalNaoLancadas:
-total.NAO_LANCADA,
-
-
-totalLancadasMais:
-total.LANCADA_A_MAIS,
-
-
-totalValorErrado:
-total.VALOR_DIVERGENTE
-
-
-};
-
-
-
-for(let id in ids){
-
-
-const el =
-document.getElementById(id);
-
-
-
-if(el){
-
-el.textContent =
-ids[id];
-
-}
-
-
-}
-
-
-
-}
-
-
-
-
-
-
-
-console.log(
-"conferencia.js carregado"
-);
