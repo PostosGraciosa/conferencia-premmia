@@ -19,7 +19,8 @@ const statusSistema = document.getElementById("statusSistema");
 const contadorDados = document.getElementById("contadorDados");
 
 
-// DADOS
+
+// DADOS GLOBAIS
 
 window.dadosPremmia = [];
 window.dadosInterno = [];
@@ -32,73 +33,66 @@ window.dadosInterno = [];
 // ==========================================
 
 
-if(arquivoPremmia){
+arquivoPremmia.addEventListener(
+"change",
+function(){
 
-arquivoPremmia.addEventListener("change",function(){
+    nomePremmia.textContent =
+    "Arquivo selecionado: " + this.files[0].name;
 
-    if(this.files.length){
 
-        nomePremmia.textContent =
-        "Arquivo selecionado: " + this.files[0].name;
+    lerArquivo(
+        this.files[0],
+        "PREMMIA"
+    );
 
-        lerArquivo(
-            this.files[0],
-            "PREMMIA"
-        );
-
-    }
 
 });
 
-}
 
 
 
 
-if(arquivoInterno){
+arquivoInterno.addEventListener(
+"change",
+function(){
 
-arquivoInterno.addEventListener("change",function(){
-
-    if(this.files.length){
-
-        nomeInterno.textContent =
-        "Arquivo selecionado: " + this.files[0].name;
+    nomeInterno.textContent =
+    "Arquivo selecionado: " + this.files[0].name;
 
 
-        lerArquivo(
-            this.files[0],
-            "INTERNO"
-        );
+    lerArquivo(
+        this.files[0],
+        "INTERNO"
+    );
 
-    }
 
 });
 
-}
 
 
 
 
 // ==========================================
-// LEITURA EXCEL
+// LEITURA DO EXCEL
 // ==========================================
 
 
 function lerArquivo(file,tipo){
 
 
-const reader = new FileReader();
+const reader =
+new FileReader();
 
 
 
 reader.onload=function(e){
 
 
-try{
-
-
 const dados =
-new Uint8Array(e.target.result);
+new Uint8Array(
+e.target.result
+);
 
 
 
@@ -134,17 +128,18 @@ defval:""
 
 
 
+console.log(
+tipo,
+linhas.slice(0,5)
+);
+
+
+
 if(tipo==="PREMMIA"){
 
 
 window.dadosPremmia =
 transformarPremmia(linhas);
-
-
-console.log(
-"Premmia:",
-window.dadosPremmia
-);
 
 
 }
@@ -158,38 +153,19 @@ window.dadosInterno =
 transformarInterno(linhas);
 
 
-console.log(
-"Interno:",
-window.dadosInterno
-);
-
-
 }
 
 
 
-atualizarTela();
+
+atualizarStatus();
 
 
 verificarArquivos();
 
 
 
-}
-catch(err){
-
-console.error(err);
-
-alert(
-"Erro ao abrir planilha " + tipo
-);
-
-}
-
-
-
 };
-
 
 
 reader.readAsArrayBuffer(file);
@@ -201,17 +177,13 @@ reader.readAsArrayBuffer(file);
 
 
 
+
 // ==========================================
-// LIBERAR BOTÃO
+// VERIFICA BOTÃO
 // ==========================================
 
 
 function verificarArquivos(){
-
-
-if(!btnConferir)
-return;
-
 
 
 if(
@@ -224,8 +196,9 @@ window.dadosInterno.length > 0
 
 btnConferir.disabled=false;
 
-statusSistema.textContent =
-"Planilhas carregadas. Clique em conferir vendas.";
+
+statusSistema.innerHTML =
+"✅ Planilhas carregadas. Clique em conferir vendas.";
 
 
 }
@@ -239,34 +212,28 @@ btnConferir.disabled=true;
 }
 
 
-}
-
-
-
-
-function atualizarTela(){
-
-
-if(contadorDados){
-
-
-contadorDados.textContent =
-
-"Premmia: "
-+
-window.dadosPremmia.length
-+
-" registros | Interno: "
-+
-window.dadosInterno.length
-+
-" registros";
-
 
 }
 
 
+
+
+function atualizarStatus(){
+
+
+contadorDados.innerHTML =
+
+`
+Premmia: ${window.dadosPremmia.length}
+registros |
+Interno: ${window.dadosInterno.length}
+registros
+`;
+
+
+
 }
+
 
 
 
@@ -281,31 +248,13 @@ window.dadosInterno.length
 function transformarPremmia(linhas){
 
 
-let lista=[];
+let resultado=[];
 
 
-linhas.forEach(linha=>{
+linhas.forEach((linha,index)=>{
 
 
-if(!Array.isArray(linha))
-return;
-
-
-
-let texto =
-linha.map(normalizarTexto).join(" ");
-
-
-
-if(
-
-texto.includes("cpf")
-||
-texto.includes("cliente")
-||
-texto.includes("autorizacao")
-
-)
+if(index===0)
 return;
 
 
@@ -314,15 +263,15 @@ let item={
 
 
 cpf:
-limparTexto(linha[0]),
+limpar(linha[0]),
 
 
 cliente:
-limparTexto(linha[1]),
+limpar(linha[1]),
 
 
 operacao:
-limparTexto(linha[2]),
+limpar(linha[2]),
 
 
 valor:
@@ -330,7 +279,7 @@ converterValor(linha[3]),
 
 
 dataHora:
-limparTexto(linha[4]),
+limpar(linha[4]),
 
 
 data:
@@ -342,36 +291,36 @@ extrairHora(linha[4]),
 
 
 autorizacao:
-limparTexto(linha[5]),
+limpar(linha[5]),
 
 
 pagamento:
-limparTexto(linha[6])
+limpar(linha[6])
+
 
 };
 
 
 
 if(
-
-item.autorizacao
-&&
+item.autorizacao &&
 item.valor!==null
-
 ){
 
-lista.push(item);
+resultado.push(item);
 
 }
+
 
 
 });
 
 
-return lista;
+return resultado;
 
 
 }
+
 
 
 
@@ -379,58 +328,185 @@ return lista;
 
 
 // ==========================================
-// INTERNO
+// INTERNO AUTOMÁTICO
 // ==========================================
 
 
 function transformarInterno(linhas){
 
 
-let lista=[];
+
+if(!linhas.length)
+return [];
 
 
-linhas.forEach(linha=>{
+
+let cabecalho =
+linhas[0]
+.map(normalizar);
 
 
-if(!Array.isArray(linha))
-return;
+
+console.log(
+"COLUNAS INTERNAS:",
+cabecalho
+);
+
+
+
+function coluna(possiveis){
+
+
+for(let nome of possiveis){
+
+
+let index =
+cabecalho.indexOf(
+normalizar(nome)
+);
+
+
+
+if(index!==-1)
+return index;
+
+
+}
+
+
+return -1;
+
+
+}
+
+
+
+
+const colValor =
+coluna([
+"valor",
+"valor bruto",
+"valor total"
+]);
+
+
+
+const colData =
+coluna([
+"data",
+"data venda"
+]);
+
+
+
+const colHora =
+coluna([
+"hora"
+]);
+
+
+
+const colOperador =
+coluna([
+"operador",
+"usuario"
+]);
+
+
+
+const colAutorizacao =
+coluna([
+"autorizacao",
+"autorização",
+"identificador",
+"nsu"
+]);
+
+
+
+
+console.log(
+"COLUNA VALOR:",
+colValor,
+"COLUNA AUT:",
+colAutorizacao
+);
+
+
+
+let resultado=[];
+
+
+
+for(
+let i=1;
+i<linhas.length;
+i++
+){
+
+
+let linha =
+linhas[i];
 
 
 
 let item={
 
 
-tipo:
-limparTexto(linha[0]),
-
 
 valor:
-converterValor(linha[1]),
 
+colValor>=0
+?
+converterValor(linha[colValor])
+:
+null,
 
-hora:
-limparTexto(linha[2]),
 
 
 data:
-limparTexto(linha[3]),
+
+colData>=0
+?
+limpar(linha[colData])
+:
+"",
+
+
+
+hora:
+
+colHora>=0
+?
+limpar(linha[colHora])
+:
+"",
+
 
 
 operador:
-limparTexto(linha[9]),
+
+colOperador>=0
+?
+limpar(linha[colOperador])
+:
+"",
 
 
-identificador:
-limparTexto(linha[12]),
 
 
 autorizacao:
-limparTexto(linha[13])
-||
-limparTexto(linha[12])
+
+colAutorizacao>=0
+?
+limpar(linha[colAutorizacao])
+:
+""
 
 
 };
+
+
 
 
 
@@ -442,27 +518,62 @@ item.valor!==null
 
 ){
 
-lista.push(item);
+resultado.push(item);
 
 }
 
-
-
-});
-
-
-return lista;
 
 
 }
 
 
 
+return resultado;
+
+
+}
+
+
+
+
+
+
 
 
 // ==========================================
-// FUNÇÕES AUXILIARES
+// FUNÇÕES
 // ==========================================
+
+
+function limpar(valor){
+
+
+if(valor===undefined||valor===null)
+return "";
+
+
+return String(valor)
+.trim();
+
+
+}
+
+
+
+
+function normalizar(valor){
+
+
+return limpar(valor)
+.toLowerCase()
+.normalize("NFD")
+.replace(/[\u0300-\u036f]/g,"");
+
+
+}
+
+
+
 
 
 function converterValor(valor){
@@ -480,7 +591,6 @@ return Number(valor.toFixed(2));
 
 let texto =
 String(valor)
-.trim()
 .replace(/\./g,"")
 .replace(",", ".");
 
@@ -503,43 +613,12 @@ Number(numero.toFixed(2));
 
 
 
-
-function limparTexto(valor){
-
-
-if(valor===undefined||valor===null)
-return "";
-
-
-return String(valor)
-.trim()
-.replace(/\s+/g," ");
-
-
-}
-
-
-
-
-function normalizarTexto(valor){
-
-
-return limparTexto(valor)
-.toLowerCase()
-.normalize("NFD")
-.replace(/[\u0300-\u036f]/g,"");
-
-
-}
-
-
-
-
-
 function extrairData(valor){
 
 
-let texto=limparTexto(valor);
+let texto =
+limpar(valor);
+
 
 
 let r =
@@ -548,7 +627,8 @@ texto.match(
 );
 
 
-return r ? r[0] : texto;
+
+return r?r[0]:"";
 
 
 }
@@ -556,10 +636,13 @@ return r ? r[0] : texto;
 
 
 
+
 function extrairHora(valor){
 
 
-let texto=limparTexto(valor);
+let texto =
+limpar(valor);
+
 
 
 let r =
@@ -568,7 +651,8 @@ texto.match(
 );
 
 
-return r ? r[0] : "";
+
+return r?r[0]:"";
 
 
 }
