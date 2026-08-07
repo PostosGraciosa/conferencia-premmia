@@ -3,33 +3,27 @@
 // leituraExcel.js
 // ==========================================
 
+
 let dadosPremmia = [];
+
 let dadosInterno = [];
 
-window.dadosPremmia = [];
-window.dadosInterno = [];
 
 
 
-const arquivoPremmia =
-document.getElementById("arquivoPremmia");
+// ==========================================
+// ELEMENTOS
+// ==========================================
 
 
-const arquivoInterno =
-document.getElementById("arquivoInterno");
+function getElemento(id){
 
+    return document.getElementById(id);
 
-const nomePremmia =
-document.getElementById("nomePremmia");
-
-
-const nomeInterno =
-document.getElementById("nomeInterno");
+}
 
 
 
-const btnConferir =
-document.getElementById("btnConferir");
 
 
 
@@ -37,57 +31,132 @@ document.getElementById("btnConferir");
 // ARQUIVO PREMMIA
 // ==========================================
 
+
+document.addEventListener(
+"DOMContentLoaded",
+()=>{
+
+
+const arquivoPremmia =
+getElemento(
+"arquivoPremmia"
+);
+
+
+
+const arquivoInterno =
+getElemento(
+"arquivoInterno"
+);
+
+
+
+
 if(arquivoPremmia){
+
 
 arquivoPremmia.addEventListener(
 "change",
 function(){
 
-    const file = this.files[0];
 
-    if(!file)
-        return;
-
-
-    nomePremmia.textContent =
-        file.name;
+const file =
+this.files[0];
 
 
-    lerPremmia(file);
+
+if(!file)
+return;
 
 
-});
+
+const nome =
+getElemento(
+"nomePremmia"
+);
+
+
+
+if(nome){
+
+nome.textContent =
+file.name;
 
 }
 
 
 
-// ==========================================
-// ARQUIVO INTERNO
-// ==========================================
+lerPremmia(file);
+
+
+
+}
+
+);
+
+
+}
+
+
+
+
 
 if(arquivoInterno){
+
 
 arquivoInterno.addEventListener(
 "change",
 function(){
 
-    const file = this.files[0];
 
-    if(!file)
-        return;
-
-
-    nomeInterno.textContent =
-        file.name;
+const file =
+this.files[0];
 
 
-    lerInterno(file);
+
+if(!file)
+return;
+
+
+
+const nome =
+getElemento(
+"nomeInterno"
+);
+
+
+
+if(nome){
+
+nome.textContent =
+file.name;
+
+}
+
+
+
+lerInterno(file);
+
+
+
+}
+
+);
+
+
+
+}
+
+
 
 
 });
 
-}
+
+
+
+
+
 
 
 
@@ -95,7 +164,13 @@ function(){
 // ABRIR EXCEL
 // ==========================================
 
-function abrirExcel(file, callback){
+
+function abrirExcel(
+file,
+callback
+){
+
+
 
 const reader =
 new FileReader();
@@ -106,50 +181,64 @@ reader.onload =
 function(e){
 
 
-    const dados =
-    new Uint8Array(
-        e.target.result
-    );
+
+const dados =
+new Uint8Array(
+e.target.result
+);
 
 
-    const workbook =
-    XLSX.read(
-        dados,
-        {
-            type:"array"
-        }
-    );
+
+const workbook =
+XLSX.read(
+dados,
+{
+type:"array"
+}
+);
 
 
-    const primeira =
-    workbook.SheetNames[0];
+
+const primeira =
+workbook.SheetNames[0];
 
 
-    const planilha =
-    workbook.Sheets[primeira];
+
+const planilha =
+workbook.Sheets[primeira];
 
 
-    const linhas =
-    XLSX.utils.sheet_to_json(
-        planilha,
-        {
-            header:1,
-            defval:""
-        }
-    );
+
+const linhas =
+XLSX.utils.sheet_to_json(
+planilha,
+{
+header:1,
+defval:""
+}
+);
 
 
-    callback(linhas);
+
+callback(linhas);
+
 
 
 };
 
 
 
-reader.readAsArrayBuffer(file);
+reader.readAsArrayBuffer(
+file
+);
+
 
 
 }
+
+
+
+
 
 
 
@@ -157,36 +246,47 @@ reader.readAsArrayBuffer(file);
 // PREMMIA
 // ==========================================
 
+
 function lerPremmia(file){
+
 
 abrirExcel(
 file,
-function(linhas){
+linhas=>{
 
 
-    dadosPremmia =
-    transformarPremmia(linhas);
-
-
-
-    window.dadosPremmia =
-    dadosPremmia;
+dadosPremmia =
+transformarPremmia(
+linhas
+);
 
 
 
-    console.log(
-        "Premmia:",
-        dadosPremmia
-    );
+window.dadosPremmia =
+dadosPremmia;
 
 
-    atualizarTela();
+
+console.log(
+"Premmia:",
+dadosPremmia
+);
 
 
-});
+
+verificarArquivos();
+
 
 
 }
+
+);
+
+
+}
+
+
+
 
 
 
@@ -194,46 +294,121 @@ function(linhas){
 // INTERNO
 // ==========================================
 
+
 function lerInterno(file){
+
 
 abrirExcel(
 file,
-function(linhas){
+linhas=>{
 
 
-    dadosInterno =
-    transformarInterno(linhas);
-
-
-
-    window.dadosInterno =
-    dadosInterno;
+dadosInterno =
+transformarInterno(
+linhas
+);
 
 
 
-    console.log(
-        "Interno:",
-        dadosInterno
-    );
+window.dadosInterno =
+dadosInterno;
 
 
-    atualizarTela();
+
+console.log(
+"Interno:",
+dadosInterno
+);
 
 
-});
+
+verificarArquivos();
+
+
+
+}
+
+);
 
 
 }
 
 
 
+
+
+
 // ==========================================
-// TRANSFORMA PREMMIA
+// LIBERA BOTÃO
 // ==========================================
+
+
+function verificarArquivos(){
+
+
+
+const btn =
+getElemento(
+"btnConferir"
+);
+
+
+
+console.log(
+"Verificando:",
+dadosPremmia.length,
+dadosInterno.length
+);
+
+
+
+
+
+if(
+btn &&
+dadosPremmia.length > 0 &&
+dadosInterno.length > 0
+){
+
+
+
+btn.disabled = false;
+
+
+
+console.log(
+"Botão Conferir liberado"
+);
+
+
+
+}else{
+
+
+console.log(
+"Aguardando planilhas"
+);
+
+
+
+}
+
+
+
+}
+
+
+
+// continua PARTE 2/2
+// ==========================================
+// TRANSFORMAR PREMMIA
+// ==========================================
+
 
 function transformarPremmia(linhas){
 
-const registros=[];
+
+const registros = [];
 
 
 
@@ -241,77 +416,127 @@ linhas.forEach(
 (linha,index)=>{
 
 
-    if(index===0)
-        return;
+// pula cabeçalho
 
+if(index === 0){
 
-    if(!linha || linha.length<8)
-        return;
+return;
 
-
-
-    const registro={
-
-
-        origem:"PREMMIA",
-
-
-        cpf:
-        limparTexto(linha[0]),
-
-
-        cliente:
-        limparTexto(linha[1]),
-
-
-        operacao:
-        limparTexto(linha[2])
-        .toUpperCase(),
-
-
-        valor:
-        converterValor(linha[3]),
-
-
-        dataHora:
-        linha[4],
-
-
-        data:
-        extrairData(linha[4]),
-
-
-        hora:
-        extrairHora(linha[4]),
-
-
-        autorizacao:
-        normalizarAutorizacao(linha[5]),
-
-
-        pagamento:
-        limparTexto(linha[6]),
-
-
-        status:
-        limparTexto(linha[7])
+}
 
 
 
-    };
+if(
+!linha ||
+linha.length < 6
+){
+
+return;
+
+}
 
 
 
-    if(
-        registro.valor !== null
-    ){
-
-        registros.push(registro);
-
-    }
+const registro = {
 
 
-});
+origem:
+"PREMMIA",
+
+
+
+cpf:
+limparTexto(
+linha[0]
+),
+
+
+
+cliente:
+limparTexto(
+linha[1]
+),
+
+
+
+operacao:
+limparTexto(
+linha[2]
+),
+
+
+
+valor:
+converterValor(
+linha[3]
+),
+
+
+
+dataHora:
+linha[4],
+
+
+
+data:
+extrairData(
+linha[4]
+),
+
+
+
+hora:
+extrairHora(
+linha[4]
+),
+
+
+
+autorizacao:
+normalizarAutorizacao(
+linha[5]
+),
+
+
+
+pagamento:
+limparTexto(
+linha[6]
+),
+
+
+
+status:
+limparTexto(
+linha[7]
+)
+
+
+
+};
+
+
+
+
+
+if(
+registro.valor !== null
+){
+
+
+registros.push(
+registro
+);
+
+
+}
+
+
+
+}
+
+);
+
 
 
 return registros;
@@ -321,13 +546,21 @@ return registros;
 
 
 
+
+
+
+
+
 // ==========================================
-// TRANSFORMA INTERNO
+// TRANSFORMAR INTERNO
 // ==========================================
+
 
 function transformarInterno(linhas){
 
-const registros=[];
+
+
+const registros = [];
 
 
 
@@ -335,108 +568,152 @@ linhas.forEach(
 (linha,index)=>{
 
 
-    if(index===0)
-        return;
+
+if(index === 0){
+
+return;
+
+}
 
 
 
-    if(!linha)
-        return;
+if(
+!Array.isArray(linha)
+){
+
+return;
+
+}
 
 
 
-    const registro={
-
-
-        origem:"INTERNO",
+const registro = {
 
 
 
-        administradora:
-        limparTexto(linha[0]),
+origem:
+"INTERNO",
 
 
 
-        // VALOR LÍQUIDO
-        // COLUNA G
-
-        valor:
-        converterValor(linha[6]),
-
-
-
-        hora:
-        limparTexto(linha[2]),
+administradora:
+limparTexto(
+linha[0]
+),
 
 
 
-        movimento:
-        limparTexto(linha[3]),
+valor:
+converterValor(
+linha[1]
+),
 
 
 
-        data:
-        limparTexto(linha[4]),
+hora:
+limparTexto(
+linha[2]
+),
 
 
 
-        cliente:
-        limparTexto(linha[7]),
+movimento:
+limparTexto(
+linha[3]
+),
 
 
 
-        filial:
-        limparTexto(linha[8]),
+data:
+limparTexto(
+linha[4]
+),
 
 
 
-        operador:
-        limparTexto(linha[9]),
+cliente:
+limparTexto(
+linha[7]
+),
 
 
 
-        tipo:
-        limparTexto(linha[10]),
+filial:
+limparTexto(
+linha[8]
+),
 
 
 
-        centroCusto:
-        limparTexto(linha[11]),
+operador:
+limparTexto(
+linha[9]
+),
 
 
 
-        autorizacao:
-        normalizarAutorizacao(linha[12])
+tipo:
+limparTexto(
+linha[10]
+),
 
 
 
-    };
+autorizacao:
+normalizarAutorizacao(
+linha[12]
+)
 
 
 
-    console.log(
-        "Interno linha:",
-        registro
-    );
+};
 
 
 
-    if(
-        registro.valor !== null
-    ){
 
-        registros.push(registro);
-
-    }
+console.log(
+"Linha interna:",
+registro
+);
 
 
-});
+
+
+
+// aceita mesmo sem autorização
+// pois vale/desconto usa valor
+
+
+if(
+registro.valor !== null
+){
+
+
+registros.push(
+registro
+);
+
+
+}
+
+
+
+}
+
+);
+
 
 
 return registros;
 
 
+
 }
+
+
+
+
+
 
 
 
@@ -444,16 +721,19 @@ return registros;
 // NORMALIZAR AUTORIZAÇÃO
 // ==========================================
 
+
 function normalizarAutorizacao(valor){
 
+
 if(
-    valor===null ||
-    valor===undefined
+valor === null ||
+valor === undefined
 ){
 
-    return "";
+return "";
 
 }
+
 
 
 return String(valor)
@@ -473,17 +753,24 @@ return String(valor)
 
 
 
+
+
+
+
+
 // ==========================================
-// VALOR
+// CONVERTER VALOR
 // ==========================================
+
 
 function converterValor(valor){
 
-if(
-valor===null ||
-valor===undefined ||
-valor===""
 
+
+if(
+valor === null ||
+valor === undefined ||
+valor === ""
 ){
 
 return null;
@@ -492,13 +779,21 @@ return null;
 
 
 
-if(typeof valor==="number"){
+
+
+if(
+typeof valor === "number"
+){
+
 
 return Number(
 valor.toFixed(2)
 );
 
+
 }
+
+
 
 
 
@@ -508,26 +803,31 @@ String(valor)
 
 
 
+
+
 texto =
-texto.replace("R$","")
+texto
+.replace("R$","")
+.replace(/\./g,"")
+.replace(",",".")
 .trim();
 
 
 
-texto =
-texto.replace(/\./g,"")
-.replace(",",".")
-;
 
 
-
-let numero =
+const numero =
 Number(texto);
 
 
 
-if(isNaN(numero))
-    return null;
+if(
+isNaN(numero)
+){
+
+return null;
+
+}
 
 
 
@@ -536,7 +836,13 @@ numero.toFixed(2)
 );
 
 
+
 }
+
+
+
+
+
 
 
 
@@ -544,15 +850,31 @@ numero.toFixed(2)
 // TEXTO
 // ==========================================
 
+
 function limparTexto(valor){
 
-if(valor===null || valor===undefined)
-    return "";
 
+if(
+valor === null ||
+valor === undefined
+){
 
-return String(valor).trim();
+return "";
 
 }
+
+
+
+return String(valor)
+.trim();
+
+
+}
+
+
+
+
+
 
 
 
@@ -560,13 +882,21 @@ return String(valor).trim();
 // DATA
 // ==========================================
 
+
 function extrairData(valor){
 
-if(!valor)
-    return "";
+
+if(!valor){
+
+return "";
+
+}
 
 
-if(valor instanceof Date){
+
+if(
+valor instanceof Date
+){
 
 return valor.toLocaleDateString(
 "pt-BR"
@@ -575,9 +905,16 @@ return valor.toLocaleDateString(
 }
 
 
+
 return String(valor);
 
+
 }
+
+
+
+
+
 
 
 
@@ -585,10 +922,17 @@ return String(valor);
 // HORA
 // ==========================================
 
+
 function extrairHora(valor){
 
-if(!valor)
+
+
+if(!valor){
+
 return "";
+
+}
+
 
 
 const texto =
@@ -596,16 +940,16 @@ String(valor);
 
 
 
-const achou =
+const resultado =
 texto.match(
 /\d{2}:\d{2}/
 );
 
 
 
-return achou
+return resultado
 ?
-achou[0]
+resultado[0]
 :
 "";
 
@@ -614,83 +958,23 @@ achou[0]
 
 
 
+
+
+
+
 // ==========================================
-// TELA
+// DISPONIBILIZA
 // ==========================================
 
-function atualizarTela(){
 
-
-const status =
-document.getElementById(
-"statusSistema"
-);
+window.dadosPremmia =
+dadosPremmia;
 
 
 
-if(
-dadosPremmia.length>0 &&
-dadosInterno.length>0
-){
+window.dadosInterno =
+dadosInterno;
 
-
-if(status){
-
-status.textContent =
-"Planilhas carregadas. Pronto para conferir.";
-
-}
-
-
-if(btnConferir){
-
-btnConferir.disabled=false;
-
-}
-
-
-}else{
-
-
-if(status){
-
-status.textContent =
-"Aguardando carregamento das planilhas.";
-
-}
-
-
-if(btnConferir){
-
-btnConferir.disabled=true;
-
-}
-
-
-}
-
-
-
-const contador =
-document.getElementById(
-"contadorDados"
-);
-
-
-
-if(contador){
-
-contador.innerHTML =
-`
-Premmia: ${dadosPremmia.length}
-|
-Interno: ${dadosInterno.length}
-`;
-
-}
-
-
-}
 
 
 
