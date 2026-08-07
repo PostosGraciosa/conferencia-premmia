@@ -657,35 +657,34 @@ function transformarInterno(linhas){
 // NORMALIZAR AUTORIZAÇÃO
 // ==========================================
 
+function normalizarAutorizacao(valor){
 
-function normalizarAutorizacao(
-valor
-){
-
-
-if(
-valor === null ||
-valor === undefined
-){
-
-return "";
-
-}
+    if(
+        valor === null ||
+        valor === undefined
+    ){
+        return "";
+    }
 
 
+    return String(valor)
 
+        .trim()
 
-return String(valor)
+        .toUpperCase()
 
-.trim()
+        // remove acentos
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"")
 
-.replace(/\s/g,"")
+        // remove espaços
+        .replace(/\s/g,"")
 
-.replace(".0","")
+        // remove .0 do Excel
+        .replace(/\.0$/,"")
 
-.toUpperCase();
-
-
+        // mantém somente letras e números
+        .replace(/[^A-Z0-9]/g,"");
 
 }
 
