@@ -1,180 +1,99 @@
-```css
 /* ==========================================
    CONFERÊNCIA PREMMIA
    style.css
-   ========================================== */
+========================================== */
 
 
-/* =========================
-   RESET
-   ========================= */
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
 }
 
 
-/* =========================
-   BASE
-   ========================= */
+body{
 
-body {
+    font-family:Arial, Helvetica, sans-serif;
 
-    font-family: Arial, Helvetica, sans-serif;
+    background:#f4f6f8;
 
-    background: #f4f6f8;
-
-    color: #1f2937;
-
-    min-height: 100vh;
+    color:#1f2937;
 
 }
 
 
 
-/* =========================
-   CONTAINER
-   ========================= */
+.container{
 
-.container {
+    width:100%;
 
-    width: 100%;
+    max-width:1400px;
 
-    max-width: 1400px;
+    margin:auto;
 
-    margin: 0 auto;
-
-    padding: 25px;
+    padding:25px;
 
 }
 
 
 
-/* =========================
-   CABEÇALHO
-   ========================= */
+/* CABEÇALHO */
 
-.header {
+.header{
 
-    background: #ffffff;
+    background:#fff;
 
-    border-radius: 12px;
+    padding:25px 30px;
 
-    padding: 25px 30px;
+    border-radius:12px;
 
-    margin-bottom: 20px;
+    margin-bottom:20px;
 
-    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    border-left:5px solid #006b3c;
 
-    border-left: 5px solid #006b3c;
+    box-shadow:0 2px 10px #0001;
+
+}
+
+
+.logo-area h1{
+
+    color:#006b3c;
+
+    font-size:28px;
+
+}
+
+
+.logo-area p{
+
+    color:#6b7280;
+
+    margin-top:5px;
 
 }
 
 
 
-.logo-area h1 {
-
-    font-size: 28px;
-
-    font-weight: 700;
-
-    color: #006b3c;
-
-    margin-bottom: 6px;
-
-}
+/* CARDS */
 
 
+.card{
 
-.logo-area p {
+    background:#fff;
 
-    color: #6b7280;
+    padding:25px;
 
-    font-size: 14px;
+    border-radius:12px;
+
+    margin-bottom:20px;
+
+    box-shadow:0 2px 10px #0001;
 
 }
 
 
-
-/* =========================
-   CARDS
-   ========================= */
-
-.card {
-
-    background: #ffffff;
-
-    border-radius: 12px;
-
-    padding: 25px;
-
-    margin-bottom: 20px;
-
-    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-
-}
-
-
-
-.card h2 {
-
-    font-size: 20px;
-
-    margin-bottom: 8px;
-
-    color: #111827;
-
-}
-
-
-
-.descricao {
-
-    color: #6b7280;
-
-    font-size: 14px;
-
-    margin-bottom: 25px;
-
-}
-
-
-
-/* =========================
-   ARQUIVOS
-   ========================= */
-
-.arquivo {
-
-    border: 2px dashed #d1d5db;
-
-    border-radius: 10px;
-
-    padding: 20px;
-
-    margin-bottom: 15px;
-
-    background: #fafafa;
-
-}
-
-
-
-.arquivo:hover {
-
-    border-color: #006b3c;
-
-}
-
-
-
-.arquivo label {
-
-    display:block;
-
-    font-weight:700;
+.card h2{
 
     margin-bottom:10px;
 
@@ -182,145 +101,134 @@ body {
 
 
 
-.arquivo input {
+.descricao{
 
-    width:100%;
+    color:#6b7280;
+
+    margin-bottom:20px;
 
 }
 
 
 
-.arquivo span {
+/* ARQUIVOS */
+
+
+.arquivo{
+
+    border:2px dashed #d1d5db;
+
+    padding:20px;
+
+    border-radius:10px;
+
+    margin-bottom:15px;
+
+}
+
+
+
+.arquivo label{
+
+    display:block;
+
+    font-weight:bold;
+
+    margin-bottom:10px;
+
+}
+
+
+
+.arquivo span{
 
     display:block;
 
     margin-top:8px;
 
-    color:#6b7280;
-
     font-size:13px;
+
+    color:#6b7280;
 
 }
 
 
 
-/* =========================
-   BOTÕES
-   ========================= */
+/* BOTÕES */
 
-.botoes {
+
+.botoes{
 
     display:flex;
 
-    gap:12px;
-
-    margin-top:10px;
+    gap:10px;
 
 }
 
 
 
-#btnConferir {
+button{
+
+    cursor:pointer;
+
+}
+
+
+
+#btnConferir{
 
     flex:1;
 
+    padding:15px;
+
     border:none;
 
     border-radius:8px;
-
-    padding:15px 20px;
 
     background:#006b3c;
 
-    color:#fff;
+    color:white;
+
+    font-weight:bold;
 
     font-size:16px;
 
-    font-weight:700;
-
-    cursor:pointer;
-
 }
 
 
 
-#btnConferir:hover:not(:disabled){
-
-    background:#00552f;
-
-}
-
-
-
-#btnConferir:disabled {
+#btnConferir:disabled{
 
     background:#9ca3af;
 
-    cursor:not-allowed;
-
 }
 
 
 
-#btnLimpar {
+#btnLimpar{
 
-    width:180px;
+    padding:15px 25px;
 
     border:none;
 
     border-radius:8px;
 
-    padding:15px 20px;
-
     background:#dc2626;
 
-    color:#fff;
+    color:white;
 
-    font-size:16px;
-
-    font-weight:700;
-
-    cursor:pointer;
+    font-weight:bold;
 
 }
 
 
 
-#btnLimpar:hover {
-
-    background:#b91c1c;
-
-}
+/* STATUS */
 
 
-
-/* =========================
-   STATUS
-   ========================= */
-
-.status-sistema {
+.status-sistema{
 
     margin-top:15px;
-
-    padding:12px;
-
-    border-radius:8px;
-
-    background:#f3f4f6;
-
-    color:#374151;
-
-    font-size:14px;
-
-}
-
-
-
-.contador {
-
-    margin-top:8px;
-
-    font-size:13px;
 
     color:#6b7280;
 
@@ -328,19 +236,20 @@ body {
 
 
 
-/* =========================
-   RESUMO
-   ========================= */
+.contador{
 
-.resultado {
+    margin-top:8px;
 
-    animation: aparecer .25s ease;
+    font-weight:bold;
 
 }
 
 
 
-.resumo-grid {
+/* RESUMO */
+
+
+.resumo-grid{
 
     display:grid;
 
@@ -348,101 +257,92 @@ body {
 
     gap:15px;
 
-    margin-top:20px;
-
 }
 
 
 
-.resumo-item {
-
-    border-radius:10px;
+.resumo-item{
 
     padding:18px;
 
-    border:1px solid #e5e7eb;
+    border-radius:10px;
+
+    background:#fff;
+
+    border:1px solid #ddd;
 
 }
 
 
 
-.resumo-item span {
-
-    display:block;
-
-    font-size:13px;
-
-    font-weight:700;
-
-    margin-bottom:10px;
-
-}
-
-
-
-.resumo-item strong {
+.resumo-item strong{
 
     display:block;
 
     font-size:28px;
 
-}
-
-
-
-.resumo-item small {
-
-    color:#6b7280;
+    margin:10px 0;
 
 }
 
 
 
-.resumo-item.correto {
+.resumo-item small{
 
-    border-left:4px solid #16a34a;
-
-}
-
-
-
-.resumo-item.nao-lancada {
-
-    border-left:4px solid #dc2626;
+    color:#666;
 
 }
 
 
 
-.resumo-item.lancada-mais {
-
-    border-left:4px solid #f59e0b;
-
-}
+/* CORES */
 
 
+.resumo-item.correto{
 
-.resumo-item.valor-errado {
-
-    border-left:4px solid #ea580c;
+    border-left:5px solid #16a34a;
 
 }
 
 
 
-.resumo-item.autorizacao {
+.resumo-item.nao-lancada{
 
-    border-left:4px solid #7c3aed;
+    border-left:5px solid #dc2626;
 
 }
 
 
 
-/* =========================
-   TABELA
-   ========================= */
+.resumo-item.lancada-mais{
 
-.tabela-topo {
+    border-left:5px solid #f59e0b;
+
+}
+
+
+
+.resumo-item.valor-errado{
+
+    border-left:5px solid #ea580c;
+
+}
+
+
+
+.resumo-item.autorizacao{
+
+    border-left:5px solid #7c3aed;
+
+}
+
+
+
+
+/* TABELA */
+
+
+.tabela-topo{
 
     display:flex;
 
@@ -450,73 +350,57 @@ body {
 
     align-items:center;
 
-    margin-bottom:20px;
-
 }
 
 
 
-#btnExportar {
+#btnExportar{
+
+    background:#2563eb;
+
+    color:white;
 
     border:none;
 
+    padding:10px 18px;
+
     border-radius:7px;
 
-    padding:10px 16px;
-
-    background:#1d4ed8;
-
-    color:#fff;
-
-    font-weight:700;
-
-    cursor:pointer;
+    font-weight:bold;
 
 }
 
 
 
-#btnExportar:hover {
-
-    background:#1e40af;
-
-}
-
-
-
-/* FILTROS */
-
-.filtros {
+.filtros{
 
     display:flex;
 
-    flex-wrap:wrap;
-
     gap:8px;
 
-    margin-bottom:20px;
+    margin:20px 0;
+
+    flex-wrap:wrap;
 
 }
 
 
 
-.filtro {
+.filtro{
 
-    border:1px solid #d1d5db;
-
-    background:white;
-
-    padding:8px 13px;
+    padding:8px 14px;
 
     border-radius:7px;
 
-    cursor:pointer;
+    border:1px solid #ddd;
+
+    background:white;
 
 }
 
 
 
-.filtro.ativo {
+.filtro.ativo{
 
     background:#006b3c;
 
@@ -526,11 +410,7 @@ body {
 
 
 
-/* =========================
-   TABELA
-   ========================= */
-
-.tabela-container {
+.tabela-container{
 
     overflow-x:auto;
 
@@ -538,11 +418,11 @@ body {
 
 
 
-table {
+table{
 
     width:100%;
 
-    min-width:1100px;
+    min-width:1000px;
 
     border-collapse:collapse;
 
@@ -550,19 +430,11 @@ table {
 
 
 
-thead {
+th{
 
     background:#f3f4f6;
 
-}
-
-
-
-th {
-
-    padding:13px;
-
-    font-size:12px;
+    padding:12px;
 
     text-align:left;
 
@@ -570,45 +442,34 @@ th {
 
 
 
-td {
+td{
 
     padding:12px;
 
-    font-size:13px;
-
-    border-bottom:1px solid #e5e7eb;
+    border-bottom:1px solid #eee;
 
 }
 
 
 
-tbody tr:hover {
-
-    background:#f9fafb;
-
-}
+/* STATUS */
 
 
+.status{
 
-/* =========================
-   STATUS DA TABELA
-   ========================= */
-
-.status {
-
-    padding:5px 9px;
+    padding:5px 10px;
 
     border-radius:20px;
 
     font-size:11px;
 
-    font-weight:700;
+    font-weight:bold;
 
 }
 
 
 
-.status-correta {
+.status-correta{
 
     background:#dcfce7;
 
@@ -617,8 +478,7 @@ tbody tr:hover {
 }
 
 
-
-.status-nao-lancada {
+.status-nao-lancada{
 
     background:#fee2e2;
 
@@ -627,8 +487,7 @@ tbody tr:hover {
 }
 
 
-
-.status-lancada-mais {
+.status-lancada-mais{
 
     background:#fef3c7;
 
@@ -637,8 +496,7 @@ tbody tr:hover {
 }
 
 
-
-.status-valor-divergente {
+.status-valor-divergente{
 
     background:#ffedd5;
 
@@ -647,8 +505,7 @@ tbody tr:hover {
 }
 
 
-
-.status-autorizacao-divergente {
+.status-autorizacao-divergente{
 
     background:#ede9fe;
 
@@ -658,158 +515,45 @@ tbody tr:hover {
 
 
 
-/* =========================
-   VALORES
-   ========================= */
 
-.valor {
+.valor{
 
-    font-weight:700;
+    font-weight:bold;
 
 }
 
 
 
-.diferenca-positiva {
 
-    color:#dc2626;
-
-    font-weight:700;
-
-}
-
-
-
-.diferenca-negativa {
-
-    color:#2563eb;
-
-    font-weight:700;
-
-}
-
-
-
-.diferenca-zero {
-
-    color:#16a34a;
-
-    font-weight:700;
-
-}
-
-
-
-/* =========================
-   ANIMAÇÃO
-   ========================= */
-
-@keyframes aparecer {
-
-    from {
-
-        opacity:0;
-
-        transform:translateY(5px);
-
-    }
-
-
-    to {
-
-        opacity:1;
-
-        transform:translateY(0);
-
-    }
-
-}
-
-
-
-/* =========================
-   RODAPÉ
-   ========================= */
-
-footer {
+footer{
 
     text-align:center;
 
-    color:#9ca3af;
+    color:#999;
 
-    font-size:12px;
-
-    padding:10px 0 25px;
+    padding:20px;
 
 }
 
 
 
-/* =========================
-   RESPONSIVO
-   ========================= */
+
+@media(max-width:900px){
 
 
-@media(max-width:1100px){
+.resumo-grid{
 
-
-    .resumo-grid {
-
-        grid-template-columns:repeat(3,1fr);
-
-    }
-
+    grid-template-columns:1fr;
 
 }
 
 
 
-@media(max-width:700px){
+.botoes{
 
+    flex-direction:column;
 
-    .container {
-
-        padding:12px;
-
-    }
-
-
-    .botoes {
-
-        flex-direction:column;
-
-    }
-
-
-    #btnLimpar {
-
-        width:100%;
-
-    }
-
-
-    .resumo-grid {
-
-        grid-template-columns:1fr;
-
-    }
-
-
-    .tabela-topo {
-
-        flex-direction:column;
-
-        align-items:stretch;
-
-    }
-
-
-    #btnExportar {
-
-        width:100%;
-
-    }
+}
 
 
 }
-```
