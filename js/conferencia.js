@@ -27,7 +27,6 @@ Object.defineProperty(
 // BOTÃO CONFERIR
 // ==========================================
 
-
 document.addEventListener(
     "DOMContentLoaded",
     ()=>{
@@ -59,7 +58,6 @@ document.addEventListener(
 // INICIAR CONFERÊNCIA
 // ==========================================
 
-
 function iniciarConferencia(){
 
 
@@ -77,17 +75,19 @@ function iniciarConferencia(){
         premmia.length,
         interno.length
     );
-    
-console.log(
-    "PRIMEIRA PREMMIA:",
-    premmia[0]
-);
 
 
-console.log(
-    "PRIMEIRO INTERNO:",
-    interno[0]
-);
+    console.log(
+        "PRIMEIRA PREMMIA:",
+        premmia[0]
+    );
+
+
+    console.log(
+        "PRIMEIRO INTERNO:",
+        interno[0]
+    );
+
 
 
     if(
@@ -106,7 +106,6 @@ console.log(
 
 
     resultadosConferencia = [];
-
 
 
 
@@ -142,6 +141,7 @@ console.log(
 
             if(!chave){
 
+
                 resultadosConferencia.push(
 
                     criarResultado(
@@ -166,6 +166,7 @@ console.log(
 
 
 
+
             const encontrados =
                 indiceInterno[chave] || [];
 
@@ -178,6 +179,15 @@ console.log(
             if(
                 encontrados.length === 0
             ){
+
+
+                console.log(
+                    "NÃO ENCONTROU:",
+                    venda.autorizacao,
+                    "CHAVE:",
+                    chave
+                );
+
 
                 resultadosConferencia.push(
 
@@ -240,9 +250,12 @@ console.log(
 
 
 
+
+
             utilizados.add(
                 internoEncontrado._id
             );
+
 
 
 
@@ -261,6 +274,7 @@ console.log(
 
 
 
+
             const diferenca =
                 Number(
                     (
@@ -269,6 +283,8 @@ console.log(
                     )
                     .toFixed(2)
                 );
+
+
 
 
 
@@ -292,6 +308,7 @@ console.log(
                     )
 
                 );
+
 
 
             }else{
@@ -320,115 +337,106 @@ console.log(
 
 
 
+
         }
 
     );
 
-// ======================================
-// VERIFICA LANÇAMENTOS INTERNOS
-// QUE NÃO EXISTEM NO PREMMIA
-// ======================================
-
-
-interno.forEach(
-    item=>{
-
-
-        if(
-            utilizados.has(item._id)
-        ){
-
-            return;
-
-        }
 
 
 
-        const chave =
-            normalizarAutorizacao(
-                item.autorizacao
+
+    // ======================================
+    // VERIFICA LANÇAMENTOS INTERNOS
+    // ======================================
+
+
+    interno.forEach(
+        item=>{
+
+
+            if(
+                utilizados.has(item._id)
+            ){
+
+                return;
+
+            }
+
+
+
+
+            const chave =
+                normalizarAutorizacao(
+                    item.autorizacao
+                );
+
+
+
+            if(!chave){
+
+                return;
+
+            }
+
+
+
+
+
+            const existePremmia =
+                premmia.some(
+                    venda=>
+
+
+                        normalizarAutorizacao(
+                            venda.autorizacao
+                        ) === chave
+
+
+                );
+
+
+
+
+            if(existePremmia){
+
+                return;
+
+            }
+
+
+
+
+
+            resultadosConferencia.push(
+
+                criarResultado(
+
+                    "LANCADA_A_MAIS",
+
+                    null,
+
+                    item,
+
+                    "Lançamento encontrado somente no sistema interno."
+
+                )
+
             );
 
 
 
-        if(!chave){
-
-            return;
-
         }
 
+    );
 
 
 
-        const existePremmia =
-            premmia.some(
-                venda=>
-
-                    normalizarAutorizacao(
-                        venda.autorizacao
-                    ) === chave
-
-            );
-
-
-
-
-        // Se existe no Premmia,
-        // já foi conferido.
-        // Não considerar erro.
-
-        if(existePremmia){
-
-            return;
-
-        }
-
-
-
-
-        resultadosConferencia.push(
-
-            criarResultado(
-
-                "LANCADA_A_MAIS",
-
-                null,
-
-                item,
-
-                "Lançamento encontrado somente no sistema interno."
-
-            )
-
-        );
-
-
-
-    }
-
-);
-
-
-
-
-
-// ======================================
-// MOSTRA RESULTADO
-// ======================================
-
-
-mostrarResultados();
-
-
+    mostrarResultados();
 
 
 
 }
-
-
-
-
-
 // ==========================================
 // CRIA ÍNDICE POR AUTORIZAÇÃO
 // ==========================================
@@ -442,13 +450,16 @@ function criarIndice(lista){
         (item,index)=>{
 
 
-            item._id = index;
+            item._id =
+                index;
+
 
 
             const chave =
                 normalizarAutorizacao(
                     item.autorizacao
                 );
+
 
 
             if(!chave){
@@ -491,16 +502,34 @@ function criarIndice(lista){
 // NORMALIZAR AUTORIZAÇÃO
 // ==========================================
 
+function normalizarAutorizacao(valor){
 
-function normalizar(valor){
+
+    if(
+        valor === null ||
+        valor === undefined
+    ){
+
+        return "";
+
+    }
 
 
-    return String(
-        valor || ""
-    )
-    .trim()
-    .toUpperCase()
-    .replace(/\s/g,"");
+
+    return String(valor)
+
+        .trim()
+
+        .toUpperCase()
+
+        // remove espaços
+        .replace(/\s/g,"")
+
+        // remove .0 do Excel
+        .replace(/\.0$/,"")
+
+        // remove caracteres especiais
+        .replace(/[^\w]/g,"");
 
 
 }
@@ -509,11 +538,9 @@ function normalizar(valor){
 
 
 
-
 // ==========================================
 // CRIAR RESULTADO
 // ==========================================
-
 
 function criarResultado(
     status,
@@ -528,7 +555,6 @@ function criarResultado(
 
 
         status,
-
 
 
         data:
@@ -547,13 +573,10 @@ function criarResultado(
 
 
 
-
         cliente:
 
             premmia?.cliente ||
             "",
-
-
 
 
 
@@ -564,12 +587,10 @@ function criarResultado(
 
 
 
-
         autorizacaoInterno:
 
             interno?.autorizacao ||
             "",
-
 
 
 
@@ -580,7 +601,6 @@ function criarResultado(
 
 
 
-
         valorInterno:
 
             interno?.valor ??
@@ -588,9 +608,7 @@ function criarResultado(
 
 
 
-
         diferenca,
-
 
 
 
@@ -601,12 +619,10 @@ function criarResultado(
 
 
 
-
         filial:
 
             interno?.filial ||
             "",
-
 
 
 
@@ -618,7 +634,6 @@ function criarResultado(
 
 
 
-
         pagamento:
 
             premmia?.pagamento ||
@@ -626,19 +641,20 @@ function criarResultado(
 
 
 
-
         observacao
-
 
 
     };
 
-
 }
+
+
+
+
+
 // ==========================================
 // MOSTRAR RESULTADOS
 // ==========================================
-
 
 function mostrarResultados(){
 
@@ -647,6 +663,7 @@ function mostrarResultados(){
         document.getElementById(
             "resultado"
         );
+
 
 
     const tabela =
@@ -705,11 +722,9 @@ function mostrarResultados(){
 
 
 
-
 // ==========================================
-// ATUALIZAR RESUMO
+// RESUMO
 // ==========================================
-
 
 function atualizarResumo(){
 
@@ -732,17 +747,15 @@ function atualizarResumo(){
 
 
 
-
     resultadosConferencia.forEach(
-        resultado=>{
+        item=>{
 
 
             if(
-                total[resultado.status]
-                !== undefined
+                total[item.status] !== undefined
             ){
 
-                total[resultado.status]++;
+                total[item.status]++;
 
             }
 
@@ -753,13 +766,10 @@ function atualizarResumo(){
 
 
 
-
-
     alterarTexto(
         "totalCorretas",
         total.CORRETA
     );
-
 
 
     alterarTexto(
@@ -768,12 +778,10 @@ function atualizarResumo(){
     );
 
 
-
     alterarTexto(
         "totalLancadasMais",
         total.LANCADA_A_MAIS
     );
-
 
 
     alterarTexto(
@@ -782,16 +790,13 @@ function atualizarResumo(){
     );
 
 
-
     alterarTexto(
         "totalAutorizacao",
         total.AUTORIZACAO_DIVERGENTE
     );
 
 
-
 }
-
 
 
 
@@ -824,16 +829,11 @@ function alterarTexto(
 
 
 
-
-
 // ==========================================
 // RENDERIZAR TABELA
 // ==========================================
 
-
-function renderizarTabela(
-    lista
-){
+function renderizarTabela(lista){
 
 
     const corpo =
@@ -855,8 +855,6 @@ function renderizarTabela(
 
 
 
-
-
     lista.forEach(
         item=>{
 
@@ -870,89 +868,25 @@ function renderizarTabela(
 
             linha.innerHTML = `
 
+<td>${nomeStatus(item.status)}</td>
 
+<td>${item.data || "-"}</td>
 
-<td>
+<td>${item.hora || "-"}</td>
 
-${nomeStatus(item.status)}
+<td>${item.cliente || "-"}</td>
 
-</td>
+<td>${item.autorizacaoPremmia || "-"}</td>
 
+<td>${item.autorizacaoInterno || "-"}</td>
 
-<td>
+<td>${formatarMoeda(item.valorPremmia)}</td>
 
-${item.data || ""}
+<td>${formatarMoeda(item.valorInterno)}</td>
 
-</td>
+<td>${formatarMoeda(item.diferenca)}</td>
 
-
-<td>
-
-${item.hora || ""}
-
-</td>
-
-
-
-<td>
-
-${item.autorizacaoPremmia || "-"}
-
-</td>
-
-
-
-<td>
-
-${item.autorizacaoInterno || "-"}
-
-</td>
-
-
-
-
-<td>
-
-${formatarMoeda(
-    item.valorPremmia
-)}
-
-</td>
-
-
-
-
-<td>
-
-${formatarMoeda(
-    item.valorInterno
-)}
-
-</td>
-
-
-
-
-
-<td>
-
-${formatarMoeda(
-    item.diferenca
-)}
-
-</td>
-
-
-
-
-
-<td>
-
-${item.operador || item.filial || "-"}
-
-</td>
-
-
+<td>${item.operador || item.filial || "-"}</td>
 
             `;
 
@@ -974,11 +908,9 @@ ${item.operador || item.filial || "-"}
 
 
 
-
 // ==========================================
-// NOME STATUS
+// STATUS
 // ==========================================
-
 
 function nomeStatus(status){
 
@@ -1012,18 +944,15 @@ function nomeStatus(status){
 
     return nomes[status] || status;
 
-
 }
 
 
 
 
 
-
 // ==========================================
-// FORMATAR MOEDA
+// MOEDA
 // ==========================================
-
 
 function formatarMoeda(valor){
 
@@ -1056,70 +985,63 @@ function formatarMoeda(valor){
 
 
 
-
-
 // ==========================================
 // FILTROS
 // ==========================================
 
-
 document
 .querySelectorAll(".filtro")
 .forEach(
-    botao=>{
+botao=>{
 
 
-        botao.addEventListener(
-            "click",
-            ()=>{
+    botao.addEventListener(
+        "click",
+        ()=>{
 
 
-                const filtro =
-                    botao.dataset.filtro;
+            const filtro =
+                botao.dataset.filtro;
 
 
 
-                if(
-                    filtro === "TODOS"
-                ){
-
-                    renderizarTabela(
-                        resultadosConferencia
-                    );
-
-                    return;
-
-                }
-
-
+            if(
+                filtro === "TODOS"
+            ){
 
                 renderizarTabela(
-
-                    resultadosConferencia.filter(
-
-                        item=>
-
-                        item.status === filtro
-
-                    )
-
+                    resultadosConferencia
                 );
 
-
+                return;
 
             }
 
-        );
 
 
-    }
+            renderizarTabela(
 
-);
+                resultadosConferencia.filter(
+
+                    item=>
+                    item.status === filtro
+
+                )
+
+            );
+
+
+        }
+
+    );
+
+
+});
 
 
 
 
 
 console.log(
-    "conferencia.js carregado"
+    "conferencia.js carregado - versão corrigida"
 );
