@@ -773,3 +773,92 @@ corpo.appendChild(tr);
 console.log(
 "conferencia.js carregado"
 );
+// ==========================================
+// ATIVA BOTÃO CONFERIR
+// ==========================================
+
+function ativarBotaoConferir(){
+
+
+    const btn =
+    document.getElementById(
+        "btnConferir"
+    );
+
+
+
+    if(!btn){
+
+        console.log(
+            "Botão conferir não encontrado"
+        );
+
+        return;
+
+    }
+
+
+
+    // remove eventos antigos
+
+    btn.onclick = null;
+
+
+
+    btn.onclick = function(){
+
+
+        console.log(
+            "Botão Conferir clicado"
+        );
+
+
+        iniciarConferencia();
+
+
+    };
+
+
+
+    console.log(
+        "Botão Conferir ativado"
+    );
+
+
+}
+
+
+
+
+
+// ==========================================
+// INICIALIZAÇÃO
+// ==========================================
+
+
+if(
+    document.readyState === "loading"
+){
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        ativarBotaoConferir
+    );
+
+
+}else{
+
+
+    ativarBotaoConferir();
+
+
+}
+
+
+
+
+
+console.log(
+"conferencia.js pronto"
+);
