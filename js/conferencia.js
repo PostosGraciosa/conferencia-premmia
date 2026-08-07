@@ -862,3 +862,38 @@ if(
 console.log(
 "conferencia.js pronto"
 );
+
+
+
+
+// ==========================================
+// INICIALIZAÇÃO
+// ==========================================
+
+
+if(
+    document.readyState === "loading"
+){
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        ativarBotaoConferir
+    );
+
+
+}else{
+
+
+    ativarBotaoConferir();
+
+
+}
+
+
+
+
+
+console.log(
+"conferencia.js pronto"
+);
