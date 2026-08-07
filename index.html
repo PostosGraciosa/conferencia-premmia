@@ -1,0 +1,281 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Conferência Premmia</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- CABEÇALHO -->
+        <header class="header">
+
+            <div class="logo-area">
+                <h1>CONFERÊNCIA PREMMIA</h1>
+                <p>Conferência de vendas e lançamentos</p>
+            </div>
+
+        </header>
+
+
+        <!-- IMPORTAÇÃO DAS PLANILHAS -->
+        <section class="card">
+
+            <h2>📂 Importar arquivos</h2>
+
+            <p class="descricao">
+                Selecione a planilha do Portal Premmia e a planilha
+                de lançamentos do sistema interno.
+            </p>
+
+
+            <!-- PORTAL PREMMIA -->
+            <div class="arquivo">
+
+                <label for="arquivoPremmia">
+                    Planilha do Portal Premmia
+                </label>
+
+                <input
+                    type="file"
+                    id="arquivoPremmia"
+                    accept=".xlsx,.xls,.csv"
+                >
+
+                <span id="nomePremmia">
+                    Nenhum arquivo selecionado
+                </span>
+
+            </div>
+
+
+            <!-- SISTEMA INTERNO -->
+            <div class="arquivo">
+
+                <label for="arquivoInterno">
+                    Planilha do Sistema Interno
+                </label>
+
+                <input
+                    type="file"
+                    id="arquivoInterno"
+                    accept=".xlsx,.xls,.csv"
+                >
+
+                <span id="nomeInterno">
+                    Nenhum arquivo selecionado
+                </span>
+
+            </div>
+
+
+            <!-- BOTÃO -->
+            <button
+                type="button"
+                id="btnConferir"
+                disabled
+            >
+                🔍 CONFERIR VENDAS
+            </button>
+
+        </section>
+
+
+        <!-- RESUMO -->
+        <section
+            class="card resultado"
+            id="resultado"
+            style="display: none;"
+        >
+
+            <h2>📊 Resultado da Conferência</h2>
+
+
+            <div class="resumo-grid">
+
+                <div class="resumo-item correto">
+                    <span>Corretas</span>
+                    <strong id="totalCorretas">0</strong>
+                    <small id="valorCorretas">R$ 0,00</small>
+                </div>
+
+
+                <div class="resumo-item nao-lancada">
+                    <span>Não lançadas</span>
+                    <strong id="totalNaoLancadas">0</strong>
+                    <small id="valorNaoLancadas">R$ 0,00</small>
+                </div>
+
+
+                <div class="resumo-item lancada-mais">
+                    <span>Lançadas a mais</span>
+                    <strong id="totalLancadasMais">0</strong>
+                    <small id="valorLancadasMais">R$ 0,00</small>
+                </div>
+
+
+                <div class="resumo-item valor-errado">
+                    <span>Valor divergente</span>
+                    <strong id="totalValorErrado">0</strong>
+                    <small id="valorValorErrado">R$ 0,00</small>
+                </div>
+
+
+                <div class="resumo-item autorizacao">
+                    <span>Autorização divergente</span>
+                    <strong id="totalAutorizacao">0</strong>
+                    <small id="valorAutorizacao">R$ 0,00</small>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- TABELA -->
+        <section
+            class="card tabela-card"
+            id="tabelaResultado"
+            style="display: none;"
+        >
+
+            <div class="tabela-topo">
+
+                <h2>📋 Detalhamento</h2>
+
+                <button
+                    type="button"
+                    id="btnExportar"
+                >
+                    ⬇ Exportar Excel
+                </button>
+
+            </div>
+
+
+            <div class="filtros">
+
+                <button
+                    type="button"
+                    class="filtro ativo"
+                    data-filtro="TODOS"
+                >
+                    Todos
+                </button>
+
+                <button
+                    type="button"
+                    class="filtro"
+                    data-filtro="CORRETA"
+                >
+                    Corretas
+                </button>
+
+                <button
+                    type="button"
+                    class="filtro"
+                    data-filtro="NAO_LANCADA"
+                >
+                    Não lançadas
+                </button>
+
+                <button
+                    type="button"
+                    class="filtro"
+                    data-filtro="LANCADA_A_MAIS"
+                >
+                    Lançadas a mais
+                </button>
+
+                <button
+                    type="button"
+                    class="filtro"
+                    data-filtro="VALOR_DIVERGENTE"
+                >
+                    Valor divergente
+                </button>
+
+                <button
+                    type="button"
+                    class="filtro"
+                    data-filtro="AUTORIZACAO_DIVERGENTE"
+                >
+                    Autorização divergente
+                </button>
+
+            </div>
+
+
+            <div class="tabela-container">
+
+                <table id="tabela">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Status</th>
+
+                            <th>Data</th>
+
+                            <th>Hora</th>
+
+                            <th>Autorização Premmia</th>
+
+                            <th>Autorização Interno</th>
+
+                            <th>Valor Premmia</th>
+
+                            <th>Valor Interno</th>
+
+                            <th>Diferença</th>
+
+                            <th>Operador</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="corpoTabela">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- RODAPÉ -->
+        <footer>
+
+            Conferência Premmia
+
+        </footer>
+
+    </div>
+
+
+    <!-- BIBLIOTECA PARA EXCEL -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+
+    <!-- JAVASCRIPT DO SISTEMA -->
+    <script src="js/leituraExcel.js"></script>
+    <script src="js/conferencia.js"></script>
+    <script src="js/exportar.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+
+</html>
+```
