@@ -3,277 +3,639 @@
 <html lang="pt-BR">
 
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Conferência Premmia</title>
 
     <link rel="stylesheet" href="css/style.css">
+
 </head>
+
 
 <body>
 
-    <div class="container">
 
-        <!-- CABEÇALHO -->
-        <header class="header">
-
-            <div class="logo-area">
-                <h1>CONFERÊNCIA PREMMIA</h1>
-                <p>Conferência de vendas e lançamentos</p>
-            </div>
-
-        </header>
+<div class="container">
 
 
-        <!-- IMPORTAÇÃO DAS PLANILHAS -->
-        <section class="card">
+    <!-- =============================== -->
+    <!-- CABEÇALHO -->
+    <!-- =============================== -->
 
-            <h2>📂 Importar arquivos</h2>
+    <header class="header">
 
-            <p class="descricao">
-                Selecione a planilha do Portal Premmia e a planilha
-                de lançamentos do sistema interno.
+        <div class="logo-area">
+
+            <h1>
+                CONFERÊNCIA PREMMIA
+            </h1>
+
+            <p>
+                Conferência de vendas e lançamentos
             </p>
 
+        </div>
 
-            <!-- PORTAL PREMMIA -->
-            <div class="arquivo">
-
-                <label for="arquivoPremmia">
-                    Planilha do Portal Premmia
-                </label>
-
-                <input
-                    type="file"
-                    id="arquivoPremmia"
-                    accept=".xlsx,.xls,.csv"
-                >
-
-                <span id="nomePremmia">
-                    Nenhum arquivo selecionado
-                </span>
-
-            </div>
+    </header>
 
 
-            <!-- SISTEMA INTERNO -->
-            <div class="arquivo">
 
-                <label for="arquivoInterno">
-                    Planilha do Sistema Interno
-                </label>
+    <!-- =============================== -->
+    <!-- IMPORTAÇÃO -->
+    <!-- =============================== -->
 
-                <input
-                    type="file"
-                    id="arquivoInterno"
-                    accept=".xlsx,.xls,.csv"
-                >
-
-                <span id="nomeInterno">
-                    Nenhum arquivo selecionado
-                </span>
-
-            </div>
+    <section class="card">
 
 
-            <!-- BOTÃO -->
-            <button
-                type="button"
-                id="btnConferir"
-                disabled
+        <h2>
+            📂 Importar arquivos
+        </h2>
+
+
+        <p class="descricao">
+
+            Selecione a planilha do Portal Premmia
+            e a planilha de lançamentos do sistema interno.
+
+        </p>
+
+
+
+        <!-- PREMMIA -->
+
+        <div class="arquivo">
+
+
+            <label for="arquivoPremmia">
+
+                Planilha do Portal Premmia
+
+            </label>
+
+
+            <input
+
+                type="file"
+
+                id="arquivoPremmia"
+
+                accept=".xlsx,.xls,.csv"
+
             >
+
+
+            <span id="nomePremmia">
+
+                Nenhum arquivo selecionado
+
+            </span>
+
+
+        </div>
+
+
+
+
+        <!-- INTERNO -->
+
+        <div class="arquivo">
+
+
+            <label for="arquivoInterno">
+
+                Planilha do Sistema Interno
+
+            </label>
+
+
+            <input
+
+                type="file"
+
+                id="arquivoInterno"
+
+                accept=".xlsx,.xls,.csv"
+
+            >
+
+
+            <span id="nomeInterno">
+
+                Nenhum arquivo selecionado
+
+            </span>
+
+
+        </div>
+
+
+
+
+        <!-- BOTÕES -->
+
+        <div class="botoes">
+
+
+            <button
+
+                type="button"
+
+                id="btnConferir"
+
+                disabled
+
+            >
+
                 🔍 CONFERIR VENDAS
+
             </button>
 
-        </section>
 
 
-        <!-- RESUMO -->
-        <section
-            class="card resultado"
-            id="resultado"
-            style="display: none;"
+            <button
+
+                type="button"
+
+                id="btnLimpar"
+
+            >
+
+                🗑 LIMPAR
+
+            </button>
+
+
+        </div>
+
+
+
+
+        <p
+
+            id="statusSistema"
+
+            class="status-sistema"
+
         >
 
-            <h2>📊 Resultado da Conferência</h2>
+            Aguardando carregamento das planilhas.
+
+        </p>
 
 
-            <div class="resumo-grid">
 
-                <div class="resumo-item correto">
-                    <span>Corretas</span>
-                    <strong id="totalCorretas">0</strong>
-                    <small id="valorCorretas">R$ 0,00</small>
-                </div>
+        <p
 
+            id="contadorDados"
 
-                <div class="resumo-item nao-lancada">
-                    <span>Não lançadas</span>
-                    <strong id="totalNaoLancadas">0</strong>
-                    <small id="valorNaoLancadas">R$ 0,00</small>
-                </div>
+            class="contador"
 
-
-                <div class="resumo-item lancada-mais">
-                    <span>Lançadas a mais</span>
-                    <strong id="totalLancadasMais">0</strong>
-                    <small id="valorLancadasMais">R$ 0,00</small>
-                </div>
-
-
-                <div class="resumo-item valor-errado">
-                    <span>Valor divergente</span>
-                    <strong id="totalValorErrado">0</strong>
-                    <small id="valorValorErrado">R$ 0,00</small>
-                </div>
-
-
-                <div class="resumo-item autorizacao">
-                    <span>Autorização divergente</span>
-                    <strong id="totalAutorizacao">0</strong>
-                    <small id="valorAutorizacao">R$ 0,00</small>
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- TABELA -->
-        <section
-            class="card tabela-card"
-            id="tabelaResultado"
-            style="display: none;"
         >
 
-            <div class="tabela-topo">
-
-                <h2>📋 Detalhamento</h2>
-
-                <button
-                    type="button"
-                    id="btnExportar"
-                >
-                    ⬇ Exportar Excel
-                </button>
-
-            </div>
+        </p>
 
 
-            <div class="filtros">
 
-                <button
-                    type="button"
-                    class="filtro ativo"
-                    data-filtro="TODOS"
-                >
-                    Todos
-                </button>
+    </section>
 
-                <button
-                    type="button"
-                    class="filtro"
-                    data-filtro="CORRETA"
-                >
+
+
+
+
+    <!-- =============================== -->
+    <!-- RESULTADO RESUMO -->
+    <!-- =============================== -->
+
+
+    <section
+
+        class="card resultado"
+
+        id="resultado"
+
+        style="display:none;"
+
+    >
+
+
+        <h2>
+
+            📊 Resultado da Conferência
+
+        </h2>
+
+
+
+        <div class="resumo-grid">
+
+
+
+            <div class="resumo-item correto">
+
+                <span>
+
                     Corretas
-                </button>
 
-                <button
-                    type="button"
-                    class="filtro"
-                    data-filtro="NAO_LANCADA"
-                >
+                </span>
+
+                <strong id="totalCorretas">
+
+                    0
+
+                </strong>
+
+                <small id="valorCorretas">
+
+                    R$ 0,00
+
+                </small>
+
+            </div>
+
+
+
+
+            <div class="resumo-item nao-lancada">
+
+
+                <span>
+
                     Não lançadas
-                </button>
 
-                <button
-                    type="button"
-                    class="filtro"
-                    data-filtro="LANCADA_A_MAIS"
-                >
+                </span>
+
+
+                <strong id="totalNaoLancadas">
+
+                    0
+
+                </strong>
+
+
+                <small id="valorNaoLancadas">
+
+                    R$ 0,00
+
+                </small>
+
+
+            </div>
+
+
+
+
+
+            <div class="resumo-item lancada-mais">
+
+
+                <span>
+
                     Lançadas a mais
-                </button>
 
-                <button
-                    type="button"
-                    class="filtro"
-                    data-filtro="VALOR_DIVERGENTE"
-                >
+                </span>
+
+
+                <strong id="totalLancadasMais">
+
+                    0
+
+                </strong>
+
+
+                <small id="valorLancadasMais">
+
+                    R$ 0,00
+
+                </small>
+
+
+            </div>
+
+
+
+
+
+            <div class="resumo-item valor-errado">
+
+
+                <span>
+
                     Valor divergente
-                </button>
 
-                <button
-                    type="button"
-                    class="filtro"
-                    data-filtro="AUTORIZACAO_DIVERGENTE"
-                >
+                </span>
+
+
+                <strong id="totalValorErrado">
+
+                    0
+
+                </strong>
+
+
+                <small id="valorValorErrado">
+
+                    R$ 0,00
+
+                </small>
+
+
+            </div>
+
+
+
+
+
+            <div class="resumo-item autorizacao">
+
+
+                <span>
+
                     Autorização divergente
-                </button>
+
+                </span>
+
+
+                <strong id="totalAutorizacao">
+
+                    0
+
+                </strong>
+
+
+                <small id="valorAutorizacao">
+
+                    R$ 0,00
+
+                </small>
+
 
             </div>
 
 
-            <div class="tabela-container">
 
-                <table id="tabela">
-
-                    <thead>
-
-                        <tr>
-
-                            <th>Status</th>
-
-                            <th>Data</th>
-
-                            <th>Hora</th>
-
-                            <th>Autorização Premmia</th>
-
-                            <th>Autorização Interno</th>
-
-                            <th>Valor Premmia</th>
-
-                            <th>Valor Interno</th>
-
-                            <th>Diferença</th>
-
-                            <th>Operador</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody id="corpoTabela">
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </section>
+        </div>
 
 
-        <!-- RODAPÉ -->
-        <footer>
-
-            Conferência Premmia
-
-        </footer>
-
-    </div>
+    </section>
 
 
-    <!-- BIBLIOTECA PARA EXCEL -->
+
+
+
+
+
+    <!-- =============================== -->
+    <!-- TABELA -->
+    <!-- =============================== -->
+
+
+    <section
+
+        class="card tabela-card"
+
+        id="tabelaResultado"
+
+        style="display:none;"
+
+    >
+
+
+
+        <div class="tabela-topo">
+
+
+            <h2>
+
+                📋 Detalhamento
+
+            </h2>
+
+
+
+            <button
+
+                type="button"
+
+                id="btnExportar"
+
+            >
+
+                ⬇ Exportar Excel
+
+            </button>
+
+
+        </div>
+
+
+
+
+
+        <!-- FILTROS -->
+
+
+        <div class="filtros">
+
+
+            <button
+
+                class="filtro ativo"
+
+                data-filtro="TODOS"
+
+            >
+
+                Todos
+
+            </button>
+
+
+
+            <button
+
+                class="filtro"
+
+                data-filtro="CORRETA"
+
+            >
+
+                Corretas
+
+            </button>
+
+
+
+
+            <button
+
+                class="filtro"
+
+                data-filtro="NAO_LANCADA"
+
+            >
+
+                Não lançadas
+
+            </button>
+
+
+
+
+            <button
+
+                class="filtro"
+
+                data-filtro="LANCADA_A_MAIS"
+
+            >
+
+                Lançadas a mais
+
+            </button>
+
+
+
+
+            <button
+
+                class="filtro"
+
+                data-filtro="VALOR_DIVERGENTE"
+
+            >
+
+                Valor divergente
+
+            </button>
+
+
+
+
+            <button
+
+                class="filtro"
+
+                data-filtro="AUTORIZACAO_DIVERGENTE"
+
+            >
+
+                Autorização divergente
+
+            </button>
+
+
+
+        </div>
+
+
+
+
+
+
+
+        <div class="tabela-container">
+
+
+            <table id="tabela">
+
+
+                <thead>
+
+
+                    <tr>
+
+
+                        <th>Status</th>
+
+                        <th>Data</th>
+
+                        <th>Hora</th>
+
+                        <th>Autorização Premmia</th>
+
+                        <th>Autorização Interno</th>
+
+                        <th>Valor Premmia</th>
+
+                        <th>Valor Interno</th>
+
+                        <th>Diferença</th>
+
+                        <th>Operador</th>
+
+
+                    </tr>
+
+
+                </thead>
+
+
+
+                <tbody id="corpoTabela">
+
+
+                </tbody>
+
+
+
+            </table>
+
+
+        </div>
+
+
+    </section>
+
+
+
+
+
+
+    <!-- =============================== -->
+    <!-- RODAPÉ -->
+    <!-- =============================== -->
+
+
+    <footer>
+
+        Conferência Premmia
+
+    </footer>
+
+
+
+
+</div>
+
+
+
+
+
+<!-- =============================== -->
+<!-- BIBLIOTECA EXCEL -->
+<!-- =============================== -->
+
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 
-<!-- JAVASCRIPT DO SISTEMA -->
+
+
+<!-- =============================== -->
+<!-- SISTEMA -->
+<!-- =============================== -->
+
+
 <script src="js/app.js"></script>
+
 <script src="js/leituraExcel.js"></script>
+
 <script src="js/conferencia.js"></script>
+
 <script src="js/exportar.js"></script>
+
+
 
 </body>
 
