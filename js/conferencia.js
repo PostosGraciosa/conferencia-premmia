@@ -1,320 +1,199 @@
 // ==========================================
 // CONFERÊNCIA PREMMIA
-// conferencia.js
+// leituraExcel.js
+// Leitura simplificada
 // ==========================================
 
 
+const arquivoPremmia =
+document.getElementById("arquivoPremmia");
+
+
+const arquivoInterno =
+document.getElementById("arquivoInterno");
+
+
+const nomePremmia =
+document.getElementById("nomePremmia");
+
+
+const nomeInterno =
+document.getElementById("nomeInterno");
+
+
+
+let dadosPremmia = [];
+let dadosInterno = [];
+
+
+
+
 // ==========================================
-// VARIÁVEL PRINCIPAL
+// PORTAL PREMMIA
 // ==========================================
 
-let resultadosConferencia = [];
+if(arquivoPremmia){
+
+arquivoPremmia.addEventListener(
+"change",
+function(){
+
+if(this.files.length){
+
+nomePremmia.textContent =
+"Arquivo selecionado: " + this.files[0].name;
 
 
-// Mantém sempre atualizado para exportar
-Object.defineProperty(
-    window,
-    "resultadosConferencia",
-    {
-        get:function(){
-            return resultadosConferencia;
-        }
-    }
+lerArquivo(
+this.files[0],
+"premmia"
+);
+
+}
+
+});
+
+}
+
+
+
+
+// ==========================================
+// SISTEMA INTERNO
+// ==========================================
+
+if(arquivoInterno){
+
+arquivoInterno.addEventListener(
+"change",
+function(){
+
+if(this.files.length){
+
+nomeInterno.textContent =
+"Arquivo selecionado: " + this.files[0].name;
+
+
+lerArquivo(
+this.files[0],
+"interno"
+);
+
+}
+
+});
+
+}
+
+
+
+
+// ==========================================
+// LEITURA EXCEL
+// ==========================================
+
+function lerArquivo(file,tipo){
+
+
+const reader =
+new FileReader();
+
+
+
+reader.onload=function(e){
+
+
+const dados =
+new Uint8Array(
+e.target.result
 );
 
 
-// ==========================================
-// BOTÃO CONFERIR
-// ==========================================
 
-document.addEventListener(
-    "DOMContentLoaded",
-    function(){
-
-        const btn =
-            document.getElementById(
-                "btnConferir"
-            );
-
-
-        if(btn){
-
-            btn.addEventListener(
-                "click",
-                iniciarConferencia
-            );
-
-        }
-
-    }
+const workbook =
+XLSX.read(
+dados,
+{
+type:"array"
+}
 );
 
 
 
-// ==========================================
-// INICIAR CONFERÊNCIA
-// ==========================================
+const aba =
+workbook.SheetNames[0];
 
-function iniciarConferencia(){
 
+const planilha =
+workbook.Sheets[aba];
 
-    const premmia =
-        window.dadosPremmia || [];
 
 
-    const interno =
-        window.dadosInterno || [];
+const linhas =
+XLSX.utils.sheet_to_json(
+planilha,
+{
+header:1,
+defval:""
+}
+);
 
 
 
-    if(
-        premmia.length === 0 ||
-        interno.length === 0
-    ){
+if(tipo==="premmia"){
 
-        alert(
-            "Carregue as duas planilhas antes de conferir."
-        );
 
-        return;
+dadosPremmia =
+transformarPremmia(
+linhas
+);
 
-    }
 
+window.dadosPremmia =
+dadosPremmia;
 
 
-    resultadosConferencia = [];
 
+console.log(
+"Premmia:",
+dadosPremmia
+);
 
 
-    const indiceInterno =
-        criarIndice(
-            interno
-        );
+}
+else{
 
 
+dadosInterno =
+transformarInterno(
+linhas
+);
 
-    const utilizados =
-        new Set();
 
 
+window.dadosInterno =
+dadosInterno;
 
-    // ======================================
-    // ANALISA PREMMIA
-    // ======================================
 
 
-    premmia.forEach(
-        item => {
+console.log(
+"Interno:",
+dadosInterno
+);
 
 
-            const chave =
-                normalizar(
-                    item.autorizacao
-                );
+}
 
 
 
-            if(!chave){
+atualizarContador();
 
-                resultadosConferencia.push(
 
-                    criarResultado(
-                        "AUTORIZACAO_DIVERGENTE",
-                        item,
-                        null,
-                        "Premmia sem autorização."
-                    )
+};
 
-                );
 
-                return;
 
-            }
-
-
-
-            const encontrados =
-                indiceInterno[chave] || [];
-
-
-
-            if(
-                encontrados.length === 0
-            ){
-
-                resultadosConferencia.push(
-
-                    criarResultado(
-                        "NAO_LANCADA",
-                        item,
-                        null,
-                        "Venda não encontrada no sistema interno."
-                    )
-
-                );
-
-
-                return;
-
-            }
-
-
-
-            let internoEncontrado =
-                null;
-
-
-
-            for(
-                let registro of encontrados
-            ){
-
-                if(
-                    !utilizados.has(
-                        registro._id
-                    )
-                ){
-
-                    internoEncontrado =
-                        registro;
-
-                    break;
-
-                }
-
-            }
-
-
-
-            if(!internoEncontrado){
-
-
-                resultadosConferencia.push(
-
-                    criarResultado(
-                        "LANCADA_A_MAIS",
-                        null,
-                        encontrados[0],
-                        "Existe lançamento duplicado no sistema interno."
-                    )
-
-                );
-
-
-                return;
-
-            }
-
-
-
-            utilizados.add(
-                internoEncontrado._id
-            );
-
-
-
-            const valorPremmia =
-                Number(item.valor || 0);
-
-
-
-            const valorInterno =
-                Number(internoEncontrado.valor || 0);
-
-
-
-            const diferenca =
-                Number(
-                    (
-                        valorPremmia -
-                        valorInterno
-                    ).toFixed(2)
-                );
-
-
-
-            if(
-                Math.abs(diferenca) < 0.01
-            ){
-
-
-                resultadosConferencia.push(
-
-                    criarResultado(
-                        "CORRETA",
-                        item,
-                        internoEncontrado,
-                        "Venda conferida corretamente."
-                    )
-
-                );
-
-
-            }else{
-
-
-                resultadosConferencia.push(
-
-                    criarResultado(
-                        "VALOR_DIVERGENTE",
-                        item,
-                        internoEncontrado,
-                        "Autorização encontrada, porém valor diferente.",
-                        diferenca
-                    )
-
-                );
-
-
-            }
-
-
-        }
-
-    );
-
-
-
-
-    // ======================================
-    // PROCURA LANÇAMENTOS A MAIS
-    // ======================================
-
-
-    interno.forEach(
-
-        item=>{
-
-
-            if(
-                utilizados.has(item._id)
-            ){
-
-                return;
-
-            }
-
-
-
-            resultadosConferencia.push(
-
-                criarResultado(
-                    "LANCADA_A_MAIS",
-                    null,
-                    item,
-                    "Existe lançamento no sistema interno sem venda Premmia."
-                )
-
-            );
-
-
-        }
-
-    );
-
-
-
-    mostrarResultados();
+reader.readAsArrayBuffer(file);
 
 
 }
@@ -323,226 +202,168 @@ function iniciarConferencia(){
 
 
 // ==========================================
-// CRIA ÍNDICE
+// TRANSFORMA PORTAL PREMMIA
 // ==========================================
 
-function criarIndice(lista){
+function transformarPremmia(linhas){
 
 
-    const indice = {};
+let registros=[];
 
 
-
-    lista.forEach(
-
-        (item,index)=>{
+linhas.forEach(
+(linha,index)=>{
 
 
-            item._id =
-                index;
-
-
-
-            const chave =
-                normalizar(
-                    item.autorizacao
-                );
+let texto =
+linha
+.map(normalizarTexto)
+.join(" ");
 
 
 
-            if(!chave){
+if(
+texto.includes("cpf") &&
+texto.includes("nome")
+){
 
-                return;
+return;
 
-            }
-
-
-
-            if(
-                !indice[chave]
-            ){
-
-                indice[chave]=[];
-
-            }
+}
 
 
 
-            indice[chave].push(
-                item
-            );
+let registro={
 
 
-        }
+cpf:
+limpar(linha[0]),
 
-    );
+
+nome:
+limpar(linha[1]),
 
 
-    return indice;
+
+valor:
+converterValor(linha[3]),
+
+
+
+autorizacao:
+limpar(linha[5])
+
+
+};
+
+
+
+if(
+registro.autorizacao &&
+registro.valor!==null
+){
+
+registro._id=index;
+
+registros.push(
+registro
+);
+
+}
+
+
+});
+
+
+return registros;
 
 }
 
 
 
 
+
 // ==========================================
-// NORMALIZA AUTORIZAÇÃO
+// TRANSFORMA SISTEMA INTERNO
 // ==========================================
 
-function normalizar(valor){
+function transformarInterno(linhas){
 
 
-    return String(
-        valor || ""
-    )
-    .trim()
-    .toUpperCase()
-    .replace(/\s/g,"");
+let registros=[];
 
+
+linhas.forEach(
+(linha,index)=>{
+
+
+let texto =
+linha
+.map(normalizarTexto)
+.join(" ");
+
+
+
+if(
+texto.includes("administradora") &&
+texto.includes("autorizacao")
+){
+
+return;
 
 }
 
 
 
+let registro={
 
 
-// ==========================================
-// CRIA RESULTADO
-// ==========================================
 
-function criarResultado(
-    status,
-    premmia,
-    interno,
-    observacao,
-    diferenca=0
+valor:
+converterValor(
+linha[1]
+),
+
+
+
+pdv:
+limpar(
+linha[8]
+),
+
+
+
+autorizacao:
+limpar(
+linha[12]
+)
+
+
+};
+
+
+
+if(
+registro.autorizacao &&
+registro.valor!==null
 ){
 
 
-    return {
+registro._id=index;
 
 
-        status,
-
-
-        data:
-            premmia?.data ||
-            interno?.data ||
-            "",
-
-
-        hora:
-            premmia?.hora ||
-            interno?.hora ||
-            "",
-
-
-
-        cliente:
-            premmia?.cliente ||
-            "",
-
-
-
-        autorizacaoPremmia:
-            premmia?.autorizacao ||
-            "",
-
-
-
-        autorizacaoInterno:
-            interno?.autorizacao ||
-            "",
-
-
-
-        valorPremmia:
-            premmia?.valor ?? null,
-
-
-
-        valorInterno:
-            interno?.valor ?? null,
-
-
-
-        diferenca,
-
-
-
-        operador:
-            interno?.operador ||
-            "",
-
-
-
-        tipo:
-            premmia?.operacao ||
-            interno?.tipo ||
-            "",
-
-
-
-        pagamento:
-            premmia?.pagamento ||
-            "",
-
-
-
-        observacao
-
-
-    };
+registros.push(
+registro
+);
 
 
 }
 
 
+});
 
 
-
-// ==========================================
-// MOSTRAR RESULTADOS
-// ==========================================
-
-function mostrarResultados(){
-
-
-    const resultado =
-        document.getElementById(
-            "resultado"
-        );
-
-
-    const tabela =
-        document.getElementById(
-            "tabelaResultado"
-        );
-
-
-
-    if(resultado)
-        resultado.style.display="block";
-
-
-    if(tabela)
-        tabela.style.display="block";
-
-
-
-    atualizarResumo();
-
-
-    if(
-        typeof renderizarTabela === "function"
-    ){
-
-        renderizarTabela(
-            resultadosConferencia
-        );
-
-    }
-
+return registros;
 
 }
 
@@ -552,59 +373,114 @@ function mostrarResultados(){
 
 
 // ==========================================
-// RESUMO
+// CONTADOR
 // ==========================================
 
-function atualizarResumo(){
+function atualizarContador(){
 
 
-    const total={
-
-        CORRETA:0,
-        NAO_LANCADA:0,
-        LANCADA_A_MAIS:0,
-        VALOR_DIVERGENTE:0,
-        AUTORIZACAO_DIVERGENTE:0
-
-    };
+const campo =
+document.getElementById(
+"contadorDados"
+);
 
 
 
-    resultadosConferencia.forEach(
-
-        r=>{
-
-            if(total[r.status]!==undefined){
-
-                total[r.status]++;
-
-            }
-
-        }
-
-    );
+if(campo){
 
 
+campo.innerHTML =
+`
+Premmia: ${dadosPremmia.length} registros |
+Interno: ${dadosInterno.length} registros
+`;
 
-    document.getElementById("totalCorretas").innerHTML =
-        total.CORRETA;
-
-
-    document.getElementById("totalNaoLancadas").innerHTML =
-        total.NAO_LANCADA;
-
-
-    document.getElementById("totalLancadasMais").innerHTML =
-        total.LANCADA_A_MAIS;
-
-
-    document.getElementById("totalValorErrado").innerHTML =
-        total.VALOR_DIVERGENTE;
-
-
-    document.getElementById("totalAutorizacao").innerHTML =
-        total.AUTORIZACAO_DIVERGENTE;
-
+}
 
 
 }
+
+
+
+
+
+// ==========================================
+// UTILIDADES
+// ==========================================
+
+function limpar(valor){
+
+return String(
+valor ?? ""
+)
+.trim();
+
+}
+
+
+
+function normalizarTexto(valor){
+
+return limpar(valor)
+.toLowerCase()
+.normalize("NFD")
+.replace(/[\u0300-\u036f]/g,"");
+
+}
+
+
+
+function converterValor(valor){
+
+
+if(
+valor===null ||
+valor===undefined ||
+valor===""
+){
+
+return null;
+
+}
+
+
+
+if(typeof valor==="number"){
+
+return Number(
+valor.toFixed(2)
+);
+
+}
+
+
+
+let texto =
+String(valor)
+.replace(/\./g,"")
+.replace(",",".")
+.trim();
+
+
+
+let numero =
+Number(texto);
+
+
+
+return isNaN(numero)
+?
+null
+:
+Number(
+numero.toFixed(2)
+);
+
+
+}
+
+
+
+console.log(
+"leituraExcel.js carregado"
+);
