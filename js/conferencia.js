@@ -1,184 +1,296 @@
 // ==========================================
 // CONFERÊNCIA PREMMIA
-// leituraExcel.js
-// Leitura simplificada
+// conferencia.js
 // ==========================================
 
 
-const arquivoPremmia =
-document.getElementById("arquivoPremmia");
+let resultadosConferencia = [];
 
 
-const arquivoInterno =
-document.getElementById("arquivoInterno");
+// Mantém disponível para exportação
 
+Object.defineProperty(
+window,
+"resultadosConferencia",
+{
 
-const nomePremmia =
-document.getElementById("nomePremmia");
+get:function(){
 
-
-const nomeInterno =
-document.getElementById("nomeInterno");
-
-
-
-let dadosPremmia = [];
-let dadosInterno = [];
-
-
-
-
-// ==========================================
-// PORTAL PREMMIA
-// ==========================================
-
-if(arquivoPremmia){
-
-arquivoPremmia.addEventListener(
-"change",
-function(){
-
-if(this.files.length){
-
-nomePremmia.textContent =
-"Arquivo selecionado: " + this.files[0].name;
-
-
-lerArquivo(
-this.files[0],
-"premmia"
-);
+return resultadosConferencia;
 
 }
 
 });
 
-}
-
 
 
 
 // ==========================================
-// SISTEMA INTERNO
+// BOTÃO CONFERIR
 // ==========================================
 
-if(arquivoInterno){
-
-arquivoInterno.addEventListener(
-"change",
+document.addEventListener(
+"DOMContentLoaded",
 function(){
 
-if(this.files.length){
 
-nomeInterno.textContent =
-"Arquivo selecionado: " + this.files[0].name;
+const btn =
+document.getElementById(
+"btnConferir"
+);
 
 
-lerArquivo(
-this.files[0],
-"interno"
+
+if(btn){
+
+btn.addEventListener(
+"click",
+iniciarConferencia
 );
 
 }
+
 
 });
 
-}
 
 
 
 
 // ==========================================
-// LEITURA EXCEL
+// INICIAR CONFERÊNCIA
 // ==========================================
 
-function lerArquivo(file,tipo){
-
-
-const reader =
-new FileReader();
+function iniciarConferencia(){
 
 
 
-reader.onload=function(e){
+const premmia =
+window.dadosPremmia || [];
 
 
-const dados =
-new Uint8Array(
-e.target.result
+
+const interno =
+window.dadosInterno || [];
+
+
+
+
+if(
+premmia.length===0 ||
+interno.length===0
+){
+
+
+alert(
+"Carregue as duas planilhas antes de conferir."
 );
 
 
+return;
 
-const workbook =
-XLSX.read(
-dados,
-{
-type:"array"
 }
+
+
+
+
+
+resultadosConferencia=[];
+
+
+
+
+const indiceInterno =
+criarIndice(
+interno
 );
 
 
 
-const aba =
-workbook.SheetNames[0];
-
-
-const planilha =
-workbook.Sheets[aba];
+const usados =
+new Set();
 
 
 
-const linhas =
-XLSX.utils.sheet_to_json(
-planilha,
-{
-header:1,
-defval:""
+
+
+// ==========================================
+// COMPARA PORTAL
+// ==========================================
+
+
+premmia.forEach(
+(item)=>{
+
+
+const chave =
+normalizar(
+item.autorizacao
+);
+
+
+
+const encontrado =
+indiceInterno[chave] || [];
+
+
+
+
+
+// NÃO ENCONTRADO
+
+if(encontrado.length===0){
+
+
+resultadosConferencia.push(
+
+criarResultado(
+
+"NAO_LANCADA",
+
+item,
+
+null,
+
+"Venda do Portal Premmia não encontrada no sistema."
+
+)
+
+);
+
+
+return;
+
 }
+
+
+
+
+
+let internoEncontrado =
+null;
+
+
+
+for(let registro of encontrado){
+
+
+if(
+!usados.has(
+registro._id
+)
+){
+
+internoEncontrado =
+registro;
+
+break;
+
+}
+
+
+}
+
+
+
+
+
+if(!internoEncontrado){
+
+
+resultadosConferencia.push(
+
+criarResultado(
+
+"LANCADA_A_MAIS",
+
+null,
+
+encontrado[0],
+
+"Lançamento duplicado no sistema."
+
+)
+
+);
+
+
+return;
+
+
+}
+
+
+
+
+
+usados.add(
+internoEncontrado._id
 );
 
 
 
-if(tipo==="premmia"){
 
 
-dadosPremmia =
-transformarPremmia(
-linhas
+// COMPARA VALOR
+
+
+const diferenca =
+Number(
+(
+item.valor -
+internoEncontrado.valor
+)
+.toFixed(2)
 );
 
 
-window.dadosPremmia =
-dadosPremmia;
 
 
 
-console.log(
-"Premmia:",
-dadosPremmia
+if(
+Math.abs(diferenca)<0.01
+){
+
+
+resultadosConferencia.push(
+
+criarResultado(
+
+"CORRETA",
+
+item,
+
+internoEncontrado,
+
+"Venda conferida."
+
+)
+
 );
+
 
 
 }
 else{
 
 
-dadosInterno =
-transformarInterno(
-linhas
-);
+resultadosConferencia.push(
 
+criarResultado(
 
+"VALOR_DIVERGENTE",
 
-window.dadosInterno =
-dadosInterno;
+item,
 
+internoEncontrado,
 
+"Autorização encontrada, porém valor diferente.",
 
-console.log(
-"Interno:",
-dadosInterno
+diferenca
+
+)
+
 );
 
 
@@ -186,45 +298,28 @@ dadosInterno
 
 
 
-atualizarContador();
-
-
-};
-
-
-
-reader.readAsArrayBuffer(file);
-
-
 }
 
+);
+
+
+
 
 
 
 // ==========================================
-// TRANSFORMA PORTAL PREMMIA
+// PROCURA SOBRAS DO SISTEMA
 // ==========================================
 
-function transformarPremmia(linhas){
 
-
-let registros=[];
-
-
-linhas.forEach(
-(linha,index)=>{
-
-
-let texto =
-linha
-.map(normalizarTexto)
-.join(" ");
-
+interno.forEach(
+(item)=>{
 
 
 if(
-texto.includes("cpf") &&
-texto.includes("nome")
+usados.has(
+item._id
+)
 ){
 
 return;
@@ -233,129 +328,306 @@ return;
 
 
 
-let registro={
+resultadosConferencia.push(
+
+criarResultado(
+
+"LANCADA_A_MAIS",
+
+null,
+
+item,
+
+"Existe lançamento no sistema sem venda Premmia."
+
+)
+
+);
+
+
+
+}
+
+);
+
+
+
+
+
+window.resultadosConferencia =
+resultadosConferencia;
+
+
+
+mostrarResultados();
+
+
+
+}
+
+
+
+
+
+// ==========================================
+// CRIA ÍNDICE
+// ==========================================
+
+function criarIndice(lista){
+
+
+const indice={};
+
+
+
+lista.forEach(
+(item)=>{
+
+
+const chave =
+normalizar(
+item.autorizacao
+);
+
+
+
+if(!chave){
+
+return;
+
+}
+
+
+
+if(
+!indice[chave]
+){
+
+indice[chave]=[];
+
+}
+
+
+
+indice[chave].push(
+item
+);
+
+
+
+}
+
+);
+
+
+
+return indice;
+
+}
+
+
+
+
+
+// ==========================================
+// NORMALIZA AUTORIZAÇÃO
+// ==========================================
+
+function normalizar(valor){
+
+
+return String(
+valor || ""
+)
+.trim()
+.toUpperCase()
+.replace(/\s/g,"");
+
+
+}
+
+
+
+
+
+
+// ==========================================
+// RESULTADO
+// ==========================================
+
+function criarResultado(
+
+status,
+
+premmia,
+
+interno,
+
+observacao,
+
+diferenca=0
+
+){
+
+
+
+return{
+
+
+status,
+
+
+cliente:
+premmia?.nome || "",
 
 
 cpf:
-limpar(linha[0]),
-
-
-nome:
-limpar(linha[1]),
+premmia?.cpf || "",
 
 
 
-valor:
-converterValor(linha[3]),
+data:
+"",
 
 
 
-autorizacao:
-limpar(linha[5])
-
-
-};
+autorizacaoPremmia:
+premmia?.autorizacao || "",
 
 
 
-if(
-registro.autorizacao &&
-registro.valor!==null
-){
-
-registro._id=index;
-
-registros.push(
-registro
-);
-
-}
-
-
-});
-
-
-return registros;
-
-}
+autorizacaoInterno:
+interno?.autorizacao || "",
 
 
 
-
-
-// ==========================================
-// TRANSFORMA SISTEMA INTERNO
-// ==========================================
-
-function transformarInterno(linhas){
-
-
-let registros=[];
-
-
-linhas.forEach(
-(linha,index)=>{
-
-
-let texto =
-linha
-.map(normalizarTexto)
-.join(" ");
+valorPremmia:
+premmia?.valor ?? null,
 
 
 
-if(
-texto.includes("administradora") &&
-texto.includes("autorizacao")
-){
-
-return;
-
-}
-
-
-
-let registro={
-
-
-
-valor:
-converterValor(
-linha[1]
-),
+valorInterno:
+interno?.valor ?? null,
 
 
 
 pdv:
-limpar(
-linha[8]
-),
+interno?.pdv || "",
 
 
 
-autorizacao:
-limpar(
-linha[12]
-)
+diferenca,
+
+
+
+observacao
+
 
 
 };
 
 
 
-if(
-registro.autorizacao &&
-registro.valor!==null
-){
+}
 
 
-registro._id=index;
 
 
-registros.push(
-registro
+
+
+
+// ==========================================
+// MOSTRAR RESULTADO
+// ==========================================
+
+function mostrarResultados(){
+
+
+
+const resultado =
+document.getElementById(
+"resultado"
 );
 
+
+
+const tabela =
+document.getElementById(
+"tabelaResultado"
+);
+
+
+
+if(resultado){
+
+resultado.style.display="block";
+
+}
+
+
+
+if(tabela){
+
+tabela.style.display="block";
+
+}
+
+
+
+if(
+typeof renderizarTabela==="function"
+){
+
+renderizarTabela(
+resultadosConferencia
+);
+
+}
+
+
+
+atualizarResumo();
+
+
+
+}
+
+
+
+
+
+
+
+// ==========================================
+// RESUMO
+// ==========================================
+
+function atualizarResumo(){
+
+
+const total={
+
+
+CORRETA:0,
+
+NAO_LANCADA:0,
+
+LANCADA_A_MAIS:0,
+
+VALOR_DIVERGENTE:0
+
+
+};
+
+
+
+resultadosConferencia.forEach(
+(r)=>{
+
+
+if(total[r.status]!==undefined){
+
+total[r.status]++;
 
 }
 
@@ -363,124 +635,58 @@ registro
 });
 
 
-return registros;
+
+const ids={
+
+
+totalCorretas:
+total.CORRETA,
+
+
+totalNaoLancadas:
+total.NAO_LANCADA,
+
+
+totalLancadasMais:
+total.LANCADA_A_MAIS,
+
+
+totalValorErrado:
+total.VALOR_DIVERGENTE
+
+
+};
+
+
+
+for(let id in ids){
+
+
+const el =
+document.getElementById(id);
+
+
+
+if(el){
+
+el.textContent =
+ids[id];
+
+}
+
+
+}
+
+
 
 }
 
 
 
 
-
-
-// ==========================================
-// CONTADOR
-// ==========================================
-
-function atualizarContador(){
-
-
-const campo =
-document.getElementById(
-"contadorDados"
-);
-
-
-
-if(campo){
-
-
-campo.innerHTML =
-`
-Premmia: ${dadosPremmia.length} registros |
-Interno: ${dadosInterno.length} registros
-`;
-
-}
-
-
-}
-
-
-
-
-
-// ==========================================
-// UTILIDADES
-// ==========================================
-
-function limpar(valor){
-
-return String(
-valor ?? ""
-)
-.trim();
-
-}
-
-
-
-function normalizarTexto(valor){
-
-return limpar(valor)
-.toLowerCase()
-.normalize("NFD")
-.replace(/[\u0300-\u036f]/g,"");
-
-}
-
-
-
-function converterValor(valor){
-
-
-if(
-valor===null ||
-valor===undefined ||
-valor===""
-){
-
-return null;
-
-}
-
-
-
-if(typeof valor==="number"){
-
-return Number(
-valor.toFixed(2)
-);
-
-}
-
-
-
-let texto =
-String(valor)
-.replace(/\./g,"")
-.replace(",",".")
-.trim();
-
-
-
-let numero =
-Number(texto);
-
-
-
-return isNaN(numero)
-?
-null
-:
-Number(
-numero.toFixed(2)
-);
-
-
-}
 
 
 
 console.log(
-"leituraExcel.js carregado"
+"conferencia.js carregado"
 );
