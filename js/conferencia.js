@@ -433,28 +433,22 @@ mostrarResultados();
 // CRIA ÍNDICE POR AUTORIZAÇÃO
 // ==========================================
 
-
 function criarIndice(lista){
 
-
     const indice = {};
-
 
 
     lista.forEach(
         (item,index)=>{
 
 
-            item._id =
-                index;
-
+            item._id = index;
 
 
             const chave =
                 normalizarAutorizacao(
                     item.autorizacao
                 );
-
 
 
             if(!chave){
@@ -469,7 +463,7 @@ function criarIndice(lista){
                 !indice[chave]
             ){
 
-                indice[chave]=[];
+                indice[chave] = [];
 
             }
 
@@ -480,18 +474,14 @@ function criarIndice(lista){
             );
 
 
-
         }
 
     );
 
 
-
     return indice;
 
-
 }
-
 
 
 
