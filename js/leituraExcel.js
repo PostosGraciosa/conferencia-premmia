@@ -1,711 +1,501 @@
-```javascript
 // ==========================================
 // CONFERÊNCIA PREMMIA
 // leituraExcel.js
-// Leitura das planilhas Excel / CSV
 // ==========================================
 
 
-// ==========================================
-// ELEMENTOS DA TELA
-// ==========================================
+// ELEMENTOS
 
-const arquivoPremmia =
-    document.getElementById("arquivoPremmia");
+const arquivoPremmia = document.getElementById("arquivoPremmia");
+const arquivoInterno = document.getElementById("arquivoInterno");
 
-const arquivoInterno =
-    document.getElementById("arquivoInterno");
+const nomePremmia = document.getElementById("nomePremmia");
+const nomeInterno = document.getElementById("nomeInterno");
 
-const nomePremmia =
-    document.getElementById("nomePremmia");
+const btnConferir = document.getElementById("btnConferir");
 
-const nomeInterno =
-    document.getElementById("nomeInterno");
+const statusSistema = document.getElementById("statusSistema");
 
-const btnConferir =
-    document.getElementById("btnConferir");
+const contadorDados = document.getElementById("contadorDados");
 
 
-// ==========================================
-// DADOS GLOBAIS
-// ==========================================
+// DADOS
 
-let dadosPremmia = [];
-
-let dadosInterno = [];
-
-
-
-// ==========================================
-// EVENTO PREMMIA
-// ==========================================
-
-if (arquivoPremmia) {
-
-    arquivoPremmia.addEventListener(
-        "change",
-        function () {
-
-
-            if (this.files.length > 0) {
-
-
-                if (nomePremmia) {
-
-                    nomePremmia.textContent =
-                        "Arquivo selecionado: " +
-                        this.files[0].name;
-
-                    nomePremmia.style.color =
-                        "#006b3c";
-
-                }
-
-
-                lerArquivoPremmia(
-                    this.files[0]
-                );
-
-
-            } else {
-
-
-                dadosPremmia = [];
-
-
-                if (nomePremmia) {
-
-                    nomePremmia.textContent =
-                        "Nenhum arquivo selecionado";
-
-                }
-
-            }
-
-
-            verificarArquivos();
-
-
-        }
-    );
-
-}
-
-
-
-// ==========================================
-// EVENTO INTERNO
-// ==========================================
-
-if (arquivoInterno) {
-
-
-    arquivoInterno.addEventListener(
-        "change",
-        function () {
-
-
-            if (this.files.length > 0) {
-
-
-                if (nomeInterno) {
-
-                    nomeInterno.textContent =
-                        "Arquivo selecionado: " +
-                        this.files[0].name;
-
-
-                    nomeInterno.style.color =
-                        "#006b3c";
-
-                }
-
-
-
-                lerArquivoInterno(
-                    this.files[0]
-                );
-
-
-
-            } else {
-
-
-                dadosInterno = [];
-
-
-                if (nomeInterno) {
-
-                    nomeInterno.textContent =
-                        "Nenhum arquivo selecionado";
-
-                }
-
-
-            }
-
-
-
-            verificarArquivos();
-
-
-        }
-    );
-
-}
-
-
-
-// ==========================================
-// LIBERAR BOTÃO CONFERIR
-// ==========================================
-
-function verificarArquivos() {
-
-
-    if (!btnConferir) {
-
-        return;
-
-    }
-
-
-    if (
-
-        arquivoPremmia &&
-        arquivoInterno &&
-        arquivoPremmia.files.length > 0 &&
-        arquivoInterno.files.length > 0
-
-    ) {
-
-
-        btnConferir.disabled = false;
-
-
-    } else {
-
-
-        btnConferir.disabled = true;
-
-
-    }
-
-
-}
-
-
-
-// ==========================================
-// LER PREMMIA
-// ==========================================
-
-function lerArquivoPremmia(file) {
-
-
-    const reader =
-        new FileReader();
-
-
-
-    reader.onload =
-        function(evento) {
-
-
-            try {
-
-
-                const dados =
-                    new Uint8Array(
-                        evento.target.result
-                    );
-
-
-
-                const workbook =
-                    XLSX.read(
-                        dados,
-                        {
-                            type:"array",
-                            cellDates:true
-                        }
-                    );
-
-
-
-                const primeiraAba =
-                    workbook.SheetNames[0];
-
-
-
-                const planilha =
-                    workbook.Sheets[primeiraAba];
-
-
-
-                const linhas =
-                    XLSX.utils.sheet_to_json(
-                        planilha,
-                        {
-                            header:1,
-                            defval:""
-                        }
-                    );
-
-
-
-                dadosPremmia =
-                    transformarPremmia(
-                        linhas
-                    );
-
-
-
-                window.dadosPremmia =
-                    dadosPremmia;
-
-
-
-                console.log(
-                    "Premmia carregado:",
-                    dadosPremmia
-                );
-
-
-
-                if (
-                    dadosPremmia.length === 0
-                ) {
-
-
-                    alert(
-                        "Nenhum registro encontrado no Portal Premmia."
-                    );
-
-
-                }
-
-
-
-            }
-            catch(erro){
-
-
-                console.error(
-                    erro
-                );
-
-
-                alert(
-                    "Erro ao ler planilha Premmia."
-                );
-
-
-            }
-
-
-        };
-
-
-
-    reader.readAsArrayBuffer(file);
-
-
-}
+window.dadosPremmia = [];
+window.dadosInterno = [];
 
 
 
 
 // ==========================================
-// LER INTERNO
+// EVENTOS
 // ==========================================
 
-function lerArquivoInterno(file) {
 
+if(arquivoPremmia){
 
-    const reader =
-        new FileReader();
+arquivoPremmia.addEventListener("change",function(){
 
+    if(this.files.length){
 
+        nomePremmia.textContent =
+        "Arquivo selecionado: " + this.files[0].name;
 
-    reader.onload =
-        function(evento) {
-
-
-            try {
-
-
-
-                const dados =
-                    new Uint8Array(
-                        evento.target.result
-                    );
-
-
-
-                const workbook =
-                    XLSX.read(
-                        dados,
-                        {
-                            type:"array",
-                            cellDates:true
-                        }
-                    );
-
-
-
-                const primeiraAba =
-                    workbook.SheetNames[0];
-
-
-
-                const planilha =
-                    workbook.Sheets[primeiraAba];
-
-
-
-                const linhas =
-                    XLSX.utils.sheet_to_json(
-                        planilha,
-                        {
-                            header:1,
-                            defval:""
-                        }
-                    );
-
-
-
-                dadosInterno =
-                    transformarInterno(
-                        linhas
-                    );
-
-
-
-                window.dadosInterno =
-                    dadosInterno;
-
-
-
-                console.log(
-                    "Interno carregado:",
-                    dadosInterno
-                );
-
-
-
-                if (
-                    dadosInterno.length === 0
-                ) {
-
-
-                    alert(
-                        "Nenhum registro encontrado no sistema interno."
-                    );
-
-
-                }
-
-
-
-            }
-            catch(erro){
-
-
-                console.error(
-                    erro
-                );
-
-
-                alert(
-                    "Erro ao ler planilha interna."
-                );
-
-
-            }
-
-
-        };
-
-
-
-    reader.readAsArrayBuffer(file);
-
-
-}
-
-
-
-
-
-// ==========================================
-// TRANSFORMAR PREMMIA
-// ==========================================
-
-function transformarPremmia(linhas) {
-
-
-    const registros = [];
-
-
-
-    linhas.forEach(
-        linha => {
-
-
-            if (
-                !Array.isArray(linha)
-            ) {
-
-                return;
-
-            }
-
-
-
-            const texto =
-                linha
-                    .map(normalizarTexto)
-                    .join(" ");
-
-
-
-            if (
-
-                texto.includes("cpf") ||
-                texto.includes("cliente") ||
-                texto.includes("autorizacao")
-
-            ) {
-
-                return;
-
-            }
-
-
-
-            const registro = {
-
-
-                origem:"PREMMIA",
-
-
-                cpf:
-                    limparTexto(linha[0]),
-
-
-                cliente:
-                    limparTexto(linha[1]),
-
-
-                operacao:
-                    limparTexto(linha[2]),
-
-
-                valor:
-                    converterValor(linha[3]),
-
-
-                dataHora:
-                    limparTexto(linha[4]),
-
-
-                data:
-                    extrairData(linha[4]),
-
-
-                hora:
-                    extrairHora(linha[4]),
-
-
-                autorizacao:
-                    limparTexto(linha[5]),
-
-
-                pagamento:
-                    limparTexto(linha[6]),
-
-
-                status:
-                    limparTexto(linha[7])
-
-
-            };
-
-
-
-            if (
-
-                registro.autorizacao !== "" &&
-                registro.valor !== null
-
-            ) {
-
-
-                registros.push(
-                    registro
-                );
-
-
-            }
-
-
-
-        }
-    );
-
-
-
-    return registros;
-
-
-}
-
-
-
-
-
-// ==========================================
-// TRANSFORMAR INTERNO
-// ==========================================
-
-function transformarInterno(linhas) {
-
-
-    const registros = [];
-
-
-
-    linhas.forEach(
-        linha => {
-
-
-            if (
-                !Array.isArray(linha)
-            ) {
-
-                return;
-
-            }
-
-
-
-            const registro = {
-
-
-                origem:"INTERNO",
-
-
-                tipo:
-                    limparTexto(linha[0]),
-
-
-                valor:
-                    converterValor(linha[1]),
-
-
-                hora:
-                    limparTexto(linha[2]),
-
-
-                data:
-                    limparTexto(linha[3]),
-
-
-                operador:
-                    limparTexto(linha[9]),
-
-
-                identificador:
-                    limparTexto(linha[12]),
-
-
-                autorizacao:
-                    limparTexto(linha[13]) ||
-                    limparTexto(linha[12])
-
-
-            };
-
-
-
-            if (
-
-                registro.autorizacao !== "" &&
-                registro.valor !== null
-
-            ) {
-
-
-                registros.push(
-                    registro
-                );
-
-
-            }
-
-
-        }
-    );
-
-
-
-    return registros;
-
-
-}
-
-
-
-
-
-// ==========================================
-// UTILIDADES
-// ==========================================
-
-function converterValor(valor){
-
-
-    if (
-        valor === null ||
-        valor === undefined ||
-        valor === ""
-    ){
-
-        return null;
-
-    }
-
-
-
-    if(
-        typeof valor === "number"
-    ){
-
-        return Number(
-            valor.toFixed(2)
+        lerArquivo(
+            this.files[0],
+            "PREMMIA"
         );
 
     }
 
+});
 
-
-    let texto =
-        String(valor)
-        .trim()
-        .replace(/\./g,"")
-        .replace(",", ".");
+}
 
 
 
-    const numero =
-        Number(texto);
+
+if(arquivoInterno){
+
+arquivoInterno.addEventListener("change",function(){
+
+    if(this.files.length){
+
+        nomeInterno.textContent =
+        "Arquivo selecionado: " + this.files[0].name;
+
+
+        lerArquivo(
+            this.files[0],
+            "INTERNO"
+        );
+
+    }
+
+});
+
+}
 
 
 
-    return isNaN(numero)
-        ? null
-        : Number(numero.toFixed(2));
+
+// ==========================================
+// LEITURA EXCEL
+// ==========================================
+
+
+function lerArquivo(file,tipo){
+
+
+const reader = new FileReader();
+
+
+
+reader.onload=function(e){
+
+
+try{
+
+
+const dados =
+new Uint8Array(e.target.result);
+
+
+
+const workbook =
+XLSX.read(
+dados,
+{
+type:"array",
+cellDates:true
+}
+);
+
+
+
+const aba =
+workbook.SheetNames[0];
+
+
+
+const planilha =
+workbook.Sheets[aba];
+
+
+
+const linhas =
+XLSX.utils.sheet_to_json(
+planilha,
+{
+header:1,
+defval:""
+}
+);
+
+
+
+if(tipo==="PREMMIA"){
+
+
+window.dadosPremmia =
+transformarPremmia(linhas);
+
+
+console.log(
+"Premmia:",
+window.dadosPremmia
+);
+
+
+}
+
+
+
+if(tipo==="INTERNO"){
+
+
+window.dadosInterno =
+transformarInterno(linhas);
+
+
+console.log(
+"Interno:",
+window.dadosInterno
+);
+
+
+}
+
+
+
+atualizarTela();
+
+
+verificarArquivos();
+
+
+
+}
+catch(err){
+
+console.error(err);
+
+alert(
+"Erro ao abrir planilha " + tipo
+);
+
+}
+
+
+
+};
+
+
+
+reader.readAsArrayBuffer(file);
+
+
+}
+
+
+
+
+
+// ==========================================
+// LIBERAR BOTÃO
+// ==========================================
+
+
+function verificarArquivos(){
+
+
+if(!btnConferir)
+return;
+
+
+
+if(
+
+window.dadosPremmia.length > 0
+&&
+window.dadosInterno.length > 0
+
+){
+
+btnConferir.disabled=false;
+
+statusSistema.textContent =
+"Planilhas carregadas. Clique em conferir vendas.";
+
+
+}
+
+else{
+
+
+btnConferir.disabled=true;
+
+
+}
+
+
+}
+
+
+
+
+function atualizarTela(){
+
+
+if(contadorDados){
+
+
+contadorDados.textContent =
+
+"Premmia: "
++
+window.dadosPremmia.length
++
+" registros | Interno: "
++
+window.dadosInterno.length
++
+" registros";
+
+
+}
+
+
+}
+
+
+
+
+
+
+// ==========================================
+// PREMMIA
+// ==========================================
+
+
+function transformarPremmia(linhas){
+
+
+let lista=[];
+
+
+linhas.forEach(linha=>{
+
+
+if(!Array.isArray(linha))
+return;
+
+
+
+let texto =
+linha.map(normalizarTexto).join(" ");
+
+
+
+if(
+
+texto.includes("cpf")
+||
+texto.includes("cliente")
+||
+texto.includes("autorizacao")
+
+)
+return;
+
+
+
+let item={
+
+
+cpf:
+limparTexto(linha[0]),
+
+
+cliente:
+limparTexto(linha[1]),
+
+
+operacao:
+limparTexto(linha[2]),
+
+
+valor:
+converterValor(linha[3]),
+
+
+dataHora:
+limparTexto(linha[4]),
+
+
+data:
+extrairData(linha[4]),
+
+
+hora:
+extrairHora(linha[4]),
+
+
+autorizacao:
+limparTexto(linha[5]),
+
+
+pagamento:
+limparTexto(linha[6])
+
+};
+
+
+
+if(
+
+item.autorizacao
+&&
+item.valor!==null
+
+){
+
+lista.push(item);
+
+}
+
+
+});
+
+
+return lista;
+
+
+}
+
+
+
+
+
+
+// ==========================================
+// INTERNO
+// ==========================================
+
+
+function transformarInterno(linhas){
+
+
+let lista=[];
+
+
+linhas.forEach(linha=>{
+
+
+if(!Array.isArray(linha))
+return;
+
+
+
+let item={
+
+
+tipo:
+limparTexto(linha[0]),
+
+
+valor:
+converterValor(linha[1]),
+
+
+hora:
+limparTexto(linha[2]),
+
+
+data:
+limparTexto(linha[3]),
+
+
+operador:
+limparTexto(linha[9]),
+
+
+identificador:
+limparTexto(linha[12]),
+
+
+autorizacao:
+limparTexto(linha[13])
+||
+limparTexto(linha[12])
+
+
+};
+
+
+
+if(
+
+item.autorizacao
+&&
+item.valor!==null
+
+){
+
+lista.push(item);
+
+}
+
+
+
+});
+
+
+return lista;
+
+
+}
+
+
+
+
+
+// ==========================================
+// FUNÇÕES AUXILIARES
+// ==========================================
+
+
+function converterValor(valor){
+
+
+if(valor===null||valor===undefined||valor==="")
+return null;
+
+
+
+if(typeof valor==="number")
+return Number(valor.toFixed(2));
+
+
+
+let texto =
+String(valor)
+.trim()
+.replace(/\./g,"")
+.replace(",", ".");
+
+
+
+let numero =
+Number(texto);
+
+
+
+return isNaN(numero)
+?
+null
+:
+Number(numero.toFixed(2));
 
 
 }
@@ -717,19 +507,13 @@ function converterValor(valor){
 function limparTexto(valor){
 
 
-    if(
-        valor === null ||
-        valor === undefined
-    ){
-
-        return "";
-
-    }
+if(valor===undefined||valor===null)
+return "";
 
 
-    return String(valor)
-        .trim()
-        .replace(/\s+/g," ");
+return String(valor)
+.trim()
+.replace(/\s+/g," ");
 
 
 }
@@ -737,14 +521,13 @@ function limparTexto(valor){
 
 
 
-
 function normalizarTexto(valor){
 
 
-    return limparTexto(valor)
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g,"");
+return limparTexto(valor)
+.toLowerCase()
+.normalize("NFD")
+.replace(/[\u0300-\u036f]/g,"");
 
 
 }
@@ -756,23 +539,19 @@ function normalizarTexto(valor){
 function extrairData(valor){
 
 
-    const texto =
-        limparTexto(valor);
+let texto=limparTexto(valor);
 
 
-    const resultado =
-        texto.match(
-            /\d{2}\/\d{2}\/\d{4}/
-        );
+let r =
+texto.match(
+/\d{2}\/\d{2}\/\d{4}/
+);
 
 
-    return resultado
-        ? resultado[0]
-        : texto;
+return r ? r[0] : texto;
 
 
 }
-
 
 
 
@@ -780,19 +559,16 @@ function extrairData(valor){
 function extrairHora(valor){
 
 
-    const texto =
-        limparTexto(valor);
+let texto=limparTexto(valor);
 
 
-    const resultado =
-        texto.match(
-            /\d{2}:\d{2}:\d{2}/
-        );
+let r =
+texto.match(
+/\d{2}:\d{2}:\d{2}/
+);
 
 
-    return resultado
-        ? resultado[0]
-        : "";
+return r ? r[0] : "";
 
 
 }
@@ -801,20 +577,6 @@ function extrairHora(valor){
 
 
 
-// ==========================================
-// DISPONIBILIZAR
-// ==========================================
-
-window.dadosPremmia =
-    dadosPremmia;
-
-
-window.dadosInterno =
-    dadosInterno;
-
-
-
 console.log(
-    "leituraExcel.js carregado com sucesso"
+"leituraExcel.js carregado"
 );
-```
