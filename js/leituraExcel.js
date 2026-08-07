@@ -472,184 +472,106 @@ return registros;
 // TRANSFORMAR INTERNO
 // ==========================================
 
+function transformarInterno(linhas){
 
-function transformarInterno(
-linhas
-){
-
-
-const registros=[];
+    const registros = [];
 
 
+    linhas.forEach((linha,index)=>{
 
 
-linhas.forEach(
-(linha,index)=>{
+        if(!Array.isArray(linha)){
+            return;
+        }
+
+
+        // pula cabeçalho
+
+        if(index === 0){
+            return;
+        }
 
 
 
-// pula cabeçalho
+        const registro = {
 
-if(index===0){
 
-return;
+            origem:"INTERNO",
+
+
+            administradora:
+                limparTexto(linha[0]),
+
+
+            valor:
+                converterValor(linha[1]),
+
+
+            hora:
+                limparTexto(linha[2]),
+
+
+            movimento:
+                limparTexto(linha[3]),
+
+
+            data:
+                limparTexto(linha[4]),
+
+
+            cliente:
+                limparTexto(linha[7]),
+
+
+            filial:
+                limparTexto(linha[8]),
+
+
+            operador:
+                limparTexto(linha[9]),
+
+
+            tipo:
+                limparTexto(linha[10]),
+
+
+            centroCusto:
+                limparTexto(linha[11]),
+
+
+            autorizacao:
+    normalizarAutorizacao(linha[12])
+        };
+
+
+
+        console.log(
+            "Linha interna:",
+            registro
+        );
+
+
+
+        // aceita se tiver autorização
+
+        if(
+            registro.autorizacao !== ""
+        ){
+
+            registros.push(
+                registro
+            );
+
+        }
+
+
+
+    });
+
+
+    return registros;
 
 }
-
-
-
-
-if(!linha || linha.length < 13){
-
-return;
-
-}
-
-
-
-
-const registro = {
-
-
-
-origem:
-"INTERNO",
-
-
-
-
-administradora:
-limparTexto(
-linha[0]
-),
-
-
-
-
-valor:
-converterValor(
-linha[1]
-),
-
-
-
-
-hora:
-limparTexto(
-linha[2]
-),
-
-
-
-
-movimento:
-limparTexto(
-linha[3]
-),
-
-
-
-
-data:
-limparTexto(
-linha[4]
-),
-
-
-
-
-cliente:
-limparTexto(
-linha[7]
-),
-
-
-
-
-filial:
-limparTexto(
-linha[8]
-),
-
-
-
-
-operador:
-limparTexto(
-linha[9]
-),
-
-
-
-
-tipo:
-limparTexto(
-linha[10]
-),
-
-
-
-
-centroCusto:
-limparTexto(
-linha[11]
-),
-
-
-
-
-// AUTORIZAÇÃO CORRETA
-
-autorizacao:
-normalizarAutorizacao(
-linha[12]
-)
-
-
-
-};
-
-
-
-
-
-
-if(
-registro.autorizacao &&
-registro.valor !== null
-){
-
-
-registros.push(
-registro
-);
-
-
-
-}
-
-
-
-}
-
-);
-
-
-
-
-return registros;
-
-
-
-}
-
-
-
-
-
-
-
-
 // ==========================================
 // NORMALIZAR AUTORIZAÇÃO
 // ==========================================
@@ -695,66 +617,79 @@ return String(valor)
 // CONVERTER VALOR
 // ==========================================
 
+function converterValor(valor){
 
-function converterValor(
-valor
-){
+    if(
+        valor === null ||
+        valor === undefined ||
+        valor === ""
+    ){
 
+        return null;
 
-if(
-valor === null ||
-valor === undefined ||
-valor === ""
-){
-
-return null;
-
-}
+    }
 
 
 
+    if(
+        typeof valor === "number"
+    ){
 
-if(
-typeof valor === "number"
-){
+        return Number(
+            valor.toFixed(2)
+        );
 
-return Number(
-valor.toFixed(2)
-);
-
-}
-
+    }
 
 
 
-let texto =
-String(valor)
-.trim();
+    let texto =
+        String(valor)
+        .trim();
 
 
 
-texto =
-texto
-.replace(/\./g,"")
-.replace(",","."); 
+    // remove R$
+    texto =
+        texto.replace("R$","")
+             .trim();
 
 
 
+    // formato brasileiro:
+    // 1.234,56
 
-const numero =
-Number(texto);
+    if(
+        texto.includes(",")
+    ){
+
+        texto =
+            texto
+            .replace(/\./g,"")
+            .replace(",", ".");
+
+    }
 
 
 
-return isNaN(numero)
-?
-null
-:
-Number(
-numero.toFixed(2)
-);
+    const numero =
+        Number(texto);
 
 
+
+    if(
+        isNaN(numero)
+    ){
+
+        return null;
+
+    }
+
+
+
+    return Number(
+        numero.toFixed(2)
+    );
 
 }
 
