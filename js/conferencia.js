@@ -134,7 +134,7 @@ console.log(
 
 
             const chave =
-                normalizar(
+                normalizarAutorizacao(
                     venda.autorizacao
                 );
 
@@ -364,7 +364,7 @@ interno.forEach(
             premmia.some(
                 venda=>
 
-                    normalizar(
+                    normalizarAutorizacao(
                         venda.autorizacao
                     ) === chave
 
