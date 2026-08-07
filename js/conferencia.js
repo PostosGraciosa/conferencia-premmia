@@ -345,7 +345,7 @@ interno.forEach(
 
 
         const chave =
-            normalizar(
+            normalizarAutorizacao(
                 item.autorizacao
             );
 
@@ -451,7 +451,7 @@ function criarIndice(lista){
 
 
             const chave =
-                normalizar(
+                normalizarAutorizacao(
                     item.autorizacao
                 );
 
