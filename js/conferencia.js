@@ -1096,3 +1096,58 @@ document
 console.log(
     "conferencia.js completo carregado"
 );
+// ==========================================
+// FORÇA BOTÃO CONFERIR
+// ==========================================
+
+window.addEventListener(
+    "load",
+    function(){
+
+        const btn =
+            document.getElementById(
+                "btnConferir"
+            );
+
+
+        console.log(
+            "Procurando botão:",
+            btn
+        );
+
+
+        if(btn){
+
+
+            btn.onclick = function(){
+
+
+                console.log(
+                    "CLICOU NO BOTÃO CONFERIR"
+                );
+
+
+                iniciarConferencia();
+
+
+            };
+
+
+            console.log(
+                "Botão Conferir conectado!"
+            );
+
+
+        }else{
+
+
+            console.log(
+                "ERRO: botão btnConferir não existe no HTML"
+            );
+
+
+        }
+
+
+    }
+);
