@@ -477,19 +477,72 @@ function transformarInterno(linhas){
     const registros = [];
 
 
-    linhas.forEach((linha,index)=>{
+    let cabecalho = null;
 
 
-        if(!Array.isArray(linha)){
-            return;
+    // encontra o cabeçalho correto
+
+    for(let i = 0; i < linhas.length; i++){
+
+        const texto =
+            linhas[i]
+            .map(x => String(x).toLowerCase())
+            .join(" ");
+
+
+        if(
+            texto.includes("administradora") &&
+            texto.includes("autorização")
+        ){
+
+            cabecalho = linhas[i];
+            linhas = linhas.slice(i+1);
+            break;
+
         }
 
+    }
 
-        // pula cabeçalho
 
-        if(index === 0){
-            return;
+
+    if(!cabecalho){
+
+        console.error(
+            "Cabeçalho interno não encontrado"
+        );
+
+        return [];
+
+    }
+
+
+
+    const coluna = {};
+
+
+
+    cabecalho.forEach(
+        (nome,index)=>{
+
+
+            coluna[
+                String(nome)
+                .trim()
+                .toLowerCase()
+            ] = index;
+
+
         }
+    );
+
+
+
+
+    linhas.forEach(linha=>{
+
+
+        if(!Array.isArray(linha))
+            return;
 
 
 
@@ -499,63 +552,91 @@ function transformarInterno(linhas){
             origem:"INTERNO",
 
 
-            administradora:
-                limparTexto(linha[0]),
-
-
             valor:
-                converterValor(linha[1]),
+                converterValor(
+                    linha[
+                        coluna["valor"]
+                    ]
+                ),
+
 
 
             hora:
-                limparTexto(linha[2]),
+                limparTexto(
+                    linha[
+                        coluna["horário"]
+                    ]
+                ),
 
-
-            movimento:
-                limparTexto(linha[3]),
 
 
             data:
-                limparTexto(linha[4]),
+                limparTexto(
+                    linha[
+                        coluna["data fiscal"]
+                    ]
+                ),
+
 
 
             cliente:
-                limparTexto(linha[7]),
+                limparTexto(
+                    linha[
+                        coluna["cliente"]
+                    ]
+                ),
+
 
 
             filial:
-                limparTexto(linha[8]),
+                limparTexto(
+                    linha[
+                        coluna["filial"]
+                    ]
+                ),
+
 
 
             operador:
-                limparTexto(linha[9]),
+                limparTexto(
+                    linha[
+                        coluna["funcionário"]
+                    ]
+                ),
+
 
 
             tipo:
-                limparTexto(linha[10]),
+                limparTexto(
+                    linha[
+                        coluna["tipo inclusão"]
+                    ]
+                ),
 
-
-            centroCusto:
-                limparTexto(linha[11]),
 
 
             autorizacao:
-    normalizarAutorizacao(linha[12])
+                normalizarAutorizacao(
+                    linha[
+                        coluna["autorização"]
+                    ]
+                )
+
+
         };
 
 
 
         console.log(
-            "Linha interna:",
+            "INTERNO CORRETO:",
             registro
         );
 
 
 
-        // aceita se tiver autorização
-
         if(
-            registro.autorizacao !== ""
+            registro.autorizacao &&
+            registro.valor !== null
         ){
 
             registros.push(
@@ -565,8 +646,8 @@ function transformarInterno(linhas){
         }
 
 
-
     });
+
 
 
     return registros;
