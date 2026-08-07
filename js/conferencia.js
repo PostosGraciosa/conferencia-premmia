@@ -77,7 +77,17 @@ function iniciarConferencia(){
         premmia.length,
         interno.length
     );
+    
+console.log(
+    "PRIMEIRA PREMMIA:",
+    premmia[0]
+);
 
+
+console.log(
+    "PRIMEIRO INTERNO:",
+    interno[0]
+);
 
 
     if(
