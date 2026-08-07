@@ -4,6 +4,11 @@
 // ==========================================
 
 
+let dadosPremmia = [];
+let dadosInterno = [];
+
+
+
 const arquivoPremmia =
 document.getElementById("arquivoPremmia");
 
@@ -20,21 +25,19 @@ const nomeInterno =
 document.getElementById("nomeInterno");
 
 
-
-let dadosPremmia = [];
-
-let dadosInterno = [];
-
+const btnConferir =
+document.getElementById("btnConferir");
 
 
 
 
 // ==========================================
-// SELEÇÃO PREMMIA
+// PREMMIA
 // ==========================================
 
 
 if(arquivoPremmia){
+
 
 arquivoPremmia.addEventListener(
 "change",
@@ -45,12 +48,12 @@ if(this.files.length){
 
 
 nomePremmia.textContent =
-"Arquivo selecionado: " + this.files[0].name;
+"Arquivo selecionado: "+
+this.files[0].name;
 
 
-lerExcel(
-this.files[0],
-"premmia"
+lerArquivoPremmia(
+this.files[0]
 );
 
 
@@ -63,14 +66,13 @@ this.files[0],
 
 
 
-
-
 // ==========================================
-// SELEÇÃO INTERNO
+// INTERNO
 // ==========================================
 
 
 if(arquivoInterno){
+
 
 arquivoInterno.addEventListener(
 "change",
@@ -81,12 +83,12 @@ if(this.files.length){
 
 
 nomeInterno.textContent =
-"Arquivo selecionado: " + this.files[0].name;
+"Arquivo selecionado: "+
+this.files[0].name;
 
 
-lerExcel(
-this.files[0],
-"interno"
+lerArquivoInterno(
+this.files[0]
 );
 
 
@@ -100,14 +102,12 @@ this.files[0],
 
 
 
-
-
 // ==========================================
-// LEITOR EXCEL
+// LER EXCEL
 // ==========================================
 
 
-function lerExcel(file,tipo){
+function abrirExcel(file, callback){
 
 
 const reader =
@@ -116,7 +116,6 @@ new FileReader();
 
 
 reader.onload=function(e){
-
 
 
 const dados =
@@ -130,7 +129,8 @@ const workbook =
 XLSX.read(
 dados,
 {
-type:"array"
+type:"array",
+cellDates:true
 }
 );
 
@@ -138,6 +138,7 @@ type:"array"
 
 const aba =
 workbook.SheetNames[0];
+
 
 
 const planilha =
@@ -156,56 +157,7 @@ defval:""
 
 
 
-
-if(tipo==="premmia"){
-
-
-dadosPremmia =
-transformarPremmia(
-linhas
-);
-
-
-window.dadosPremmia =
-dadosPremmia;
-
-
-
-console.log(
-"Premmia:",
-dadosPremmia
-);
-
-
-
-}else{
-
-
-
-dadosInterno =
-transformarInterno(
-linhas
-);
-
-
-
-window.dadosInterno =
-dadosInterno;
-
-
-
-console.log(
-"Interno:",
-dadosInterno
-);
-
-
-
-}
-
-
-
-atualizarContador();
+callback(linhas);
 
 
 
@@ -221,115 +173,206 @@ reader.readAsArrayBuffer(file);
 
 
 
+// ==========================================
+// LER PREMMIA
+// ==========================================
+
+
+function lerArquivoPremmia(file){
+
+
+abrirExcel(
+file,
+transformarPremmia
+);
+
+
+}
+
 
 
 
 // ==========================================
-// PORTAL PREMMIA
+// LER INTERNO
 // ==========================================
 
+
+function lerArquivoInterno(file){
+
+
+abrirExcel(
+file,
+transformarInterno
+);
+
+
+}
+// ==========================================
+// TRANSFORMAR PREMMIA
+// ==========================================
 
 function transformarPremmia(linhas){
 
 
-let registros=[];
+dadosPremmia = [];
 
 
 
-let cabecalho = {};
+if(!linhas || !linhas.length){
+
+    return;
+
+}
+
+
+
+
+// procura cabeçalho automaticamente
+
+let cabecalho = -1;
 
 
 
 for(let i=0;i<linhas.length;i++){
 
 
-let linha =
+    const texto =
+    linhas[i]
+    .join(" ")
+    .toLowerCase();
+
+
+
+    if(
+        texto.includes("cpf") &&
+        texto.includes("nome") &&
+        texto.includes("código")
+    ){
+
+        cabecalho=i;
+        break;
+
+    }
+
+
+}
+
+
+
+if(cabecalho === -1){
+
+    cabecalho=0;
+
+}
+
+
+
+
+for(
+let i=cabecalho+1;
+i<linhas.length;
+i++
+){
+
+
+const linha =
 linhas[i];
 
 
 
-let texto =
-linha.map(normalizarTexto)
-.join(" ");
+if(!linha || linha.length<6){
 
-
-
-
-// encontra cabeçalho
-
-if(
-texto.includes("cpf") &&
-texto.includes("nome") &&
-texto.includes("codigo")
-){
-
-
-linha.forEach(
-(coluna,index)=>{
-
-
-cabecalho[
-normalizarTexto(coluna)
-]=index;
-
-
-});
-
-
-continue;
+    continue;
 
 }
 
 
 
+const registro={
 
 
-if(
-Object.keys(cabecalho).length===0
-){
-
-continue;
-
-}
+origem:"PREMMIA",
 
 
-
-
-
-let registro={
-
-
+// CPF
 
 cpf:
-linha[
-cabecalho.cpf
-] || "",
-
-
-
-nome:
-linha[
-cabecalho.nome
-] || "",
-
-
-
-valor:
-converterValor(
-linha[
-cabecalho["valor liquido"]
-]
+limparTexto(
+linha[0]
 ),
 
 
 
-autorizacao:
-String(
-linha[
-cabecalho["codigo transacao"]
-] || ""
-).trim()
+// NOME
 
+cliente:
+limparTexto(
+linha[1]
+),
+
+
+
+// PRODUTO
+
+produto:
+limparTexto(
+linha[2]
+),
+
+
+
+// VALOR LIQUIDO
+
+valor:
+converterValor(
+linha[3]
+),
+
+
+
+// DATA HORA
+
+dataHora:
+limparTexto(
+linha[4]
+),
+
+
+
+data:
+extrairData(
+linha[4]
+),
+
+
+
+hora:
+extrairHora(
+linha[4]
+),
+
+
+
+// CODIGO TRANSACAO
+
+autorizacao:
+limparTexto(
+linha[5]
+),
+
+
+
+pagamento:
+limparTexto(
+linha[6]
+),
+
+
+
+status:
+limparTexto(
+linha[7]
+)
 
 
 };
@@ -340,11 +383,11 @@ cabecalho["codigo transacao"]
 
 if(
 registro.autorizacao &&
-registro.valor!==null
+registro.valor !== null
 ){
 
 
-registros.push(
+dadosPremmia.push(
 registro
 );
 
@@ -357,7 +400,19 @@ registro
 
 
 
-return registros;
+window.dadosPremmia =
+dadosPremmia;
+
+
+
+console.log(
+"Premmia:",
+dadosPremmia
+);
+
+
+
+atualizarContador();
 
 
 }
@@ -365,65 +420,80 @@ return registros;
 
 
 
-
-
-
-
 // ==========================================
-// SISTEMA INTERNO
+// TRANSFORMAR SISTEMA INTERNO
 // ==========================================
 
 
 function transformarInterno(linhas){
 
 
-
-let registros=[];
-
+dadosInterno=[];
 
 
-let cabecalho={};
+
+if(!linhas || !linhas.length){
+
+return;
+
+}
+
+
+
+
+let cabecalho=-1;
 
 
 
 for(let i=0;i<linhas.length;i++){
 
 
-let linha =
-linhas[i];
+const texto =
+linhas[i]
+.join(" ")
+.toLowerCase();
 
-
-
-let texto =
-linha.map(normalizarTexto)
-.join(" ");
-
-
-
-
-// encontra cabeçalho
 
 
 if(
 texto.includes("administradora") &&
-texto.includes("autorizacao")
+texto.includes("autorização")
+){
+
+cabecalho=i;
+break;
+
+}
+
+
+}
+
+
+
+if(cabecalho===-1){
+
+cabecalho=0;
+
+}
+
+
+
+
+for(
+let i=cabecalho+1;
+i<linhas.length;
+i++
 ){
 
 
-linha.forEach(
-(coluna,index)=>{
+const linha =
+linhas[i];
 
 
-cabecalho[
-normalizarTexto(coluna)
-]=index;
 
-
-});
-
+if(!linha || linha.length<10){
 
 continue;
-
 
 }
 
@@ -431,46 +501,67 @@ continue;
 
 
 
-if(
-Object.keys(cabecalho).length===0
-){
-
-continue;
-
-}
+const registro={
 
 
+origem:"INTERNO",
 
 
-
-
-let registro={
-
-
+// VALOR
 
 valor:
 converterValor(
-linha[
-cabecalho.valor
-]
+linha[1]
 ),
 
 
 
-pdv:
-linha[
-cabecalho.filial
-] || "",
+hora:
+limparTexto(
+linha[2]
+),
+
+
+
+data:
+limparTexto(
+linha[3]
+),
+
+
+
+cliente:
+limparTexto(
+linha[7]
+),
+
+
+
+filial:
+limparTexto(
+linha[8]
+),
+
+
+
+funcionario:
+limparTexto(
+linha[9]
+),
+
+
+
+tipo:
+limparTexto(
+linha[10]
+),
 
 
 
 autorizacao:
-String(
-linha[
-cabecalho.autorizacao
-] || ""
+limparTexto(
+linha[12]
 )
-.trim()
 
 
 
@@ -482,11 +573,11 @@ cabecalho.autorizacao
 
 if(
 registro.autorizacao &&
-registro.valor!==null
+registro.valor !== null
 ){
 
 
-registros.push(
+dadosInterno.push(
 registro
 );
 
@@ -499,8 +590,55 @@ registro
 
 
 
+window.dadosInterno =
+dadosInterno;
 
-return registros;
+
+
+console.log(
+"Interno:",
+dadosInterno
+);
+
+
+
+atualizarContador();
+
+
+
+verificarArquivos();
+
+
+}
+ // ==========================================
+// VERIFICAR ARQUIVOS
+// ==========================================
+
+
+function verificarArquivos(){
+
+
+if(
+btnConferir &&
+dadosPremmia.length>0 &&
+dadosInterno.length>0
+){
+
+btnConferir.disabled=false;
+
+
+}else{
+
+
+if(btnConferir){
+
+btnConferir.disabled=true;
+
+}
+
+
+}
+
 
 
 }
@@ -508,73 +646,91 @@ return registros;
 
 
 
-
-
-
-
 // ==========================================
-// CONTADOR
+// CONTADOR NA TELA
 // ==========================================
 
 
 function atualizarContador(){
 
 
-const campo =
+const contador =
 document.getElementById(
 "contadorDados"
 );
 
 
 
-if(campo){
+const status =
+document.getElementById(
+"statusSistema"
+);
 
 
-campo.innerHTML =
 
+if(contador){
+
+
+contador.innerHTML =
 `
-Premmia: ${dadosPremmia.length} registros |
+Premmia: ${dadosPremmia.length} registros 
+|
 Interno: ${dadosInterno.length} registros
 `;
 
 }
 
 
+
+if(status){
+
+
+if(
+dadosPremmia.length>0 &&
+dadosInterno.length>0
+){
+
+
+status.innerHTML =
+"Planilhas carregadas. Pronto para conferir.";
+
+
+
+}else{
+
+
+status.innerHTML =
+"Aguardando carregamento das planilhas.";
+
+}
+
+
+
+}
+
+
+
+verificarArquivos();
+
+
+
 }
 
 
 
 
 
-
-
 // ==========================================
-// FUNÇÕES AUXILIARES
+// CONVERSÃO VALOR
 // ==========================================
-
-
-function normalizarTexto(valor){
-
-
-return String(valor ?? "")
-.toLowerCase()
-.normalize("NFD")
-.replace(/[\u0300-\u036f]/g,"")
-.trim();
-
-
-}
-
-
-
 
 
 function converterValor(valor){
 
 
 if(
-valor===undefined ||
 valor===null ||
+valor===undefined ||
 valor===""
 
 ){
@@ -585,7 +741,9 @@ return null;
 
 
 
-if(typeof valor==="number"){
+if(
+typeof valor==="number"
+){
 
 return Number(
 valor.toFixed(2)
@@ -605,7 +763,7 @@ texto =
 texto
 .replace(/\./g,"")
 .replace(",",".")
-;
+.replace(/[^\d.-]/g,"");
 
 
 
@@ -614,16 +772,130 @@ Number(texto);
 
 
 
-return isNaN(numero)
-?
-null
-:
-Number(
+if(isNaN(numero)){
+
+return null;
+
+}
+
+
+
+return Number(
 numero.toFixed(2)
 );
 
 
 }
+
+
+
+
+// ==========================================
+// LIMPAR TEXTO
+// ==========================================
+
+
+function limparTexto(valor){
+
+
+if(
+valor===null ||
+valor===undefined
+){
+
+return "";
+
+}
+
+
+
+return String(valor)
+.trim()
+.replace(/\s+/g," ");
+
+
+}
+
+
+
+
+// ==========================================
+// DATA
+// ==========================================
+
+
+function extrairData(valor){
+
+
+if(!valor){
+
+return "";
+
+}
+
+
+
+const texto =
+String(valor);
+
+
+
+const resultado =
+texto.match(
+/\d{2}\/\d{2}\/\d{4}/
+);
+
+
+
+return resultado
+?
+resultado[0]
+:
+texto;
+
+
+}
+
+
+
+
+// ==========================================
+// HORA
+// ==========================================
+
+
+function extrairHora(valor){
+
+
+if(!valor){
+
+return "";
+
+}
+
+
+
+const texto =
+String(valor);
+
+
+
+const resultado =
+texto.match(
+/\d{2}:\d{2}(:\d{2})?/
+);
+
+
+
+return resultado
+?
+resultado[0]
+:
+"";
+
+
+}
+
 
 
 
