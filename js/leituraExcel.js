@@ -11,62 +11,76 @@ let dadosInterno = [];
 // ELEMENTOS
 // ==========================================
 
-function getElemento(id) {
-    return document.getElementById(id);
-}
+const arquivoPremmia =
+    document.getElementById("arquivoPremmia");
+
+const arquivoInterno =
+    document.getElementById("arquivoInterno");
+
+const nomePremmia =
+    document.getElementById("nomePremmia");
+
+const nomeInterno =
+    document.getElementById("nomeInterno");
+
+const btnConferir =
+    document.getElementById("btnConferir");
 
 
 // ==========================================
-// CARREGAMENTO DOS ARQUIVOS
+// ARQUIVO PREMMIA
 // ==========================================
 
-document.addEventListener("DOMContentLoaded", () => {
+if (arquivoPremmia) {
 
-    const arquivoPremmia = getElemento("arquivoPremmia");
-    const arquivoInterno = getElemento("arquivoInterno");
-
-    if (arquivoPremmia) {
-
-        arquivoPremmia.addEventListener("change", function () {
+    arquivoPremmia.addEventListener(
+        "change",
+        function () {
 
             const file = this.files[0];
 
-            if (!file) return;
+            if (!file) {
+                return;
+            }
 
-            const nome = getElemento("nomePremmia");
-
-            if (nome) {
-                nome.textContent = file.name;
+            if (nomePremmia) {
+                nomePremmia.textContent = file.name;
             }
 
             lerPremmia(file);
 
-        });
+        }
+    );
 
-    }
+}
 
 
-    if (arquivoInterno) {
+// ==========================================
+// ARQUIVO INTERNO
+// ==========================================
 
-        arquivoInterno.addEventListener("change", function () {
+if (arquivoInterno) {
+
+    arquivoInterno.addEventListener(
+        "change",
+        function () {
 
             const file = this.files[0];
 
-            if (!file) return;
+            if (!file) {
+                return;
+            }
 
-            const nome = getElemento("nomeInterno");
-
-            if (nome) {
-                nome.textContent = file.name;
+            if (nomeInterno) {
+                nomeInterno.textContent = file.name;
             }
 
             lerInterno(file);
 
-        });
+        }
+    );
 
-    }
-
-});
+}
 
 
 // ==========================================
@@ -82,7 +96,9 @@ function abrirExcel(file, callback) {
         try {
 
             const dados =
-                new Uint8Array(e.target.result);
+                new Uint8Array(
+                    e.target.result
+                );
 
             const workbook =
                 XLSX.read(
@@ -114,7 +130,7 @@ function abrirExcel(file, callback) {
         } catch (erro) {
 
             console.error(
-                "Erro ao abrir Excel:",
+                "Erro ao abrir planilha:",
                 erro
             );
 
@@ -141,6 +157,11 @@ function lerPremmia(file) {
         file,
         function (linhas) {
 
+            console.log(
+                "Planilha Premmia carregada:",
+                linhas
+            );
+
             dadosPremmia =
                 transformarPremmia(linhas);
 
@@ -150,6 +171,11 @@ function lerPremmia(file) {
             console.log(
                 "Premmia:",
                 dadosPremmia
+            );
+
+            console.log(
+                "Quantidade Premmia:",
+                dadosPremmia.length
             );
 
             verificarArquivos();
@@ -186,6 +212,11 @@ function lerInterno(file) {
                 dadosInterno
             );
 
+            console.log(
+                "Quantidade Interno:",
+                dadosInterno.length
+            );
+
             verificarArquivos();
 
         }
@@ -195,46 +226,7 @@ function lerInterno(file) {
 
 
 // ==========================================
-// VERIFICAR ARQUIVOS
-// ==========================================
-
-function verificarArquivos() {
-
-    const btn =
-        getElemento("btnConferir");
-
-    console.log(
-        "Verificando:",
-        dadosPremmia.length,
-        dadosInterno.length
-    );
-
-
-    if (
-        btn &&
-        dadosPremmia.length > 0 &&
-        dadosInterno.length > 0
-    ) {
-
-        btn.disabled = false;
-
-        console.log(
-            "Botão Conferir liberado"
-        );
-
-    } else {
-
-        console.log(
-            "Aguardando planilhas"
-        );
-
-    }
-
-}
-
-
-// ==========================================
-// TRANSFORMAR PORTAL PREMMIA
+// TRANSFORMAR PREMMIA
 // ==========================================
 
 function transformarPremmia(linhas) {
@@ -244,66 +236,88 @@ function transformarPremmia(linhas) {
     linhas.forEach(
         (linha, index) => {
 
-            // cabeçalho
-            if (index === 0) {
-                return;
-            }
-
             if (!Array.isArray(linha)) {
                 return;
             }
 
-            /*
-                Portal Premmia:
+            // pula cabeçalho
+            if (index === 0) {
+                return;
+            }
 
-                0 CPF
-                1 Nome
-                2 Produto
-                3 Valor líquido
-                4 Data/Hora da transação
-                5 Código Transação
-                6 Forma de Pagamento
-                7 Status
-            */
+            if (linha.length < 7) {
+                return;
+            }
+
 
             const registro = {
 
-                origem: "PREMMIA",
+                origem:
+                    "PREMMIA",
+
 
                 cpf:
-                    limparTexto(linha[0]),
+                    limparTexto(
+                        linha[0]
+                    ),
+
 
                 cliente:
-                    limparTexto(linha[1]),
+                    limparTexto(
+                        linha[1]
+                    ),
+
 
                 operacao:
-                    limparTexto(linha[2]),
+                    limparTexto(
+                        linha[2]
+                    ),
+
 
                 valor:
-                    converterValor(linha[3]),
+                    converterValor(
+                        linha[3]
+                    ),
+
 
                 dataHora:
                     linha[4],
 
+
                 data:
-                    extrairData(linha[4]),
+                    extrairData(
+                        linha[4]
+                    ),
+
 
                 hora:
-                    extrairHora(linha[4]),
+                    extrairHora(
+                        linha[4]
+                    ),
+
 
                 autorizacao:
-                    normalizarAutorizacao(linha[5]),
+                    normalizarAutorizacao(
+                        linha[5]
+                    ),
+
 
                 pagamento:
-                    limparTexto(linha[6]),
+                    limparTexto(
+                        linha[6]
+                    ),
+
 
                 status:
-                    limparTexto(linha[7])
+                    limparTexto(
+                        linha[7]
+                    )
 
             };
 
 
             if (
+                registro.autorizacao &&
                 registro.valor !== null
             ) {
 
@@ -322,7 +336,45 @@ function transformarPremmia(linhas) {
 
 
 // ==========================================
-// TRANSFORMAR SISTEMA INTERNO
+// TRANSFORMAR INTERNO
+// ==========================================
+//
+// ESTRUTURA INFORMADA:
+//
+// A Administradora
+// B Valor
+// C Horário
+// D Movimento
+// E Data Fiscal
+// F Bom Para
+// G Valor Líquido
+// H Cliente
+// I Filial
+// J Funcionário
+// K Tipo Inclusão
+// L C. de Custo
+// M Autorização
+//
+// O ARQUIVO ESTÁ CHEGANDO COM UMA COLUNA
+// INICIAL EXTRA/VÁZIA.
+//
+// POR ISSO:
+//
+// linha[0] = coluna extra
+// linha[1] = Administradora
+// linha[2] = Valor
+// linha[3] = Horário
+// linha[4] = Movimento
+// linha[5] = Data Fiscal
+// linha[6] = Bom Para
+// linha[7] = Valor Líquido
+// linha[8] = Cliente
+// linha[9] = Filial
+// linha[10] = Funcionário
+// linha[11] = Tipo Inclusão
+// linha[12] = C. de Custo
+// linha[13] = Autorização
+//
 // ==========================================
 
 function transformarInterno(linhas) {
@@ -330,38 +382,57 @@ function transformarInterno(linhas) {
     const registros = [];
 
 
-    /*
-        Sistema Interno:
-
-        0  Administradora
-        1  Valor
-        2  Horário
-        3  Movimento
-        4  Data Fiscal
-        5  Bom Para
-        6  Valor Líquido
-        7  Cliente
-        8  Filial
-        9  Funcionário
-        10 Tipo Inclusão
-        11 C. de Custo
-        12 Autorização
-    */
-
-
     linhas.forEach(
         (linha, index) => {
-
-            // pula cabeçalho
-            if (index === 0) {
-                return;
-            }
-
 
             if (!Array.isArray(linha)) {
                 return;
             }
 
+
+            // ==================================
+            // MOSTRA PRIMEIRAS LINHAS
+            // PARA CONFERÊNCIA
+            // ==================================
+
+            if (index <= 2) {
+
+                console.log(
+                    "LINHA INTERNA BRUTA " + index + ":",
+                    linha
+                );
+
+            }
+
+
+            // pula cabeçalho
+
+            if (index === 0) {
+                return;
+            }
+
+
+            // ==================================
+            // IGNORA LINHAS VAZIAS
+            // ==================================
+
+            if (
+                linha.every(
+                    valor =>
+                        valor === "" ||
+                        valor === null ||
+                        valor === undefined
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            // ==================================
+            // DADOS
+            // ==================================
 
             const registro = {
 
@@ -370,73 +441,102 @@ function transformarInterno(linhas) {
 
 
                 administradora:
-                    limparTexto(linha[0]),
+                    limparTexto(
+                        linha[1]
+                    ),
 
 
                 valor:
-                    converterValor(linha[1]),
+                    converterValor(
+                        linha[2]
+                    ),
 
 
                 hora:
-                    extrairHoraInterno(linha[2]),
+                    limparTexto(
+                        linha[3]
+                    ),
 
 
                 movimento:
-                    limparTexto(linha[3]),
+                    limparTexto(
+                        linha[4]
+                    ),
 
 
                 data:
-                    extrairDataInterno(linha[4]),
+                    limparTexto(
+                        linha[5]
+                    ),
 
 
                 bomPara:
-                    limparTexto(linha[5]),
+                    limparTexto(
+                        linha[6]
+                    ),
 
 
                 valorLiquido:
-                    converterValor(linha[6]),
+                    converterValor(
+                        linha[7]
+                    ),
 
 
                 cliente:
-                    limparTexto(linha[7]),
+                    limparTexto(
+                        linha[8]
+                    ),
 
 
                 filial:
-                    limparTexto(linha[8]),
+                    limparTexto(
+                        linha[9]
+                    ),
 
 
                 operador:
-                    limparTexto(linha[9]),
+                    limparTexto(
+                        linha[10]
+                    ),
 
 
                 tipo:
-                    limparTexto(linha[10]),
+                    limparTexto(
+                        linha[11]
+                    ),
 
 
                 centroCusto:
-                    limparTexto(linha[11]),
+                    limparTexto(
+                        linha[12]
+                    ),
 
 
                 autorizacao:
-                    normalizarAutorizacao(linha[12])
+                    normalizarAutorizacao(
+                        linha[13]
+                    )
 
             };
 
 
             console.log(
-                "Linha interna:",
+                "Linha interna interpretada:",
                 registro
             );
 
 
-            /*
-                IMPORTANTE:
+            // ==================================
+            // ACEITA REGISTRO
+            // ==================================
 
-                Não exigimos autorização.
-
-                Vale e Desconto podem precisar
-                ser conferidos pelo valor.
-            */
+            // O sistema interno pode ter registros
+            // sem autorização, especialmente em
+            // Vale/Desconto.
+            //
+            // Portanto NÃO vamos exigir autorização.
+            //
+            // O que precisamos é ter valor.
 
             if (
                 registro.valor !== null
@@ -473,43 +573,20 @@ function normalizarAutorizacao(valor) {
     }
 
 
-    let texto =
-        String(valor)
+    return String(valor)
+
         .trim()
-        .toUpperCase();
 
+        .toUpperCase()
 
-    /*
-        Remove espaços
-    */
+        // remove espaços
+        .replace(/\s/g, "")
 
-    texto =
-        texto.replace(/\s/g, "");
+        // remove .0 somente no final
+        .replace(/\.0$/, "")
 
-
-    /*
-        Remove .0 do Excel
-
-        Exemplo:
-
-        123456.0
-        ↓
-        123456
-    */
-
-    texto =
-        texto.replace(/\.0$/, "");
-
-
-    /*
-        Remove caracteres especiais
-    */
-
-    texto =
-        texto.replace(/[^\w]/g, "");
-
-
-    return texto;
+        // remove caracteres especiais
+        .replace(/[^\w]/g, "");
 
 }
 
@@ -531,7 +608,10 @@ function converterValor(valor) {
     }
 
 
-    // Excel já entregou número
+    // ==================================
+    // NÚMERO
+    // ==================================
+
     if (
         typeof valor === "number"
     ) {
@@ -543,9 +623,23 @@ function converterValor(valor) {
     }
 
 
+    // ==================================
+    // DATA DO EXCEL
+    // NÃO É VALOR
+    // ==================================
+
+    if (
+        valor instanceof Date
+    ) {
+
+        return null;
+
+    }
+
+
     let texto =
         String(valor)
-        .trim();
+            .trim();
 
 
     if (!texto) {
@@ -553,10 +647,7 @@ function converterValor(valor) {
     }
 
 
-    /*
-        Remove R$
-    */
-
+    // remove R$
     texto =
         texto.replace(
             /R\$/gi,
@@ -568,13 +659,12 @@ function converterValor(valor) {
         texto.trim();
 
 
-    /*
-        Se estiver no padrão brasileiro:
-
-        1.234,56
-        ↓
-        1234.56
-    */
+    // ==================================
+    // FORMATO BRASILEIRO
+    //
+    // 2,50
+    // 1.250,50
+    // ==================================
 
     if (
         texto.includes(",")
@@ -582,20 +672,28 @@ function converterValor(valor) {
 
         texto =
             texto
-            .replace(/\./g, "")
-            .replace(",", ".");
+                .replace(/\./g, "")
+                .replace(",", ".");
 
     }
 
+    // ==================================
+    // FORMATO
+    //
+    // 2.50
+    // ==================================
 
-    /*
-        Se não tem vírgula,
-        mantém ponto decimal.
+    else {
 
-        Exemplo:
+        // mantém ponto decimal
 
-        123.45
-    */
+        texto =
+            texto.replace(
+                /[^\d.-]/g,
+                ""
+            );
+
+    }
 
 
     const numero =
@@ -619,7 +717,7 @@ function converterValor(valor) {
 
 
 // ==========================================
-// LIMPAR TEXTO
+// TEXTO
 // ==========================================
 
 function limparTexto(valor) {
@@ -634,13 +732,14 @@ function limparTexto(valor) {
     }
 
 
-    return String(valor).trim();
+    return String(valor)
+        .trim();
 
 }
 
 
 // ==========================================
-// DATA PREMMIA
+// DATA
 // ==========================================
 
 function extrairData(valor) {
@@ -667,7 +766,7 @@ function extrairData(valor) {
 
 
 // ==========================================
-// HORA PREMMIA
+// HORA
 // ==========================================
 
 function extrairHora(valor) {
@@ -698,89 +797,148 @@ function extrairHora(valor) {
 
     const resultado =
         texto.match(
-            /\d{2}:\d{2}/
-        );
-
-
-    return resultado
-        ? resultado[0]
-        : "";
-
-}
-
-
-// ==========================================
-// DATA SISTEMA INTERNO
-// ==========================================
-
-function extrairDataInterno(valor) {
-
-    if (!valor) {
-        return "";
-    }
-
-
-    if (
-        valor instanceof Date
-    ) {
-
-        return valor.toLocaleDateString(
-            "pt-BR"
-        );
-
-    }
-
-
-    return String(valor).trim();
-
-}
-
-
-// ==========================================
-// HORA SISTEMA INTERNO
-// ==========================================
-
-function extrairHoraInterno(valor) {
-
-    if (!valor) {
-        return "";
-    }
-
-
-    if (
-        valor instanceof Date
-    ) {
-
-        return valor.toLocaleTimeString(
-            "pt-BR",
-            {
-                hour: "2-digit",
-                minute: "2-digit"
-            }
-        );
-
-    }
-
-
-    const texto =
-        String(valor).trim();
-
-
-    const resultado =
-        texto.match(
             /\d{1,2}:\d{2}/
         );
 
 
-    return resultado
-        ? resultado[0]
-        : texto;
+    if (resultado) {
+
+        return resultado[0];
+
+    }
+
+
+    return "";
 
 }
 
 
 // ==========================================
-// DISPONIBILIZA PARA O SISTEMA
+// VERIFICAR ARQUIVOS
+// ==========================================
+
+function verificarArquivos() {
+
+    console.log(
+        "Verificando:",
+        dadosPremmia.length,
+        dadosInterno.length
+    );
+
+
+    if (
+        dadosPremmia.length > 0 &&
+        dadosInterno.length > 0
+    ) {
+
+        if (btnConferir) {
+
+            btnConferir.disabled =
+                false;
+
+        }
+
+
+        atualizarStatus(
+            "Planilhas carregadas. Pronto para conferir."
+        );
+
+
+        console.log(
+            "BOTÃO CONFERIR HABILITADO"
+        );
+
+    }
+
+    else {
+
+        if (btnConferir) {
+
+            btnConferir.disabled =
+                true;
+
+        }
+
+
+        atualizarStatus(
+            "Aguardando carregamento das planilhas."
+        );
+
+
+        console.log(
+            "Aguardando planilhas"
+        );
+
+    }
+
+
+    atualizarContador();
+
+}
+
+
+// ==========================================
+// CONTADOR
+// ==========================================
+
+function atualizarContador() {
+
+    const contador =
+        document.getElementById(
+            "contadorDados"
+        );
+
+
+    if (!contador) {
+        return;
+    }
+
+
+    contador.innerHTML = `
+
+        Premmia:
+        <strong>
+            ${dadosPremmia.length}
+        </strong>
+        registros
+
+        &nbsp; | &nbsp;
+
+        Interno:
+        <strong>
+            ${dadosInterno.length}
+        </strong>
+        registros
+
+    `;
+
+}
+
+
+// ==========================================
+// STATUS
+// ==========================================
+
+function atualizarStatus(texto) {
+
+    const status =
+        document.getElementById(
+            "statusSistema"
+        );
+
+
+    if (status) {
+
+        status.textContent =
+            texto;
+
+    }
+
+}
+
+
+// ==========================================
+// DISPONIBILIZAR GLOBAL
 // ==========================================
 
 window.dadosPremmia =
@@ -789,10 +947,6 @@ window.dadosPremmia =
 window.dadosInterno =
     dadosInterno;
 
-
-// ==========================================
-// FINAL
-// ==========================================
 
 console.log(
     "leituraExcel.js completo carregado"
