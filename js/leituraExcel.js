@@ -7,7 +7,6 @@
 let dadosPremmia = [];
 let dadosInterno = [];
 
-
 // ==========================================
 // ELEMENTOS
 // ==========================================
@@ -45,8 +44,7 @@ if (arquivoPremmia) {
             }
 
             if (nomePremmia) {
-                nomePremmia.textContent =
-                    file.name;
+                nomePremmia.textContent = file.name;
             }
 
             lerPremmia(file);
@@ -74,8 +72,7 @@ if (arquivoInterno) {
             }
 
             if (nomeInterno) {
-                nomeInterno.textContent =
-                    file.name;
+                nomeInterno.textContent = file.name;
             }
 
             lerInterno(file);
@@ -92,9 +89,7 @@ if (arquivoInterno) {
 
 function abrirExcel(file, callback) {
 
-    const reader =
-        new FileReader();
-
+    const reader = new FileReader();
 
     reader.onload = function (e) {
 
@@ -105,7 +100,6 @@ function abrirExcel(file, callback) {
                     e.target.result
                 );
 
-
             const workbook =
                 XLSX.read(
                     dados,
@@ -115,14 +109,11 @@ function abrirExcel(file, callback) {
                     }
                 );
 
-
-            const primeira =
+            const primeiraAba =
                 workbook.SheetNames[0];
 
-
             const planilha =
-                workbook.Sheets[primeira];
-
+                workbook.Sheets[primeiraAba];
 
             const linhas =
                 XLSX.utils.sheet_to_json(
@@ -134,20 +125,7 @@ function abrirExcel(file, callback) {
                     }
                 );
 
-
-            console.log(
-                "Planilha aberta:",
-                file.name
-            );
-
-            console.log(
-                "Total de linhas:",
-                linhas.length
-            );
-
-
             callback(linhas);
-
 
         } catch (erro) {
 
@@ -156,7 +134,6 @@ function abrirExcel(file, callback) {
                 erro
             );
 
-
             alert(
                 "Não foi possível ler a planilha."
             );
@@ -164,7 +141,6 @@ function abrirExcel(file, callback) {
         }
 
     };
-
 
     reader.readAsArrayBuffer(file);
 
@@ -186,28 +162,21 @@ function lerPremmia(file) {
                 linhas
             );
 
-
             dadosPremmia =
-                transformarPremmia(
-                    linhas
-                );
-
+                transformarPremmia(linhas);
 
             window.dadosPremmia =
                 dadosPremmia;
-
 
             console.log(
                 "Premmia:",
                 dadosPremmia
             );
 
-
             console.log(
                 "Quantidade Premmia:",
                 dadosPremmia.length
             );
-
 
             verificarArquivos();
 
@@ -232,28 +201,36 @@ function lerInterno(file) {
                 linhas
             );
 
+            console.log(
+                "Quantidade de linhas internas:",
+                linhas.length
+            );
+
+            console.log(
+                "PRIMEIRA LINHA INTERNA:",
+                linhas[0]
+            );
+
+            console.log(
+                "SEGUNDA LINHA INTERNA:",
+                linhas[1]
+            );
 
             dadosInterno =
-                transformarInterno(
-                    linhas
-                );
-
+                transformarInterno(linhas);
 
             window.dadosInterno =
                 dadosInterno;
-
 
             console.log(
                 "Interno:",
                 dadosInterno
             );
 
-
             console.log(
                 "Quantidade Interno:",
                 dadosInterno.length
             );
-
 
             verificarArquivos();
 
@@ -264,492 +241,108 @@ function lerInterno(file) {
 
 
 // ==========================================
-// NORMALIZA TEXTO DE CABEÇALHO
-// ==========================================
-
-function normalizarCabecalho(valor) {
-
-    if (
-        valor === null ||
-        valor === undefined
-    ) {
-
-        return "";
-
-    }
-
-
-    return String(valor)
-
-        .trim()
-
-        .toUpperCase()
-
-        .normalize("NFD")
-
-        .replace(
-            /[\u0300-\u036f]/g,
-            ""
-        )
-
-        .replace(
-            /[^A-Z0-9]/g,
-            "");
-
-}
-
-
-// ==========================================
-// ENCONTRA LINHA DO CABEÇALHO
-// ==========================================
-
-function encontrarCabecalho(
-    linhas,
-    camposObrigatorios
-) {
-
-    const limite =
-        Math.min(
-            linhas.length,
-            30
-        );
-
-
-    for (
-        let i = 0;
-        i < limite;
-        i++
-    ) {
-
-        const linha =
-            linhas[i];
-
-
-        if (
-            !Array.isArray(linha)
-        ) {
-
-            continue;
-
-        }
-
-
-        const cabecalhos =
-            linha.map(
-                normalizarCabecalho
-            );
-
-
-        const encontrouTodos =
-            camposObrigatorios.every(
-                campo => {
-
-                    const campoNormalizado =
-                        normalizarCabecalho(
-                            campo
-                        );
-
-                    return cabecalhos.includes(
-                        campoNormalizado
-                    );
-
-                }
-            );
-
-
-        if (encontrouTodos) {
-
-            console.log(
-                "Cabeçalho encontrado na linha:",
-                i
-            );
-
-
-            console.log(
-                "Cabeçalho:",
-                linha
-            );
-
-
-            return i;
-
-        }
-
-    }
-
-
-    return -1;
-
-}
-
-
-// ==========================================
-// CRIA MAPA DAS COLUNAS
-// ==========================================
-
-function criarMapaColunas(
-    linhaCabecalho
-) {
-
-    const mapa = {};
-
-
-    if (
-        !Array.isArray(
-            linhaCabecalho
-        )
-    ) {
-
-        return mapa;
-
-    }
-
-
-    linhaCabecalho.forEach(
-        (
-            valor,
-            index
-        ) => {
-
-            const nome =
-                normalizarCabecalho(
-                    valor
-                );
-
-
-            if (!nome) {
-
-                return;
-
-            }
-
-
-            mapa[nome] =
-                index;
-
-        }
-    );
-
-
-    return mapa;
-
-}
-
-
-// ==========================================
-// PEGA VALOR DA COLUNA
-// ==========================================
-
-function pegarColuna(
-    linha,
-    mapa,
-    nomes
-) {
-
-    for (
-        const nome of nomes
-    ) {
-
-        const chave =
-            normalizarCabecalho(
-                nome
-            );
-
-
-        if (
-            Object.prototype.hasOwnProperty.call(
-                mapa,
-                chave
-            )
-        ) {
-
-            return linha[
-                mapa[chave]
-            ];
-
-        }
-
-    }
-
-
-    return "";
-
-}
-
-
-// ==========================================
 // TRANSFORMAR PREMMIA
 // ==========================================
+//
+// Portal:
+//
+// 0 CPF
+// 1 Nome
+// 2 Produto
+// 3 Valor
+// 4 Data/Hora da transação
+// 5 Código Transação
+// 6 Forma de Pagamento
+// 7 Status
+//
+// ==========================================
 
-function transformarPremmia(
-    linhas
-) {
+function transformarPremmia(linhas) {
 
     const registros = [];
 
+    linhas.forEach(
+        function (linha, index) {
 
-    // ======================================
-    // PROCURA CABEÇALHO PREMMIA
-    // ======================================
+            if (!Array.isArray(linha)) {
+                return;
+            }
 
-    const indiceCabecalho =
-        encontrarCabecalho(
-            linhas,
-            [
-                "CPF",
-                "Nome",
-                "Produto",
-                "Código Transação"
-            ]
-        );
+            if (index === 0) {
+                return;
+            }
+
+            if (linha.length < 7) {
+                return;
+            }
+
+            const registro = {
+
+                origem: "PREMMIA",
+
+                cpf:
+                    limparTexto(
+                        linha[0]
+                    ),
+
+                cliente:
+                    limparTexto(
+                        linha[1]
+                    ),
+
+                operacao:
+                    limparTexto(
+                        linha[2]
+                    ),
+
+                valor:
+                    converterValor(
+                        linha[3]
+                    ),
+
+                dataHora:
+                    linha[4],
+
+                data:
+                    extrairData(
+                        linha[4]
+                    ),
+
+                hora:
+                    extrairHora(
+                        linha[4]
+                    ),
+
+                autorizacao:
+                    normalizarAutorizacao(
+                        linha[5]
+                    ),
+
+                pagamento:
+                    limparTexto(
+                        linha[6]
+                    ),
+
+                status:
+                    limparTexto(
+                        linha[7]
+                    )
+
+            };
 
 
-    if (
-        indiceCabecalho === -1
-    ) {
+            if (
+                registro.valor !== null
+            ) {
 
-        console.error(
-            "Cabeçalho do Portal Premmia não encontrado."
-        );
+                registros.push(
+                    registro
+                );
 
+            }
 
-        alert(
-            "Não foi possível identificar o cabeçalho da planilha Premmia."
-        );
-
-
-        return registros;
-
-    }
-
-
-    const mapa =
-        criarMapaColunas(
-            linhas[
-                indiceCabecalho
-            ]
-        );
-
-
-    console.log(
-        "Mapa colunas Premmia:",
-        mapa
+        }
     );
-
-
-    // ======================================
-    // PROCESSA LINHAS
-    // ======================================
-
-    for (
-        let index =
-            indiceCabecalho + 1;
-
-        index < linhas.length;
-
-        index++
-    ) {
-
-        const linha =
-            linhas[index];
-
-
-        if (
-            !Array.isArray(linha)
-        ) {
-
-            continue;
-
-        }
-
-
-        // ignora linha totalmente vazia
-
-        if (
-            linha.every(
-                valor =>
-                    valor === "" ||
-                    valor === null ||
-                    valor === undefined
-            )
-        ) {
-
-            continue;
-
-        }
-
-
-        const cpf =
-            pegarColuna(
-                linha,
-                mapa,
-                ["CPF"]
-            );
-
-
-        const cliente =
-            pegarColuna(
-                linha,
-                mapa,
-                ["Nome"]
-            );
-
-
-        const operacao =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Produto",
-                    "Operação"
-                ]
-            );
-
-
-        const valorBruto =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Valor líquido",
-                    "Valor",
-                    "Valor Líquido"
-                ]
-            );
-
-
-        const dataHora =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Data/Hora da transação",
-                    "Data Hora da transação",
-                    "Data/Hora"
-                ]
-            );
-
-
-        const autorizacaoBruta =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Código Transação",
-                    "Codigo Transacao",
-                    "Autorização",
-                    "Autorizacao"
-                ]
-            );
-
-
-        const pagamento =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Forma de Pagamento",
-                    "Forma Pagamento"
-                ]
-            );
-
-
-        const status =
-            pegarColuna(
-                linha,
-                mapa,
-                ["Status"]
-            );
-
-
-        const registro = {
-
-            origem:
-                "PREMMIA",
-
-
-            cpf:
-                limparTexto(
-                    cpf
-                ),
-
-
-            cliente:
-                limparTexto(
-                    cliente
-                ),
-
-
-            operacao:
-                limparTexto(
-                    operacao
-                ),
-
-
-            valor:
-                converterValor(
-                    valorBruto
-                ),
-
-
-            dataHora:
-                dataHora,
-
-
-            data:
-                extrairData(
-                    dataHora
-                ),
-
-
-            hora:
-                extrairHora(
-                    dataHora
-                ),
-
-
-            autorizacao:
-                normalizarAutorizacao(
-                    autorizacaoBruta
-                ),
-
-
-            pagamento:
-                limparTexto(
-                    pagamento
-                ),
-
-
-            status:
-                limparTexto(
-                    status
-                )
-
-        };
-
-
-        // ==================================
-        // REGISTRO PREMMIA
-        // ==================================
-
-        if (
-            registro.valor !== null
-        ) {
-
-            registros.push(
-                registro
-            );
-
-        }
-
-    }
-
-
-    console.log(
-        "PREMMIA TRANSFORMADO:",
-        registros
-    );
-
 
     return registros;
 
@@ -759,356 +352,420 @@ function transformarPremmia(
 // ==========================================
 // TRANSFORMAR INTERNO
 // ==========================================
+//
+// Sistema:
+//
+// Administradora
+// Valor
+// Horário
+// Movimento
+// Data Fiscal
+// Bom Para
+// Valor Líquido
+// Cliente
+// Filial
+// Funcionário
+// Tipo Inclusão
+// C. de Custo
+// Autorização
+//
+// ==========================================
 
-function transformarInterno(
-    linhas
-) {
+function transformarInterno(linhas) {
 
     const registros = [];
 
+    if (!linhas || !linhas.length) {
+        return registros;
+    }
+
 
     // ======================================
-    // PROCURA CABEÇALHO
+    // LOCALIZA O CABEÇALHO
     // ======================================
 
-    const indiceCabecalho =
-        encontrarCabecalho(
-            linhas,
-            [
-                "Administradora",
-                "Valor",
-                "Horário",
-                "Movimento",
-                "Autorização"
-            ]
-        );
+    let indiceCabecalho = -1;
 
-
-    if (
-        indiceCabecalho === -1
+    for (
+        let i = 0;
+        i < Math.min(linhas.length, 10);
+        i++
     ) {
 
-        console.error(
-            "Cabeçalho do sistema interno não encontrado."
-        );
+        const linha =
+            Array.isArray(linhas[i])
+                ? linhas[i]
+                : [];
 
+        const texto =
+            linha
+                .map(
+                    valor =>
+                        limparTexto(valor).toUpperCase()
+                )
+                .join(" | ");
 
         console.log(
-            "Primeiras linhas:",
-            linhas.slice(
-                0,
-                10
-            )
+            "Cabeçalho interno linha",
+            i,
+            ":",
+            texto
         );
 
 
-        alert(
-            "Não foi possível identificar o cabeçalho da planilha interna."
-        );
+        if (
+            texto.includes("ADMINISTRADORA") &&
+            texto.includes("VALOR")
+        ) {
 
+            indiceCabecalho = i;
 
-        return registros;
+            break;
+
+        }
 
     }
 
 
-    const mapa =
-        criarMapaColunas(
-            linhas[
-                indiceCabecalho
-            ]
-        );
+    // ======================================
+    // SE NÃO ENCONTRAR CABEÇALHO,
+    // USA PRIMEIRA LINHA
+    // ======================================
+
+    if (indiceCabecalho === -1) {
+
+        indiceCabecalho = 0;
+
+    }
 
 
     console.log(
-        "Mapa colunas Interno:",
+        "Cabeçalho interno encontrado na linha:",
+        indiceCabecalho
+    );
+
+
+    // ======================================
+    // IDENTIFICA AS COLUNAS PELO NOME
+    // ======================================
+
+    const cabecalho =
+        linhas[indiceCabecalho] || [];
+
+
+    const mapa =
+        {};
+
+    cabecalho.forEach(
+        function (valor, index) {
+
+            const nome =
+                limparTexto(valor)
+                    .toUpperCase();
+
+            if (nome) {
+
+                mapa[nome] = index;
+
+            }
+
+        }
+    );
+
+
+    console.log(
+        "Mapa de colunas interno:",
         mapa
     );
 
 
+    // ======================================
+    // FUNÇÃO PARA LOCALIZAR COLUNA
+    // ======================================
+
+    function acharColuna(...nomes) {
+
+        for (const nome of nomes) {
+
+            const chave =
+                Object.keys(mapa)
+                    .find(
+                        coluna =>
+                            coluna === nome ||
+                            coluna.includes(nome)
+                    );
+
+            if (
+                chave !== undefined
+            ) {
+
+                return mapa[chave];
+
+            }
+
+        }
+
+        return -1;
+
+    }
+
+
+    const colunaAdministradora =
+        acharColuna(
+            "ADMINISTRADORA"
+        );
+
+
+    const colunaValor =
+        acharColuna(
+            "VALOR"
+        );
+
+
+    const colunaHorario =
+        acharColuna(
+            "HORÁRIO",
+            "HORARIO"
+        );
+
+
+    const colunaMovimento =
+        acharColuna(
+            "MOVIMENTO"
+        );
+
+
+    const colunaData =
+        acharColuna(
+            "DATA FISCAL"
+        );
+
+
+    const colunaBomPara =
+        acharColuna(
+            "BOM PARA"
+        );
+
+
+    const colunaValorLiquido =
+        acharColuna(
+            "VALOR LÍQUIDO",
+            "VALOR LIQUIDO"
+        );
+
+
+    const colunaCliente =
+        acharColuna(
+            "CLIENTE"
+        );
+
+
+    const colunaFilial =
+        acharColuna(
+            "FILIAL"
+        );
+
+
+    const colunaFuncionario =
+        acharColuna(
+            "FUNCIONÁRIO",
+            "FUNCIONARIO"
+        );
+
+
+    const colunaTipo =
+        acharColuna(
+            "TIPO INCLUSÃO",
+            "TIPO INCLUSAO"
+        );
+
+
+    const colunaCentroCusto =
+        acharColuna(
+            "C. DE CUSTO",
+            "C DE CUSTO"
+        );
+
+
+    const colunaAutorizacao =
+        acharColuna(
+            "AUTORIZAÇÃO",
+            "AUTORIZACAO"
+        );
+
+
     console.log(
-        "Cabeçalho interno identificado:",
-        linhas[
-            indiceCabecalho
-        ]
+        "COLUNAS ENCONTRADAS:",
+        {
+            colunaAdministradora,
+            colunaValor,
+            colunaHorario,
+            colunaMovimento,
+            colunaData,
+            colunaBomPara,
+            colunaValorLiquido,
+            colunaCliente,
+            colunaFilial,
+            colunaFuncionario,
+            colunaTipo,
+            colunaCentroCusto,
+            colunaAutorizacao
+        }
     );
 
 
     // ======================================
-    // PROCESSA LINHAS
+    // LÊ OS REGISTROS
     // ======================================
 
     for (
-        let index =
-            indiceCabecalho + 1;
-
-        index < linhas.length;
-
-        index++
+        let i = indiceCabecalho + 1;
+        i < linhas.length;
+        i++
     ) {
 
         const linha =
-            linhas[index];
+            linhas[i];
 
-
-        if (
-            !Array.isArray(linha)
-        ) {
-
+        if (!Array.isArray(linha)) {
             continue;
-
         }
 
 
-        // ==================================
-        // IGNORA LINHA VAZIA
-        // ==================================
-
-        if (
+        const vazia =
             linha.every(
                 valor =>
                     valor === "" ||
                     valor === null ||
                     valor === undefined
-            )
-        ) {
+            );
 
+
+        if (vazia) {
             continue;
-
         }
 
 
-        // ==================================
-        // PEGA CAMPOS PELO NOME
-        // ==================================
-
-        const administradora =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Administradora"
-                ]
-            );
-
-
         const valorBruto =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Valor"
-                ]
-            );
+            colunaValor >= 0
+                ? linha[colunaValor]
+                : null;
 
 
-        const horaBruta =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Horário",
-                    "Horario"
-                ]
-            );
-
-
-        const movimento =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Movimento"
-                ]
-            );
-
-
-        const dataFiscal =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Data Fiscal",
-                    "DataFiscal"
-                ]
-            );
-
-
-        const bomPara =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Bom Para"
-                ]
-            );
-
-
-        const valorLiquidoBruto =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Valor Líquido",
-                    "Valor Liquido"
-                ]
-            );
-
-
-        const cliente =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Cliente"
-                ]
-            );
-
-
-        const filial =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Filial"
-                ]
-            );
-
-
-        const operador =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Funcionário",
-                    "Funcionario",
-                    "Operador"
-                ]
-            );
-
-
-        const tipo =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Tipo Inclusão",
-                    "Tipo Inclusao"
-                ]
-            );
-
-
-        const centroCusto =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "C. de Custo",
-                    "C de Custo",
-                    "Centro de Custo"
-                ]
-            );
-
-
-        const autorizacaoBruta =
-            pegarColuna(
-                linha,
-                mapa,
-                [
-                    "Autorização",
-                    "Autorizacao"
-                ]
+        const valor =
+            converterValor(
+                valorBruto
             );
 
 
         // ==================================
-        // MONTA REGISTRO
+        // IGNORA LINHAS SEM VALOR
         // ==================================
+
+        if (valor === null) {
+            continue;
+        }
+
 
         const registro = {
 
             origem:
                 "INTERNO",
 
-
             administradora:
                 limparTexto(
-                    administradora
+                    colunaAdministradora >= 0
+                        ? linha[colunaAdministradora]
+                        : ""
                 ),
-
 
             valor:
-                converterValor(
-                    valorBruto
-                ),
 
+                valor,
 
             hora:
-                extrairHoraInterno(
-                    horaBruta
+                limparTexto(
+                    colunaHorario >= 0
+                        ? linha[colunaHorario]
+                        : ""
                 ),
-
 
             movimento:
                 limparTexto(
-                    movimento
+                    colunaMovimento >= 0
+                        ? linha[colunaMovimento]
+                        : ""
                 ),
-
 
             data:
-                extrairData(
-                    dataFiscal
+                limparTexto(
+                    colunaData >= 0
+                        ? linha[colunaData]
+                        : ""
                 ),
-
 
             bomPara:
                 limparTexto(
-                    bomPara
+                    colunaBomPara >= 0
+                        ? linha[colunaBomPara]
+                        : ""
                 ),
-
 
             valorLiquido:
                 converterValor(
-                    valorLiquidoBruto
+                    colunaValorLiquido >= 0
+                        ? linha[colunaValorLiquido]
+                        : null
                 ),
-
 
             cliente:
                 limparTexto(
-                    cliente
+                    colunaCliente >= 0
+                        ? linha[colunaCliente]
+                        : ""
                 ),
-
 
             filial:
                 limparTexto(
-                    filial
+                    colunaFilial >= 0
+                        ? linha[colunaFilial]
+                        : ""
                 ),
-
 
             operador:
                 limparTexto(
-                    operador
+                    colunaFuncionario >= 0
+                        ? linha[colunaFuncionario]
+                        : ""
                 ),
-
 
             tipo:
                 limparTexto(
-                    tipo
+                    colunaTipo >= 0
+                        ? linha[colunaTipo]
+                        : ""
                 ),
-
 
             centroCusto:
                 limparTexto(
-                    centroCusto
+                    colunaCentroCusto >= 0
+                        ? linha[colunaCentroCusto]
+                        : ""
                 ),
-
 
             autorizacao:
                 normalizarAutorizacao(
-                    autorizacaoBruta
+                    colunaAutorizacao >= 0
+                        ? linha[colunaAutorizacao]
+                        : ""
                 )
 
         };
+
+
+        registros.push(
+            registro
+        );
 
 
         console.log(
@@ -1116,39 +773,7 @@ function transformarInterno(
             registro
         );
 
-
-        // ==================================
-        // ACEITA REGISTRO
-        // ==================================
-        //
-        // NÃO exigimos autorização.
-        //
-        // Isso é importante porque:
-        //
-        // PREMMIA VALE
-        // PREMMIA DESCONTO
-        //
-        // podem precisar ser conferidos
-        // pelo valor.
-        // ==================================
-
-        if (
-            registro.valor !== null
-        ) {
-
-            registros.push(
-                registro
-            );
-
-        }
-
     }
-
-
-    console.log(
-        "INTERNO TRANSFORMADO:",
-        registros
-    );
 
 
     return registros;
@@ -1160,9 +785,7 @@ function transformarInterno(
 // NORMALIZAR AUTORIZAÇÃO
 // ==========================================
 
-function normalizarAutorizacao(
-    valor
-) {
+function normalizarAutorizacao(valor) {
 
     if (
         valor === null ||
@@ -1174,38 +797,46 @@ function normalizarAutorizacao(
     }
 
 
-    return String(valor)
+    let texto =
+        String(valor)
+            .trim()
+            .toUpperCase();
 
-        .trim()
 
-        .toUpperCase()
+    // ======================================
+    // REMOVE .0 DO EXCEL
+    // ======================================
 
-        .normalize("NFD")
-
-        .replace(
-            /[\u0300-\u036f]/g,
-            ""
-        )
-
-        // remove espaços
-
-        .replace(
-            /\s/g,
-            ""
-        )
-
-        // remove .0 somente no final
-
-        .replace(
+    texto =
+        texto.replace(
             /\.0$/,
             ""
-        )
+        );
 
-        // mantém somente letras e números
 
-        .replace(
-            /[^A-Z0-9]/g,
-            "");
+    // ======================================
+    // REMOVE ESPAÇOS
+    // ======================================
+
+    texto =
+        texto.replace(
+            /\s/g,
+            ""
+        );
+
+
+    // ======================================
+    // REMOVE CARACTERES ESPECIAIS
+    // ======================================
+
+    texto =
+        texto.replace(
+            /[^\w]/g,
+            ""
+        );
+
+
+    return texto;
 
 }
 
@@ -1214,9 +845,7 @@ function normalizarAutorizacao(
 // CONVERTER VALOR
 // ==========================================
 
-function converterValor(
-    valor
-) {
+function converterValor(valor) {
 
     if (
         valor === null ||
@@ -1230,21 +859,12 @@ function converterValor(
 
 
     // ======================================
-    // NÚMERO EXCEL
+    // NÚMERO DO EXCEL
     // ======================================
 
     if (
         typeof valor === "number"
     ) {
-
-        if (
-            !Number.isFinite(valor)
-        ) {
-
-            return null;
-
-        }
-
 
         return Number(
             valor.toFixed(2)
@@ -1272,9 +892,7 @@ function converterValor(
 
 
     if (!texto) {
-
         return null;
-
     }
 
 
@@ -1286,22 +904,8 @@ function converterValor(
         texto.replace(
             /R\$/gi,
             ""
-        );
-
-
-    texto =
-        texto.trim();
-
-
-    // ======================================
-    // REMOVE ESPAÇOS
-    // ======================================
-
-    texto =
-        texto.replace(
-            /\s/g,
-            ""
-        );
+        )
+        .trim();
 
 
     // ======================================
@@ -1317,24 +921,10 @@ function converterValor(
 
         texto =
             texto
-                .replace(
-                    /\./g,
-                    ""
-                )
-                .replace(
-                    ",",
-                    "."
-                );
+                .replace(/\./g, "")
+                .replace(",", ".");
 
     }
-
-
-    // ======================================
-    // FORMATO INTERNACIONAL
-    //
-    // 2.50
-    // 1250.50
-    // ======================================
 
     else {
 
@@ -1352,7 +942,7 @@ function converterValor(
 
 
     if (
-        !Number.isFinite(numero)
+        isNaN(numero)
     ) {
 
         return null;
@@ -1371,9 +961,7 @@ function converterValor(
 // LIMPAR TEXTO
 // ==========================================
 
-function limparTexto(
-    valor
-) {
+function limparTexto(valor) {
 
     if (
         valor === null ||
@@ -1385,6 +973,17 @@ function limparTexto(
     }
 
 
+    if (
+        valor instanceof Date
+    ) {
+
+        return valor.toLocaleString(
+            "pt-BR"
+        );
+
+    }
+
+
     return String(valor)
         .trim();
 
@@ -1392,19 +991,13 @@ function limparTexto(
 
 
 // ==========================================
-// EXTRAIR DATA
+// DATA
 // ==========================================
 
-function extrairData(
-    valor
-) {
+function extrairData(valor) {
 
-    if (
-        !valor
-    ) {
-
+    if (!valor) {
         return "";
-
     }
 
 
@@ -1419,26 +1012,19 @@ function extrairData(
     }
 
 
-    return String(valor)
-        .trim();
+    return String(valor);
 
 }
 
 
 // ==========================================
-// EXTRAIR HORA PREMMIA
+// HORA
 // ==========================================
 
-function extrairHora(
-    valor
-) {
+function extrairHora(valor) {
 
-    if (
-        !valor
-    ) {
-
+    if (!valor) {
         return "";
-
     }
 
 
@@ -1463,13 +1049,11 @@ function extrairHora(
 
     const resultado =
         texto.match(
-            /\d{1,2}:\d{2}(?::\d{2})?/
+            /\d{1,2}:\d{2}/
         );
 
 
-    if (
-        resultado
-    ) {
+    if (resultado) {
 
         return resultado[0];
 
@@ -1482,122 +1066,26 @@ function extrairHora(
 
 
 // ==========================================
-// EXTRAIR HORA INTERNO
-// ==========================================
-
-function extrairHoraInterno(
-    valor
-) {
-
-    if (
-        valor === null ||
-        valor === undefined ||
-        valor === ""
-    ) {
-
-        return "";
-
-    }
-
-
-    // Excel pode entregar horário
-    // como número decimal.
-    //
-    // Exemplo:
-    // 0.5 = 12:00
-    // ======================================
-
-    if (
-        typeof valor === "number"
-    ) {
-
-        if (
-            valor >= 0 &&
-            valor < 1
-        ) {
-
-            const totalMinutos =
-                Math.round(
-                    valor * 24 * 60
-                );
-
-
-            const horas =
-                Math.floor(
-                    totalMinutos / 60
-                );
-
-
-            const minutos =
-                totalMinutos % 60;
-
-
-            return (
-                String(horas)
-                    .padStart(2, "0")
-                +
-                ":" +
-                String(minutos)
-                    .padStart(2, "0")
-            );
-
-        }
-
-
-        return String(valor);
-
-    }
-
-
-    if (
-        valor instanceof Date
-    ) {
-
-        return valor.toLocaleTimeString(
-            "pt-BR",
-            {
-                hour: "2-digit",
-                minute: "2-digit"
-            }
-        );
-
-    }
-
-
-    const texto =
-        String(valor)
-            .trim();
-
-
-    const resultado =
-        texto.match(
-            /\d{1,2}:\d{2}(?::\d{2})?/
-        );
-
-
-    if (
-        resultado
-    ) {
-
-        return resultado[0];
-
-    }
-
-
-    return texto;
-
-}
-
-
-// ==========================================
 // VERIFICAR ARQUIVOS
 // ==========================================
 
 function verificarArquivos() {
 
     console.log(
-        "Verificando:",
-        dadosPremmia.length,
+        "=================================="
+    );
+
+    console.log(
+        "VERIFICANDO PLANILHAS"
+    );
+
+    console.log(
+        "Premmia:",
+        dadosPremmia.length
+    );
+
+    console.log(
+        "Interno:",
         dadosInterno.length
     );
 
@@ -1607,9 +1095,7 @@ function verificarArquivos() {
         dadosInterno.length > 0
     ) {
 
-        if (
-            btnConferir
-        ) {
+        if (btnConferir) {
 
             btnConferir.disabled =
                 false;
@@ -1627,19 +1113,22 @@ function verificarArquivos() {
 
 
         console.log(
-            "BOTÃO CONFERIR HABILITADO"
+            "✅ BOTÃO CONFERIR HABILITADO"
         );
 
     }
 
     else {
 
-        if (
-            btnConferir
-        ) {
+        if (btnConferir) {
 
             btnConferir.disabled =
                 true;
+
+            btnConferir.setAttribute(
+                "disabled",
+                "disabled"
+            );
 
         }
 
@@ -1650,7 +1139,7 @@ function verificarArquivos() {
 
 
         console.log(
-            "Aguardando planilhas"
+            "⏳ Aguardando planilhas"
         );
 
     }
@@ -1673,32 +1162,22 @@ function atualizarContador() {
         );
 
 
-    if (
-        !contador
-    ) {
-
+    if (!contador) {
         return;
-
     }
 
 
-    contador.innerHTML = `
+    contador.innerHTML =
 
-        Premmia:
-        <strong>
-            ${dadosPremmia.length}
-        </strong>
-        registros
+        "Premmia: <strong>" +
+        dadosPremmia.length +
+        "</strong> registros" +
 
-        &nbsp; | &nbsp;
+        " &nbsp; | &nbsp; " +
 
-        Interno:
-        <strong>
-            ${dadosInterno.length}
-        </strong>
-        registros
-
-    `;
+        "Interno: <strong>" +
+        dadosInterno.length +
+        "</strong> registros";
 
 }
 
@@ -1707,9 +1186,7 @@ function atualizarContador() {
 // STATUS
 // ==========================================
 
-function atualizarStatus(
-    texto
-) {
+function atualizarStatus(texto) {
 
     const status =
         document.getElementById(
@@ -1717,9 +1194,7 @@ function atualizarStatus(
         );
 
 
-    if (
-        status
-    ) {
+    if (status) {
 
         status.textContent =
             texto;
@@ -1739,10 +1214,6 @@ window.dadosPremmia =
 window.dadosInterno =
     dadosInterno;
 
-
-// ==========================================
-// FINAL
-// ==========================================
 
 console.log(
     "leituraExcel.js completo carregado"
