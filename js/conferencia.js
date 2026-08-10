@@ -2,7 +2,7 @@
 // SISTEMA DE CONFERÊNCIA PREMMIA
 // conferencia.js
 // ======================================================
-
+ 
 let resultadosConferencia = [];
 
 
