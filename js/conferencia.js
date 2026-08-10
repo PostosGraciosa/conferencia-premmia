@@ -1,13 +1,14 @@
+```javascript
 // ======================================================
 // SISTEMA DE CONFERÊNCIA PREMMIA
 // conferencia.js
 // ======================================================
- 
+
 let resultadosConferencia = [];
 
 
 // ======================================================
-// DISPONIBILIZAR RESULTADOS GLOBALMENTE
+// RESULTADOS GLOBAIS
 // ======================================================
 
 Object.defineProperty(window, "resultadosConferencia", {
@@ -19,9 +20,12 @@ Object.defineProperty(window, "resultadosConferencia", {
     },
 
     set: function (valor) {
-        resultadosConferencia = Array.isArray(valor)
-            ? valor
-            : [];
+
+        resultadosConferencia =
+            Array.isArray(valor)
+                ? valor
+                : [];
+
     }
 
 });
@@ -31,15 +35,20 @@ Object.defineProperty(window, "resultadosConferencia", {
 // INICIALIZAÇÃO
 // ======================================================
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-    console.log("conferencia.js iniciado");
+        console.log(
+            "conferencia.js iniciado"
+        );
 
-    ativarBotaoConferir();
+        ativarBotaoConferir();
 
-    ativarFiltros();
+        ativarFiltros();
 
-});
+    }
+);
 
 
 // ======================================================
@@ -48,7 +57,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function ativarBotaoConferir() {
 
-    const btn = document.getElementById("btnConferir");
+    const btn =
+        document.getElementById(
+            "btnConferir"
+        );
+
 
     if (!btn) {
 
@@ -57,7 +70,9 @@ function ativarBotaoConferir() {
         );
 
         return;
+
     }
+
 
     console.log(
         "Botão Conferir encontrado:",
@@ -65,26 +80,27 @@ function ativarBotaoConferir() {
     );
 
 
-    btn.onclick = function (event) {
+    btn.onclick =
+        function (event) {
 
-        event.preventDefault();
+            event.preventDefault();
 
-        console.log(
-            "================================"
-        );
+            console.log(
+                "================================"
+            );
 
-        console.log(
-            "BOTÃO CONFERIR CLICADO"
-        );
+            console.log(
+                "BOTÃO CONFERIR CLICADO"
+            );
 
-        console.log(
-            "================================"
-        );
+            console.log(
+                "================================"
+            );
 
 
-        iniciarConferencia();
+            iniciarConferencia();
 
-    };
+        };
 
 
     console.log(
@@ -102,6 +118,7 @@ function iniciarConferencia() {
 
     const premmia =
         window.dadosPremmia || [];
+
 
     const interno =
         window.dadosInterno || [];
@@ -131,6 +148,7 @@ function iniciarConferencia() {
         );
 
         return;
+
     }
 
 
@@ -141,6 +159,7 @@ function iniciarConferencia() {
         );
 
         return;
+
     }
 
 
@@ -155,306 +174,353 @@ function iniciarConferencia() {
     // PERCORRE PREMMIA
     // ==================================================
 
-    premmia.forEach(function (venda, indice) {
+    premmia.forEach(
+        function (venda, indice) {
 
-        console.log(
-            "--------------------------------"
-        );
-
-
-        console.log(
-            "Analisando Premmia:",
-            indice + 1,
-            venda
-        );
+            console.log(
+                "--------------------------------"
+            );
 
 
-        const operacao =
-            String(
-                venda.operacao || ""
-            )
-            .trim()
-            .toUpperCase();
+            console.log(
+                "Analisando Premmia:",
+                indice + 1,
+                venda
+            );
 
 
-        // ==================================================
-        // IDENTIFICA VALE
-        // ==================================================
-
-        const ehVale =
-            operacao.includes("VALE");
-
-
-        // ==================================================
-        // IDENTIFICA DESCONTO
-        // ==================================================
-
-        const ehDesconto =
-            operacao.includes("DESCONTO");
+            const operacao =
+                String(
+                    venda.operacao || ""
+                )
+                .trim()
+                .toUpperCase();
 
 
-        // ==================================================
-        // VALE E DESCONTO:
-        // NÃO COMPARAR AUTORIZAÇÃO
-        // COMPARAR SOMENTE VALOR
-        // ==================================================
+            // ==================================================
+            // IDENTIFICA VALE
+            // ==================================================
 
-        const comparaSomenteValor =
-            ehVale ||
-            ehDesconto;
-
-
-        console.log(
-            "Operação:",
-            venda.operacao
-        );
-
-
-        console.log(
-            "É VALE:",
-            ehVale
-        );
-
-
-        console.log(
-            "É DESCONTO:",
-            ehDesconto
-        );
-
-
-        console.log(
-            "Compara somente valor:",
-            comparaSomenteValor
-        );
-
-
-        let encontrado = null;
-
-
-        // ==================================================
-        // 1 - VALE / DESCONTO
-        // PROCURA SOMENTE PELO VALOR
-        // ==================================================
-
-        if (comparaSomenteValor) {
-
-            encontrado =
-                encontrarPorValor(
-                    venda,
-                    interno,
-                    utilizados
+            const ehVale =
+                operacao.includes(
+                    "VALE"
                 );
 
 
-            if (encontrado) {
+            // ==================================================
+            // IDENTIFICA DESCONTO
+            // ==================================================
 
-                console.log(
-                    "Vale/Desconto encontrado pelo valor:",
-                    encontrado
+            const ehDesconto =
+                operacao.includes(
+                    "DESCONTO"
                 );
 
-            }
 
-        }
+            // ==================================================
+            // VALE / DESCONTO
+            //
+            // NÃO COMPARAR AUTORIZAÇÃO
+            //
+            // COMPARAR SOMENTE VALOR
+            // ==================================================
 
-
-        // ==================================================
-        // 2 - OPERAÇÕES NORMAIS
-        // PRIMEIRO AUTORIZAÇÃO
-        // ==================================================
-
-        if (
-            !encontrado &&
-            !comparaSomenteValor &&
-            venda.autorizacao
-        ) {
-
-            encontrado =
-                interno.find(function (item) {
-
-                    if (
-                        utilizados.has(item)
-                    ) {
-
-                        return false;
-                    }
+            const comparaSomenteValor =
+                ehVale ||
+                ehDesconto;
 
 
-                    if (
-                        !item.autorizacao
-                    ) {
-
-                        return false;
-                    }
+            console.log(
+                "Operação:",
+                venda.operacao
+            );
 
 
-                    return (
-                        normalizarAutorizacao(
-                            item.autorizacao
-                        )
-                        ===
-                        normalizarAutorizacao(
-                            venda.autorizacao
-                        )
+            console.log(
+                "É VALE:",
+                ehVale
+            );
+
+
+            console.log(
+                "É DESCONTO:",
+                ehDesconto
+            );
+
+
+            console.log(
+                "Compara somente valor:",
+                comparaSomenteValor
+            );
+
+
+            let encontrado = null;
+
+
+            // ==================================================
+            // 1 - VALE / DESCONTO
+            // PROCURA SOMENTE PELO VALOR
+            // ==================================================
+
+            if (
+                comparaSomenteValor
+            ) {
+
+                encontrado =
+                    encontrarPorValor(
+                        venda,
+                        interno,
+                        utilizados
                     );
 
-                });
 
+                if (encontrado) {
 
-            if (encontrado) {
+                    console.log(
+                        "Vale/Desconto encontrado pelo valor:",
+                        encontrado
+                    );
 
-                console.log(
-                    "Premmia encontrada pela autorização:",
-                    encontrado
-                );
-
-            }
-
-        }
-
-
-        // ==================================================
-        // 3 - SE NÃO ACHOU PELA AUTORIZAÇÃO
-        // TENTA PELO VALOR
-        // ==================================================
-
-        if (
-            !encontrado &&
-            !comparaSomenteValor
-        ) {
-
-            encontrado =
-                encontrarPorValor(
-                    venda,
-                    interno,
-                    utilizados
-                );
-
-
-            if (encontrado) {
-
-                console.log(
-                    "Encontrada pelo valor:",
-                    encontrado
-                );
+                }
 
             }
 
-        }
+
+            // ==================================================
+            // 2 - OPERAÇÕES NORMAIS
+            //
+            // PRIMEIRO AUTORIZAÇÃO
+            // ==================================================
+
+            if (
+                !encontrado &&
+                !comparaSomenteValor &&
+                venda.autorizacao
+            ) {
+
+                encontrado =
+                    interno.find(
+                        function (item) {
+
+                            if (
+                                utilizados.has(
+                                    item
+                                )
+                            ) {
+
+                                return false;
+
+                            }
 
 
-        // ==================================================
-        // NÃO ENCONTRADA
-        // ==================================================
+                            if (
+                                !item.autorizacao
+                            ) {
 
-        if (!encontrado) {
+                                return false;
 
-            resultadosConferencia.push(
+                            }
 
-                criarResultado(
-                    "NAO_LANCADA",
-                    venda,
-                    null,
-                    "Venda não localizada no sistema interno."
-                )
 
+                            return (
+                                normalizarAutorizacao(
+                                    item.autorizacao
+                                )
+                                ===
+                                normalizarAutorizacao(
+                                    venda.autorizacao
+                                )
+                            );
+
+                        }
+                    );
+
+
+                if (encontrado) {
+
+                    console.log(
+                        "Premmia encontrada pela autorização:",
+                        encontrado
+                    );
+
+                }
+
+            }
+
+
+            // ==================================================
+            // 3 - OPERAÇÕES NORMAIS
+            //
+            // SE NÃO ACHOU PELA AUTORIZAÇÃO,
+            // TENTA PELO VALOR
+            // ==================================================
+
+            if (
+                !encontrado &&
+                !comparaSomenteValor
+            ) {
+
+                encontrado =
+                    encontrarPorValor(
+                        venda,
+                        interno,
+                        utilizados
+                    );
+
+
+                if (encontrado) {
+
+                    console.log(
+                        "Encontrada pelo valor:",
+                        encontrado
+                    );
+
+                }
+
+            }
+
+
+            // ==================================================
+            // NÃO ENCONTRADA
+            // ==================================================
+
+            if (!encontrado) {
+
+                resultadosConferencia.push(
+
+                    criarResultado(
+                        "NAO_LANCADA",
+                        venda,
+                        null,
+                        comparaSomenteValor
+                            ? "Desconto/Vale não localizado pelo valor."
+                            : "Venda não localizada no sistema interno."
+                    )
+
+                );
+
+                return;
+
+            }
+
+
+            // ==================================================
+            // MARCA INTERNO COMO UTILIZADO
+            // ==================================================
+
+            utilizados.add(
+                encontrado
             );
 
-            return;
-        }
+
+            console.log(
+                "Valor Premmia:",
+                venda.valor
+            );
 
 
-        // ==================================================
-        // MARCA COMO UTILIZADA
-        // ==================================================
-
-        utilizados.add(
-            encontrado
-        );
-
-
-        console.log(
-            "Valor Premmia:",
-            venda.valor
-        );
-
-
-        console.log(
-            "Valor Interno:",
-            encontrado.valor
-        );
-
-
-        // ==================================================
-        // COMPARA VALOR
-        // ==================================================
-
-        if (
-            mesmoValor(
-                venda.valor,
+            console.log(
+                "Valor Interno:",
                 encontrado.valor
-            )
-        ) {
-
-            resultadosConferencia.push(
-
-                criarResultado(
-                    "CORRETA",
-                    venda,
-                    encontrado,
-                    comparaSomenteValor
-                        ? "Conferida pelo valor."
-                        : "Conferida pela autorização e valor."
-                )
-
             );
 
-        }
 
-        else {
+            // ==================================================
+            // COMPARAÇÃO DO VALOR
+            // ==================================================
 
-            resultadosConferencia.push(
-
-                criarResultado(
-                    "VALOR_DIVERGENTE",
-                    venda,
-                    encontrado,
-                    "Autorização localizada, porém o valor é diferente."
+            if (
+                mesmoValor(
+                    venda.valor,
+                    encontrado.valor
                 )
+            ) {
 
-            );
+                resultadosConferencia.push(
+
+                    criarResultado(
+                        "CORRETA",
+                        venda,
+                        encontrado,
+                        comparaSomenteValor
+                            ? "Conferida somente pelo valor."
+                            : "Conferida pela autorização e valor."
+                    )
+
+                );
+
+            }
+
+            else {
+
+                resultadosConferencia.push(
+
+                    criarResultado(
+                        "VALOR_DIVERGENTE",
+                        venda,
+                        encontrado,
+                        comparaSomenteValor
+                            ? "Desconto/Vale localizado, porém o valor é diferente."
+                            : "Autorização localizada, porém o valor é diferente."
+                    )
+
+                );
+
+            }
 
         }
-
-    });
+    );
 
 
     // ==================================================
     // LANÇAMENTOS A MAIS
     // ==================================================
+    //
+    // IMPORTANTE:
+    // Linhas de TOTAL já foram removidas na leitura.
+    //
+    // ==================================================
 
-    interno.forEach(function (item) {
+    interno.forEach(
+        function (item) {
 
-        if (
-            utilizados.has(item)
-        ) {
+            if (
+                utilizados.has(
+                    item
+                )
+            ) {
 
-            return;
+                return;
+
+            }
+
+
+            // Segurança extra:
+            // nunca considerar linha de total
+            if (
+                ehLinhaTotal(
+                    item
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            resultadosConferencia.push(
+
+                criarResultado(
+                    "LANCADA_A_MAIS",
+                    null,
+                    item,
+                    "Lançamento interno sem correspondência no Portal Premmia."
+                )
+
+            );
+
         }
-
-
-        resultadosConferencia.push(
-
-            criarResultado(
-                "LANCADA_A_MAIS",
-                null,
-                item,
-                "Lançamento interno sem correspondência no Portal Premmia."
-            )
-
-        );
-
-    });
+    );
 
 
     // ==================================================
@@ -489,7 +555,7 @@ function iniciarConferencia() {
 
 
     // ==================================================
-    // MOSTRAR NA TELA
+    // MOSTRAR RESULTADOS
     // ==================================================
 
     mostrarResultados();
@@ -507,22 +573,96 @@ function encontrarPorValor(
     utilizados
 ) {
 
-    return interno.find(function (item) {
+    return interno.find(
+        function (item) {
 
-        if (
-            utilizados.has(item)
-        ) {
+            if (
+                utilizados.has(
+                    item
+                )
+            ) {
 
-            return false;
+                return false;
+
+            }
+
+
+            if (
+                ehLinhaTotal(
+                    item
+                )
+            ) {
+
+                return false;
+
+            }
+
+
+            return mesmoValor(
+                venda.valor,
+                item.valor
+            );
+
         }
+    );
+
+}
 
 
-        return mesmoValor(
-            venda.valor,
-            item.valor
-        );
+// ======================================================
+// IDENTIFICAR LINHA DE TOTAL
+// ======================================================
+//
+// NÃO CONSIDERAR:
+// R$ 6.665,41
+// ou qualquer outra linha de TOTAL.
+//
+// ======================================================
 
-    });
+function ehLinhaTotal(
+    item
+) {
+
+    if (!item) {
+        return false;
+    }
+
+
+    const textos = [
+
+        item.administradora,
+        item.cliente,
+        item.filial,
+        item.operador,
+        item.tipo,
+        item.movimento,
+        item.bomPara,
+        item.centroCusto
+
+    ];
+
+
+    const texto =
+        textos
+            .map(
+                function (valor) {
+
+                    return String(
+                        valor || ""
+                    )
+                    .trim()
+                    .toUpperCase();
+
+                }
+            )
+            .join(" ");
+
+
+    return (
+        texto.includes("TOTAL")
+        ||
+        texto.includes("TOTAIS")
+    );
 
 }
 
@@ -531,7 +671,10 @@ function encontrarPorValor(
 // COMPARAR VALORES
 // ======================================================
 
-function mesmoValor(a, b) {
+function mesmoValor(
+    a,
+    b
+) {
 
     if (
         a === null ||
@@ -541,6 +684,7 @@ function mesmoValor(a, b) {
     ) {
 
         return false;
+
     }
 
 
@@ -558,13 +702,18 @@ function mesmoValor(a, b) {
     ) {
 
         return false;
+
     }
 
 
     return (
-        Math.round(valorA * 100)
+        Math.round(
+            valorA * 100
+        )
         ===
-        Math.round(valorB * 100)
+        Math.round(
+            valorB * 100
+        )
     );
 
 }
@@ -574,7 +723,9 @@ function mesmoValor(a, b) {
 // NORMALIZAR AUTORIZAÇÃO
 // ======================================================
 
-function normalizarAutorizacao(valor) {
+function normalizarAutorizacao(
+    valor
+) {
 
     if (
         valor === null ||
@@ -582,6 +733,7 @@ function normalizarAutorizacao(valor) {
     ) {
 
         return "";
+
     }
 
 
@@ -591,11 +743,20 @@ function normalizarAutorizacao(valor) {
 
         .toUpperCase()
 
-        .replace(/\s/g, "")
+        .replace(
+            /\s/g,
+            ""
+        )
 
-        .replace(/\.0$/, "")
+        .replace(
+            /\.0$/,
+            ""
+        )
 
-        .replace(/[^\w]/g, "");
+        .replace(
+            /[^\w]/g,
+            ""
+        );
 
 }
 
@@ -613,65 +774,81 @@ function criarResultado(
 
     return {
 
-        status: status,
+        status:
+            status,
+
 
         data:
             premmia?.data ||
             interno?.data ||
             "",
 
+
         hora:
             premmia?.hora ||
             interno?.hora ||
             "",
 
+
         cliente:
             premmia?.cliente ||
             "",
+
 
         cpf:
             premmia?.cpf ||
             "",
 
+
         operacao:
             premmia?.operacao ||
             "",
+
 
         tipo:
             premmia?.operacao ||
             interno?.tipo ||
             "",
 
+
         autorizacaoPremmia:
             premmia?.autorizacao ||
             "",
+
 
         autorizacaoInterno:
             interno?.autorizacao ||
             "",
 
+
         valorPremmia:
             premmia?.valor ??
             null,
+
 
         valorInterno:
             interno?.valor ??
             null,
 
+
         operador:
             interno?.operador ||
             "",
+
 
         filial:
             interno?.filial ||
             "",
 
+
         administradora:
             interno?.administradora ||
             "",
 
+
         observacao:
-            observacao || ""
+            observacao ||
+            ""
 
     };
 
@@ -706,31 +883,85 @@ function mostrarResultados() {
     mostrarContainerResultado();
 
 
-    // Rola até o resultado
-    setTimeout(function () {
+    // ==================================================
+    // GARANTIA VISUAL
+    // ==================================================
 
-        const resultado =
-            document.getElementById(
-                "resultado"
-            );
+    const resultado =
+        document.getElementById(
+            "resultado"
+        );
 
 
-        if (resultado) {
+    if (resultado) {
 
-            resultado.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
+        resultado.hidden =
+            false;
 
-        }
+        resultado.style.display =
+            "block";
 
-    }, 100);
+        resultado.style.visibility =
+            "visible";
+
+        resultado.style.opacity =
+            "1";
+
+    }
+
+
+    const resultadoConferencia =
+        document.getElementById(
+            "resultadoConferencia"
+        );
+
+
+    if (resultadoConferencia) {
+
+        resultadoConferencia.hidden =
+            false;
+
+        resultadoConferencia.style.display =
+            "block";
+
+    }
+
+
+    // ==================================================
+    // ROLAR PARA RESULTADO
+    // ==================================================
+
+    setTimeout(
+        function () {
+
+            const alvo =
+                document.getElementById(
+                    "resultado"
+                )
+                ||
+                document.getElementById(
+                    "resultadoConferencia"
+                );
+
+
+            if (alvo) {
+
+                alvo.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+            }
+
+        },
+        100
+    );
 
 }
 
 
 // ======================================================
-// MOSTRAR CONTAINER
+// MOSTRAR CONTAINER RESULTADO
 // ======================================================
 
 function mostrarContainerResultado() {
@@ -738,35 +969,47 @@ function mostrarContainerResultado() {
     const ids = [
 
         "resultado",
-
         "resultadoConferencia",
-
         "areaResultado",
-
         "painelResultado",
-
         "tabelaResultado"
 
     ];
 
 
-    ids.forEach(function (id) {
+    ids.forEach(
+        function (id) {
 
-        const elemento =
-            document.getElementById(id);
+            const elemento =
+                document.getElementById(
+                    id
+                );
 
 
-        if (elemento) {
+            if (!elemento) {
+                return;
+            }
 
-            elemento.style.display =
-                "";
 
             elemento.hidden =
                 false;
 
-        }
 
-    });
+            elemento.style.display =
+                id === "tabelaResultado"
+                    ? "table"
+                    : "block";
+
+
+            elemento.style.visibility =
+                "visible";
+
+
+            elemento.style.opacity =
+                "1";
+
+        }
+    );
 
 
     console.log(
@@ -930,19 +1173,29 @@ function somarValores(
         function (item) {
 
             if (
-                item.status === status
-                &&
-                item[campo] !== null
-                &&
-                item[campo] !== undefined
+                item.status !==
+                status
             ) {
 
-                total +=
-                    Number(
-                        item[campo]
-                    ) || 0;
+                return;
 
             }
+
+
+            if (
+                item[campo] === null ||
+                item[campo] === undefined
+            ) {
+
+                return;
+
+            }
+
+
+            total +=
+                Number(
+                    item[campo]
+                ) || 0;
 
         }
     );
@@ -968,10 +1221,12 @@ function somarDiferencas(
         function (item) {
 
             if (
-                item.status !== status
+                item.status !==
+                status
             ) {
 
                 return;
+
             }
 
 
@@ -1012,7 +1267,9 @@ function alterarTexto(
 ) {
 
     const elemento =
-        document.getElementById(id);
+        document.getElementById(
+            id
+        );
 
 
     if (elemento) {
@@ -1073,8 +1330,8 @@ function renderizarTabela(
             "ERRO: #corpoTabela não encontrado no HTML."
         );
 
-
         return;
+
     }
 
 
@@ -1175,7 +1432,6 @@ function renderizarTabela(
     );
 
 
-    // Mostra tabela mesmo que CSS tenha ocultado
     const tabela =
         document.getElementById(
             "tabelaResultado"
@@ -1184,11 +1440,17 @@ function renderizarTabela(
 
     if (tabela) {
 
+        tabela.hidden =
+            false;
+
         tabela.style.display =
             "table";
 
-        tabela.hidden =
-            false;
+        tabela.style.visibility =
+            "visible";
+
+        tabela.style.opacity =
+            "1";
 
     }
 
@@ -1249,7 +1511,7 @@ function escaparHtml(
 
 
 // ======================================================
-// CLASSE DO STATUS
+// CLASSE STATUS
 // ======================================================
 
 function aplicarClasseStatus(
@@ -1357,7 +1619,8 @@ function ativarFiltros() {
 
 
                     if (
-                        filtro === "TODOS"
+                        filtro ===
+                        "TODOS"
                     ) {
 
                         renderizarTabela(
@@ -1418,3 +1681,4 @@ window.atualizarResumo =
 console.log(
     "conferencia.js completo carregado"
 );
+```
