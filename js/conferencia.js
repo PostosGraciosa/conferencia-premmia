@@ -18,8 +18,12 @@ Object.defineProperty(window, "resultadosConferencia", {
     },
 
     set: function (valor) {
+
         resultadosConferencia =
-            Array.isArray(valor) ? valor : [];
+            Array.isArray(valor)
+                ? valor
+                : [];
+
     }
 
 });
@@ -55,6 +59,7 @@ function ativarBotaoConferir() {
         );
 
         return;
+
     }
 
     console.log(
@@ -113,6 +118,7 @@ function iniciarConferencia() {
         );
 
         return;
+
     }
 
     if (internoOriginal.length === 0) {
@@ -122,6 +128,7 @@ function iniciarConferencia() {
         );
 
         return;
+
     }
 
     // ==================================================
@@ -209,10 +216,11 @@ function iniciarConferencia() {
         );
 
         let encontrado = null;
+        let tipoEncontrado = "";
 
         // ==================================================
-        // DESCONTO / VALE
-        // LOCALIZA SOMENTE PELO VALOR
+        // VALE / DESCONTO
+        // LOCALIZA PELO VALOR
         // ==================================================
 
         if (comparaSomenteValor) {
@@ -226,8 +234,11 @@ function iniciarConferencia() {
 
             if (encontrado) {
 
+                tipoEncontrado =
+                    "VALOR";
+
                 console.log(
-                    "Encontrado somente pelo valor:",
+                    "Encontrado pelo valor:",
                     encontrado
                 );
 
@@ -237,7 +248,7 @@ function iniciarConferencia() {
 
         // ==================================================
         // OPERAÇÃO NORMAL
-        // LOCALIZA PELA AUTORIZAÇÃO
+        // PRIMEIRO TENTA AUTORIZAÇÃO
         // ==================================================
 
         if (
@@ -254,8 +265,47 @@ function iniciarConferencia() {
 
             if (encontrado) {
 
+                tipoEncontrado =
+                    "AUTORIZACAO";
+
                 console.log(
                     "Encontrado pela autorização:",
+                    encontrado
+                );
+
+            }
+
+        }
+
+        // ==================================================
+        // NOVA TENTATIVA
+        //
+        // SE A AUTORIZAÇÃO NÃO BATER,
+        // PROCURA PELO VALOR.
+        //
+        // ISSO EVITA QUE A MESMA TRANSAÇÃO
+        // VIRE "NÃO LANÇADA" + "LANÇADA A MAIS".
+        // ==================================================
+
+        if (
+            !encontrado &&
+            !comparaSomenteValor
+        ) {
+
+            encontrado =
+                encontrarPorValor(
+                    venda,
+                    interno,
+                    utilizados
+                );
+
+            if (encontrado) {
+
+                tipoEncontrado =
+                    "VALOR_AUTORIZACAO_DIVERGENTE";
+
+                console.log(
+                    "Encontrado pelo valor, porém autorização diferente:",
                     encontrado
                 );
 
@@ -277,12 +327,13 @@ function iniciarConferencia() {
                     null,
                     comparaSomenteValor
                         ? "Desconto/Vale não localizado pelo valor."
-                        : "Venda não localizada pela autorização."
+                        : "Venda não localizada pela autorização nem pelo valor."
                 )
 
             );
 
             return;
+
         }
 
         // ==================================================
@@ -302,6 +353,69 @@ function iniciarConferencia() {
         );
 
         // ==================================================
+        // VALE / DESCONTO
+        // ==================================================
+
+        if (comparaSomenteValor) {
+
+            resultadosConferencia.push(
+
+                criarResultado(
+                    "CORRETA",
+                    venda,
+                    encontrado,
+                    "Conferida somente pelo valor."
+                )
+
+            );
+
+            return;
+
+        }
+
+        // ==================================================
+        // FOI ENCONTRADO PELO VALOR,
+        // MAS A AUTORIZAÇÃO É DIFERENTE
+        // ==================================================
+
+        if (
+            tipoEncontrado ===
+            "VALOR_AUTORIZACAO_DIVERGENTE"
+        ) {
+
+            const autorizacaoPremmia =
+                normalizarAutorizacao(
+                    venda.autorizacao
+                );
+
+            const autorizacaoInterno =
+                normalizarAutorizacao(
+                    encontrado.autorizacao
+                );
+
+            if (
+                autorizacaoPremmia !==
+                autorizacaoInterno
+            ) {
+
+                resultadosConferencia.push(
+
+                    criarResultado(
+                        "AUTORIZACAO_DIVERGENTE",
+                        venda,
+                        encontrado,
+                        "Valor correspondente encontrado, porém a autorização é diferente."
+                    )
+
+                );
+
+                return;
+
+            }
+
+        }
+
+        // ==================================================
         // COMPARA VALOR
         // ==================================================
 
@@ -318,9 +432,9 @@ function iniciarConferencia() {
                     "CORRETA",
                     venda,
                     encontrado,
-                    comparaSomenteValor
-                        ? "Conferida somente pelo valor."
-                        : "Conferida pela autorização e valor."
+                    tipoEncontrado === "AUTORIZACAO"
+                        ? "Conferida pela autorização e valor."
+                        : "Conferida pelo valor."
                 )
 
             );
@@ -333,9 +447,7 @@ function iniciarConferencia() {
                     "VALOR_DIVERGENTE",
                     venda,
                     encontrado,
-                    comparaSomenteValor
-                        ? "Desconto/Vale localizado pelo valor, porém o valor diverge."
-                        : "Autorização localizada, porém o valor é diferente."
+                    "Autorização localizada, porém o valor é diferente."
                 )
 
             );
@@ -346,6 +458,9 @@ function iniciarConferencia() {
 
     // ======================================================
     // LANÇAMENTOS A MAIS
+    //
+    // SOMENTE O QUE REALMENTE NÃO FOI VINCULADO
+    // A NENHUMA TRANSAÇÃO DO PORTAL.
     // ======================================================
 
     interno.forEach(function (item) {
@@ -355,6 +470,7 @@ function iniciarConferencia() {
         ) {
 
             return;
+
         }
 
         resultadosConferencia.push(
@@ -388,11 +504,9 @@ function iniciarConferencia() {
         resultadosConferencia.length
     );
 
-    console.log("================================");
-
-    // ==================================================
+    // ======================================================
     // MOSTRAR NA TELA
-    // ==================================================
+    // ======================================================
 
     mostrarResultados();
 
@@ -405,7 +519,9 @@ function iniciarConferencia() {
 function ehLinhaTotal(item) {
 
     if (!item) {
+
         return false;
+
     }
 
     const administradora =
@@ -436,15 +552,6 @@ function ehLinhaTotal(item) {
     const valor =
         Number(item.valor);
 
-    // Linha que apareceu no seu arquivo:
-    //
-    // administradora: ""
-    // valor: 6665.41
-    // hora: ""
-    // movimento: ""
-    //
-    // Portanto não participa da conferência.
-
     if (
         administradora === "" &&
         hora === "" &&
@@ -459,6 +566,7 @@ function ehLinhaTotal(item) {
         );
 
         return true;
+
     }
 
     return false;
@@ -478,6 +586,7 @@ function encontrarPorAutorizacao(
     if (!venda.autorizacao) {
 
         return null;
+
     }
 
     const autorizacaoVenda =
@@ -488,6 +597,7 @@ function encontrarPorAutorizacao(
     if (!autorizacaoVenda) {
 
         return null;
+
     }
 
     return interno.find(function (item) {
@@ -497,6 +607,7 @@ function encontrarPorAutorizacao(
         ) {
 
             return false;
+
         }
 
         if (
@@ -504,6 +615,7 @@ function encontrarPorAutorizacao(
         ) {
 
             return false;
+
         }
 
         const autorizacaoInterno =
@@ -530,21 +642,125 @@ function encontrarPorValor(
     utilizados
 ) {
 
-    return interno.find(function (item) {
+    const candidatos =
+        interno.filter(function (item) {
 
-        if (
-            utilizados.has(item)
-        ) {
+            if (
+                utilizados.has(item)
+            ) {
 
-            return false;
-        }
+                return false;
 
-        return mesmoValor(
-            venda.valor,
-            item.valor
+            }
+
+            return mesmoValor(
+                venda.valor,
+                item.valor
+            );
+
+        });
+
+    if (
+        candidatos.length === 0
+    ) {
+
+        return null;
+
+    }
+
+    // ==================================================
+    // SE HOUVER APENAS UM CANDIDATO
+    // ==================================================
+
+    if (
+        candidatos.length === 1
+    ) {
+
+        return candidatos[0];
+
+    }
+
+    // ==================================================
+    // SE EXISTIREM VÁRIOS VALORES IGUAIS,
+    // TENTA USAR A DATA
+    // ==================================================
+
+    const dataVenda =
+        normalizarData(
+            venda.data
         );
 
-    }) || null;
+    if (dataVenda) {
+
+        const mesmoDia =
+            candidatos.find(function (item) {
+
+                return (
+                    normalizarData(
+                        item.data ||
+                        item.movimento
+                    ) === dataVenda
+                );
+
+            });
+
+        if (mesmoDia) {
+
+            return mesmoDia;
+
+        }
+
+    }
+
+    // ==================================================
+    // SE NÃO CONSEGUIR DIFERENCIAR,
+    // USA O PRIMEIRO DISPONÍVEL
+    // ==================================================
+
+    return candidatos[0];
+
+}
+
+// ======================================================
+// NORMALIZAR DATA
+// ======================================================
+
+function normalizarData(valor) {
+
+    if (
+        valor === null ||
+        valor === undefined ||
+        valor === ""
+    ) {
+
+        return "";
+
+    }
+
+    const texto =
+        String(valor)
+            .trim();
+
+    // DD/MM/YYYY
+    const partes =
+        texto.split("/");
+
+    if (
+        partes.length === 3
+    ) {
+
+        return (
+            partes[2] +
+            "-" +
+            partes[1].padStart(2, "0") +
+            "-" +
+            partes[0].padStart(2, "0")
+        );
+
+    }
+
+    return texto
+        .toUpperCase();
 
 }
 
@@ -562,6 +778,7 @@ function mesmoValor(a, b) {
     ) {
 
         return false;
+
     }
 
     const valorA =
@@ -576,6 +793,7 @@ function mesmoValor(a, b) {
     ) {
 
         return false;
+
     }
 
     return (
@@ -597,6 +815,7 @@ function normalizarAutorizacao(valor) {
     ) {
 
         return "";
+
     }
 
     return String(valor)
@@ -719,8 +938,11 @@ function mostrarResultados() {
         setTimeout(function () {
 
             resultado.scrollIntoView({
+
                 behavior: "smooth",
+
                 block: "start"
+
             });
 
         }, 100);
@@ -823,7 +1045,7 @@ function atualizarResumo() {
     );
 
     // ==================================================
-    // VALORES
+    // VALORES POR CATEGORIA
     // ==================================================
 
     const somaCorretas =
@@ -848,6 +1070,9 @@ function atualizarResumo() {
         somarDiferencas(
             "VALOR_DIVERGENTE"
         );
+
+    const somaAutorizacaoDivergente =
+        somarDiferencaAutorizacao();
 
     alterarTexto(
         "valorCorretas",
@@ -877,10 +1102,244 @@ function atualizarResumo() {
         )
     );
 
-    console.log(
-        "Resumo atualizado:",
-        total
+    // ==================================================
+    // DIFERENÇA LÍQUIDA
+    // ==================================================
+
+    const diferencaLiquida =
+        calcularDiferencaLiquida();
+
+    alterarTexto(
+        "diferencaLiquida",
+        formatarMoeda(
+            Math.abs(diferencaLiquida)
+        )
     );
+
+    // ==================================================
+    // STATUS DA DIFERENÇA
+    // ==================================================
+
+    const statusDiferenca =
+        obterStatusDiferenca(
+            diferencaLiquida
+        );
+
+    alterarTexto(
+        "statusDiferenca",
+        statusDiferenca
+    );
+
+    console.log(
+        "================================"
+    );
+
+    console.log(
+        "RESUMO DA CONFERÊNCIA"
+    );
+
+    console.log(
+        "Corretas:",
+        total.CORRETA
+    );
+
+    console.log(
+        "Não lançadas:",
+        total.NAO_LANCADA
+    );
+
+    console.log(
+        "Lançadas a mais:",
+        total.LANCADA_A_MAIS
+    );
+
+    console.log(
+        "Valor divergente:",
+        total.VALOR_DIVERGENTE
+    );
+
+    console.log(
+        "Autorização divergente:",
+        total.AUTORIZACAO_DIVERGENTE
+    );
+
+    console.log(
+        "Diferença líquida:",
+        diferencaLiquida
+    );
+
+    console.log(
+        "Status:",
+        statusDiferenca
+    );
+
+    console.log(
+        "================================"
+    );
+
+}
+
+// ======================================================
+// CALCULAR DIFERENÇA LÍQUIDA
+//
+// POSITIVO:
+// Portal tem mais dinheiro que o sistema.
+//
+// NEGATIVO:
+// Sistema tem mais dinheiro que o Portal.
+//
+// ZERO:
+// Totais iguais.
+//
+// IMPORTANTE:
+// Não utiliza as categorias da conferência.
+// Calcula diretamente PORTAL × SISTEMA.
+// ======================================================
+
+function calcularDiferencaLiquida() {
+
+    const premmia =
+        window.dadosPremmia || [];
+
+    const internoOriginal =
+        window.dadosInterno || [];
+
+    const interno =
+        internoOriginal.filter(function (item) {
+
+            return !ehLinhaTotal(item);
+
+        });
+
+    let totalPortal = 0;
+    let totalSistema = 0;
+
+    premmia.forEach(function (item) {
+
+        totalPortal +=
+            Number(item.valor) || 0;
+
+    });
+
+    interno.forEach(function (item) {
+
+        totalSistema +=
+            Number(item.valor) || 0;
+
+    });
+
+    totalPortal =
+        Math.round(
+            totalPortal * 100
+        ) / 100;
+
+    totalSistema =
+        Math.round(
+            totalSistema * 100
+        ) / 100;
+
+    const diferenca =
+        Math.round(
+            (totalPortal - totalSistema) * 100
+        ) / 100;
+
+    console.log(
+        "Total Portal:",
+        totalPortal
+    );
+
+    console.log(
+        "Total Sistema:",
+        totalSistema
+    );
+
+    console.log(
+        "Diferença líquida:",
+        diferenca
+    );
+
+    return diferenca;
+
+}
+
+// ======================================================
+// STATUS DA DIFERENÇA
+// ======================================================
+
+function obterStatusDiferenca(
+    diferenca
+) {
+
+    const valor =
+        Math.round(
+            diferenca * 100
+        ) / 100;
+
+    if (
+        valor === 0
+    ) {
+
+        return "Conferência fechada: Portal e Sistema estão iguais.";
+
+    }
+
+    if (
+        valor > 0
+    ) {
+
+        return (
+            "Falta lançar " +
+            formatarMoeda(valor) +
+            " no sistema."
+        );
+
+    }
+
+    return (
+        "O sistema possui " +
+        formatarMoeda(Math.abs(valor)) +
+        " a mais que o Portal."
+    );
+
+}
+
+// ======================================================
+// SOMAR DIFERENÇA DE AUTORIZAÇÃO
+// ======================================================
+
+function somarDiferencaAutorizacao() {
+
+    let total = 0;
+
+    resultadosConferencia.forEach(function (item) {
+
+        if (
+            item.status !==
+            "AUTORIZACAO_DIVERGENTE"
+        ) {
+
+            return;
+
+        }
+
+        const portal =
+            Number(
+                item.valorPremmia
+            ) || 0;
+
+        const sistema =
+            Number(
+                item.valorInterno
+            ) || 0;
+
+        total +=
+            Math.abs(
+                portal - sistema
+            );
+
+    });
+
+    return total;
 
 }
 
@@ -931,6 +1390,7 @@ function somarDiferencas(
         ) {
 
             return;
+
         }
 
         const premmia =
@@ -1020,6 +1480,7 @@ function renderizarTabela(
         );
 
         return;
+
     }
 
     corpo.innerHTML = "";
@@ -1275,6 +1736,9 @@ window.renderizarTabela =
 
 window.atualizarResumo =
     atualizarResumo;
+
+window.calcularDiferencaLiquida =
+    calcularDiferencaLiquida;
 
 console.log(
     "conferencia.js completo carregado"
