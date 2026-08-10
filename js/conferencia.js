@@ -18,12 +18,8 @@ Object.defineProperty(window, "resultadosConferencia", {
     },
 
     set: function (valor) {
-
         resultadosConferencia =
-            Array.isArray(valor)
-                ? valor
-                : [];
-
+            Array.isArray(valor) ? valor : [];
     }
 
 });
@@ -59,29 +55,15 @@ function ativarBotaoConferir() {
         );
 
         return;
-
     }
-
-    console.log(
-        "Botão Conferir encontrado:",
-        btn
-    );
 
     btn.addEventListener("click", function (event) {
 
         event.preventDefault();
 
-        console.log("================================");
-        console.log("BOTÃO CONFERIR CLICADO");
-        console.log("================================");
-
         iniciarConferencia();
 
     });
-
-    console.log(
-        "Botão Conferir conectado!"
-    );
 
 }
 
@@ -97,19 +79,23 @@ function iniciarConferencia() {
     const internoOriginal =
         window.dadosInterno || [];
 
-    console.log(
-        "Iniciando conferência..."
-    );
+    console.log("================================");
+    console.log("INICIANDO CONFERÊNCIA");
+    console.log("================================");
 
     console.log(
-        "Premmia original:",
+        "Portal Premmia:",
         premmia.length
     );
 
     console.log(
-        "Interno original:",
+        "Sistema interno:",
         internoOriginal.length
     );
+
+    // ==================================================
+    // VALIDAÇÕES
+    // ==================================================
 
     if (premmia.length === 0) {
 
@@ -118,7 +104,6 @@ function iniciarConferencia() {
         );
 
         return;
-
     }
 
     if (internoOriginal.length === 0) {
@@ -128,7 +113,6 @@ function iniciarConferencia() {
         );
 
         return;
-
     }
 
     // ==================================================
@@ -143,175 +127,56 @@ function iniciarConferencia() {
         });
 
     console.log(
-        "Interno após remover totais:",
+        "Sistema após remover totais:",
         interno.length
     );
 
+    // ==================================================
+    // LIMPA RESULTADOS ANTERIORES
+    // ==================================================
+
     resultadosConferencia = [];
+
+    // ==================================================
+    // CONTROLE DOS LANÇAMENTOS INTERNOS UTILIZADOS
+    // ==================================================
 
     const utilizados =
         new Set();
 
     // ==================================================
-    // PERCORRE PREMMIA
+    // CONTROLE DE QUANTIDADES
+    // ==================================================
+
+    let corretas = 0;
+    let naoLancadas = 0;
+
+    // ==================================================
+    // PERCORRE O PORTAL
     // ==================================================
 
     premmia.forEach(function (venda, indice) {
 
-        console.log("--------------------------------");
+        console.log(
+            "--------------------------------"
+        );
 
         console.log(
-            "Analisando Premmia:",
+            "Portal:",
             indice + 1,
             venda
         );
 
-        const operacao =
-            String(
-                venda.operacao || ""
-            )
-            .trim()
-            .toUpperCase();
-
         // ==================================================
-        // IDENTIFICA VALE
+        // PROCURA SOMENTE PELO VALOR
         // ==================================================
 
-        const ehVale =
-            operacao.includes("VALE");
-
-        // ==================================================
-        // IDENTIFICA DESCONTO
-        // ==================================================
-
-        const ehDesconto =
-            operacao.includes("DESCONTO");
-
-        // ==================================================
-        // VALE OU DESCONTO
-        // SOMENTE VALOR
-        // ==================================================
-
-        const comparaSomenteValor =
-            ehVale || ehDesconto;
-
-        console.log(
-            "Operação:",
-            venda.operacao
-        );
-
-        console.log(
-            "É VALE:",
-            ehVale
-        );
-
-        console.log(
-            "É DESCONTO:",
-            ehDesconto
-        );
-
-        console.log(
-            "Compara somente valor:",
-            comparaSomenteValor
-        );
-
-        let encontrado = null;
-        let tipoEncontrado = "";
-
-        // ==================================================
-        // VALE / DESCONTO
-        // LOCALIZA PELO VALOR
-        // ==================================================
-
-        if (comparaSomenteValor) {
-
-            encontrado =
-                encontrarPorValor(
-                    venda,
-                    interno,
-                    utilizados
-                );
-
-            if (encontrado) {
-
-                tipoEncontrado =
-                    "VALOR";
-
-                console.log(
-                    "Encontrado pelo valor:",
-                    encontrado
-                );
-
-            }
-
-        }
-
-        // ==================================================
-        // OPERAÇÃO NORMAL
-        // PRIMEIRO TENTA AUTORIZAÇÃO
-        // ==================================================
-
-        if (
-            !encontrado &&
-            !comparaSomenteValor
-        ) {
-
-            encontrado =
-                encontrarPorAutorizacao(
-                    venda,
-                    interno,
-                    utilizados
-                );
-
-            if (encontrado) {
-
-                tipoEncontrado =
-                    "AUTORIZACAO";
-
-                console.log(
-                    "Encontrado pela autorização:",
-                    encontrado
-                );
-
-            }
-
-        }
-
-        // ==================================================
-        // NOVA TENTATIVA
-        //
-        // SE A AUTORIZAÇÃO NÃO BATER,
-        // PROCURA PELO VALOR.
-        //
-        // ISSO EVITA QUE A MESMA TRANSAÇÃO
-        // VIRE "NÃO LANÇADA" + "LANÇADA A MAIS".
-        // ==================================================
-
-        if (
-            !encontrado &&
-            !comparaSomenteValor
-        ) {
-
-            encontrado =
-                encontrarPorValor(
-                    venda,
-                    interno,
-                    utilizados
-                );
-
-            if (encontrado) {
-
-                tipoEncontrado =
-                    "VALOR_AUTORIZACAO_DIVERGENTE";
-
-                console.log(
-                    "Encontrado pelo valor, porém autorização diferente:",
-                    encontrado
-                );
-
-            }
-
-        }
+        const encontrado =
+            encontrarPorValor(
+                venda,
+                interno,
+                utilizados
+            );
 
         // ==================================================
         // NÃO ENCONTRADO
@@ -319,149 +184,51 @@ function iniciarConferencia() {
 
         if (!encontrado) {
 
+            naoLancadas++;
+
             resultadosConferencia.push(
 
                 criarResultado(
                     "NAO_LANCADA",
                     venda,
                     null,
-                    comparaSomenteValor
-                        ? "Desconto/Vale não localizado pelo valor."
-                        : "Venda não localizada pela autorização nem pelo valor."
+                    "Valor do Portal não localizado no sistema interno."
                 )
 
             );
 
             return;
-
         }
 
         // ==================================================
-        // MARCA INTERNO COMO UTILIZADO
+        // ENCONTRADO
         // ==================================================
 
         utilizados.add(encontrado);
 
-        console.log(
-            "Valor Premmia:",
-            venda.valor
-        );
+        corretas++;
 
-        console.log(
-            "Valor Interno:",
-            encontrado.valor
-        );
+        resultadosConferencia.push(
 
-        // ==================================================
-        // VALE / DESCONTO
-        // ==================================================
-
-        if (comparaSomenteValor) {
-
-            resultadosConferencia.push(
-
-                criarResultado(
-                    "CORRETA",
-                    venda,
-                    encontrado,
-                    "Conferida somente pelo valor."
-                )
-
-            );
-
-            return;
-
-        }
-
-        // ==================================================
-        // FOI ENCONTRADO PELO VALOR,
-        // MAS A AUTORIZAÇÃO É DIFERENTE
-        // ==================================================
-
-        if (
-            tipoEncontrado ===
-            "VALOR_AUTORIZACAO_DIVERGENTE"
-        ) {
-
-            const autorizacaoPremmia =
-                normalizarAutorizacao(
-                    venda.autorizacao
-                );
-
-            const autorizacaoInterno =
-                normalizarAutorizacao(
-                    encontrado.autorizacao
-                );
-
-            if (
-                autorizacaoPremmia !==
-                autorizacaoInterno
-            ) {
-
-                resultadosConferencia.push(
-
-                    criarResultado(
-                        "AUTORIZACAO_DIVERGENTE",
-                        venda,
-                        encontrado,
-                        "Valor correspondente encontrado, porém a autorização é diferente."
-                    )
-
-                );
-
-                return;
-
-            }
-
-        }
-
-        // ==================================================
-        // COMPARA VALOR
-        // ==================================================
-
-        if (
-            mesmoValor(
-                venda.valor,
-                encontrado.valor
+            criarResultado(
+                "CORRETA",
+                venda,
+                encontrado,
+                "Valor localizado no sistema interno."
             )
-        ) {
 
-            resultadosConferencia.push(
-
-                criarResultado(
-                    "CORRETA",
-                    venda,
-                    encontrado,
-                    tipoEncontrado === "AUTORIZACAO"
-                        ? "Conferida pela autorização e valor."
-                        : "Conferida pelo valor."
-                )
-
-            );
-
-        } else {
-
-            resultadosConferencia.push(
-
-                criarResultado(
-                    "VALOR_DIVERGENTE",
-                    venda,
-                    encontrado,
-                    "Autorização localizada, porém o valor é diferente."
-                )
-
-            );
-
-        }
+        );
 
     });
 
     // ======================================================
     // LANÇAMENTOS A MAIS
     //
-    // SOMENTE O QUE REALMENTE NÃO FOI VINCULADO
-    // A NENHUMA TRANSAÇÃO DO PORTAL.
+    // TUDO QUE SOBROU NO SISTEMA INTERNO
+    // NÃO FOI ENCONTRADO NO PORTAL.
     // ======================================================
+
+    let lancadasAMais = 0;
 
     interno.forEach(function (item) {
 
@@ -470,8 +237,9 @@ function iniciarConferencia() {
         ) {
 
             return;
-
         }
+
+        lancadasAMais++;
 
         resultadosConferencia.push(
 
@@ -479,7 +247,7 @@ function iniciarConferencia() {
                 "LANCADA_A_MAIS",
                 null,
                 item,
-                "Lançamento interno sem correspondência no Portal Premmia."
+                "Valor existente no sistema interno sem correspondência no Portal."
             )
 
         );
@@ -495,18 +263,33 @@ function iniciarConferencia() {
     console.log("================================");
 
     console.log(
+        "Corretas:",
+        corretas
+    );
+
+    console.log(
+        "Não lançadas:",
+        naoLancadas
+    );
+
+    console.log(
+        "Lançadas a mais:",
+        lancadasAMais
+    );
+
+    console.log(
+        "Total resultados:",
+        resultadosConferencia.length
+    );
+
+    console.log(
         "Resultados:",
         resultadosConferencia
     );
 
-    console.log(
-        "Total:",
-        resultadosConferencia.length
-    );
-
-    // ======================================================
-    // MOSTRAR NA TELA
-    // ======================================================
+    // ==================================================
+    // MOSTRAR RESULTADOS
+    // ==================================================
 
     mostrarResultados();
 
@@ -519,9 +302,7 @@ function iniciarConferencia() {
 function ehLinhaTotal(item) {
 
     if (!item) {
-
         return false;
-
     }
 
     const administradora =
@@ -552,6 +333,10 @@ function ehLinhaTotal(item) {
     const valor =
         Number(item.valor);
 
+    // ==================================================
+    // LINHA DE TOTAL CONHECIDA
+    // ==================================================
+
     if (
         administradora === "" &&
         hora === "" &&
@@ -566,7 +351,6 @@ function ehLinhaTotal(item) {
         );
 
         return true;
-
     }
 
     return false;
@@ -574,66 +358,7 @@ function ehLinhaTotal(item) {
 }
 
 // ======================================================
-// ENCONTRAR PELA AUTORIZAÇÃO
-// ======================================================
-
-function encontrarPorAutorizacao(
-    venda,
-    interno,
-    utilizados
-) {
-
-    if (!venda.autorizacao) {
-
-        return null;
-
-    }
-
-    const autorizacaoVenda =
-        normalizarAutorizacao(
-            venda.autorizacao
-        );
-
-    if (!autorizacaoVenda) {
-
-        return null;
-
-    }
-
-    return interno.find(function (item) {
-
-        if (
-            utilizados.has(item)
-        ) {
-
-            return false;
-
-        }
-
-        if (
-            !item.autorizacao
-        ) {
-
-            return false;
-
-        }
-
-        const autorizacaoInterno =
-            normalizarAutorizacao(
-                item.autorizacao
-            );
-
-        return (
-            autorizacaoInterno ===
-            autorizacaoVenda
-        );
-
-    }) || null;
-
-}
-
-// ======================================================
-// ENCONTRAR PELO VALOR
+// ENCONTRAR SOMENTE PELO VALOR
 // ======================================================
 
 function encontrarPorValor(
@@ -642,90 +367,91 @@ function encontrarPorValor(
     utilizados
 ) {
 
-    const candidatos =
-        interno.filter(function (item) {
+    const valorPortal =
+        converterValor(
+            venda.valor
+        );
 
-            if (
-                utilizados.has(item)
-            ) {
+    // ==================================================
+    // VALOR INVÁLIDO
+    // ==================================================
 
-                return false;
+    if (
+        valorPortal === null
+    ) {
 
-            }
+        console.warn(
+            "Valor inválido no Portal:",
+            venda
+        );
 
-            return mesmoValor(
-                venda.valor,
+        return null;
+    }
+
+    // ==================================================
+    // PROCURA PRIMEIRO VALOR IGUAL
+    // ==================================================
+
+    for (
+        let i = 0;
+        i < interno.length;
+        i++
+    ) {
+
+        const item =
+            interno[i];
+
+        // Já utilizado
+        if (
+            utilizados.has(item)
+        ) {
+
+            continue;
+        }
+
+        const valorInterno =
+            converterValor(
                 item.valor
             );
 
-        });
+        if (
+            valorInterno === null
+        ) {
 
-    if (
-        candidatos.length === 0
-    ) {
+            continue;
+        }
 
-        return null;
+        // ==================================================
+        // COMPARAÇÃO
+        // ==================================================
 
-    }
+        if (
+            valorPortal ===
+            valorInterno
+        ) {
 
-    // ==================================================
-    // SE HOUVER APENAS UM CANDIDATO
-    // ==================================================
-
-    if (
-        candidatos.length === 1
-    ) {
-
-        return candidatos[0];
-
-    }
-
-    // ==================================================
-    // SE EXISTIREM VÁRIOS VALORES IGUAIS,
-    // TENTA USAR A DATA
-    // ==================================================
-
-    const dataVenda =
-        normalizarData(
-            venda.data
-        );
-
-    if (dataVenda) {
-
-        const mesmoDia =
-            candidatos.find(function (item) {
-
-                return (
-                    normalizarData(
-                        item.data ||
-                        item.movimento
-                    ) === dataVenda
-                );
-
-            });
-
-        if (mesmoDia) {
-
-            return mesmoDia;
+            return item;
 
         }
 
     }
 
-    // ==================================================
-    // SE NÃO CONSEGUIR DIFERENCIAR,
-    // USA O PRIMEIRO DISPONÍVEL
-    // ==================================================
-
-    return candidatos[0];
+    return null;
 
 }
 
 // ======================================================
-// NORMALIZAR DATA
+// CONVERTER VALOR
+// ======================================================
+//
+// Trabalhamos sempre em CENTAVOS.
+// Isso evita problemas como:
+//
+// 50.00 !== 49.999999999
+//
 // ======================================================
 
-function normalizarData(valor) {
+function converterValor(valor) {
 
     if (
         valor === null ||
@@ -733,34 +459,87 @@ function normalizarData(valor) {
         valor === ""
     ) {
 
-        return "";
-
+        return null;
     }
 
-    const texto =
-        String(valor)
-            .trim();
-
-    // DD/MM/YYYY
-    const partes =
-        texto.split("/");
+    // ==================================================
+    // SE JÁ FOR NÚMERO
+    // ==================================================
 
     if (
-        partes.length === 3
+        typeof valor === "number"
     ) {
 
-        return (
-            partes[2] +
-            "-" +
-            partes[1].padStart(2, "0") +
-            "-" +
-            partes[0].padStart(2, "0")
+        if (
+            isNaN(valor)
+        ) {
+
+            return null;
+        }
+
+        return Math.round(
+            valor * 100
         );
 
     }
 
-    return texto
-        .toUpperCase();
+    // ==================================================
+    // TEXTO
+    // ==================================================
+
+    let texto =
+        String(valor)
+        .trim();
+
+    if (
+        texto === ""
+    ) {
+
+        return null;
+    }
+
+    // ==================================================
+    // REMOVE R$
+    // ==================================================
+
+    texto =
+        texto.replace(
+            /R\$/gi,
+            ""
+        )
+        .trim();
+
+    // ==================================================
+    // FORMATO BRASILEIRO
+    //
+    // 1.234,56
+    //
+    // ==================================================
+
+    if (
+        texto.includes(",")
+    ) {
+
+        texto =
+            texto
+            .replace(/\./g, "")
+            .replace(",", ".");
+
+    }
+
+    const numero =
+        Number(texto);
+
+    if (
+        isNaN(numero)
+    ) {
+
+        return null;
+    }
+
+    return Math.round(
+        numero * 100
+    );
 
 }
 
@@ -770,60 +549,23 @@ function normalizarData(valor) {
 
 function mesmoValor(a, b) {
 
-    if (
-        a === null ||
-        a === undefined ||
-        b === null ||
-        b === undefined
-    ) {
-
-        return false;
-
-    }
-
     const valorA =
-        Number(a);
+        converterValor(a);
 
     const valorB =
-        Number(b);
+        converterValor(b);
 
     if (
-        isNaN(valorA) ||
-        isNaN(valorB)
+        valorA === null ||
+        valorB === null
     ) {
 
         return false;
-
     }
 
     return (
-        Math.round(valorA * 100) ===
-        Math.round(valorB * 100)
+        valorA === valorB
     );
-
-}
-
-// ======================================================
-// NORMALIZAR AUTORIZAÇÃO
-// ======================================================
-
-function normalizarAutorizacao(valor) {
-
-    if (
-        valor === null ||
-        valor === undefined
-    ) {
-
-        return "";
-
-    }
-
-    return String(valor)
-        .trim()
-        .toUpperCase()
-        .replace(/\s/g, "")
-        .replace(/\.0$/, "")
-        .replace(/[^\w]/g, "");
 
 }
 
@@ -869,6 +611,11 @@ function criarResultado(
             premmia?.operacao ||
             interno?.tipo ||
             "",
+
+        // Mantemos as autorizações
+        // APENAS PARA EXIBIÇÃO.
+        //
+        // Elas NÃO PARTICIPAM DA CONFERÊNCIA.
 
         autorizacaoPremmia:
             premmia?.autorizacao ||
@@ -981,10 +728,6 @@ function mostrarContainerResultado() {
 
     });
 
-    console.log(
-        "Container de resultados exibido."
-    );
-
 }
 
 // ======================================================
@@ -1019,6 +762,10 @@ function atualizarResumo() {
 
     });
 
+    // ==================================================
+    // QUANTIDADES
+    // ==================================================
+
     alterarTexto(
         "totalCorretas",
         total.CORRETA
@@ -1045,7 +792,7 @@ function atualizarResumo() {
     );
 
     // ==================================================
-    // VALORES POR CATEGORIA
+    // VALORES
     // ==================================================
 
     const somaCorretas =
@@ -1065,14 +812,6 @@ function atualizarResumo() {
             "LANCADA_A_MAIS",
             "valorInterno"
         );
-
-    const somaValorDivergente =
-        somarDiferencas(
-            "VALOR_DIVERGENTE"
-        );
-
-    const somaAutorizacaoDivergente =
-        somarDiferencaAutorizacao();
 
     alterarTexto(
         "valorCorretas",
@@ -1095,256 +834,126 @@ function atualizarResumo() {
         )
     );
 
+    // ==================================================
+    // VALOR DIVERGENTE
+    //
+    // Não é mais utilizado.
+    // ==================================================
+
     alterarTexto(
         "valorValorErrado",
-        formatarMoeda(
-            somaValorDivergente
-        )
+        formatarMoeda(0)
     );
 
     // ==================================================
-    // DIFERENÇA LÍQUIDA
+    // DIFERENÇA REAL
     // ==================================================
 
-    const diferencaLiquida =
-        calcularDiferencaLiquida();
+    const totalPortal =
+        somarValoresArquivo(
+            window.dadosPremmia || []
+        );
+
+    const totalSistema =
+        somarValoresArquivo(
+            (window.dadosInterno || [])
+            .filter(function (item) {
+
+                return !ehLinhaTotal(item);
+
+            })
+        );
+
+    const diferenca =
+        Math.round(
+            (
+                totalPortal -
+                totalSistema
+            ) * 100
+        ) / 100;
+
+    console.log(
+        "================================"
+    );
+
+    console.log(
+        "TOTAL PORTAL:",
+        formatarMoeda(totalPortal)
+    );
+
+    console.log(
+        "TOTAL SISTEMA:",
+        formatarMoeda(totalSistema)
+    );
+
+    console.log(
+        "DIFERENÇA:",
+        formatarMoeda(diferenca)
+    );
+
+    console.log(
+        "================================"
+    );
+
+    // ==================================================
+    // CAMPOS OPCIONAIS DO HTML
+    // ==================================================
+
+    alterarTexto(
+        "totalPortal",
+        formatarMoeda(totalPortal)
+    );
+
+    alterarTexto(
+        "totalSistema",
+        formatarMoeda(totalSistema)
+    );
 
     alterarTexto(
         "diferencaLiquida",
         formatarMoeda(
-            Math.abs(diferencaLiquida)
+            Math.abs(diferenca)
         )
     );
 
-    // ==================================================
-    // STATUS DA DIFERENÇA
-    // ==================================================
+    let mensagem = "";
 
-    const statusDiferenca =
-        obterStatusDiferenca(
-            diferencaLiquida
-        );
+    if (
+        diferenca > 0
+    ) {
+
+        mensagem =
+            "Falta lançar " +
+            formatarMoeda(diferenca) +
+            " no sistema.";
+
+    } else if (
+        diferenca < 0
+    ) {
+
+        mensagem =
+            "O sistema possui " +
+            formatarMoeda(
+                Math.abs(diferenca)
+            ) +
+            " a mais que o Portal.";
+
+    } else {
+
+        mensagem =
+            "Portal e Sistema estão iguais.";
+
+    }
 
     alterarTexto(
         "statusDiferenca",
-        statusDiferenca
-    );
-
-    console.log(
-        "================================"
-    );
-
-    console.log(
-        "RESUMO DA CONFERÊNCIA"
-    );
-
-    console.log(
-        "Corretas:",
-        total.CORRETA
-    );
-
-    console.log(
-        "Não lançadas:",
-        total.NAO_LANCADA
-    );
-
-    console.log(
-        "Lançadas a mais:",
-        total.LANCADA_A_MAIS
-    );
-
-    console.log(
-        "Valor divergente:",
-        total.VALOR_DIVERGENTE
-    );
-
-    console.log(
-        "Autorização divergente:",
-        total.AUTORIZACAO_DIVERGENTE
-    );
-
-    console.log(
-        "Diferença líquida:",
-        diferencaLiquida
-    );
-
-    console.log(
-        "Status:",
-        statusDiferenca
-    );
-
-    console.log(
-        "================================"
+        mensagem
     );
 
 }
 
 // ======================================================
-// CALCULAR DIFERENÇA LÍQUIDA
-//
-// POSITIVO:
-// Portal tem mais dinheiro que o sistema.
-//
-// NEGATIVO:
-// Sistema tem mais dinheiro que o Portal.
-//
-// ZERO:
-// Totais iguais.
-//
-// IMPORTANTE:
-// Não utiliza as categorias da conferência.
-// Calcula diretamente PORTAL × SISTEMA.
-// ======================================================
-
-function calcularDiferencaLiquida() {
-
-    const premmia =
-        window.dadosPremmia || [];
-
-    const internoOriginal =
-        window.dadosInterno || [];
-
-    const interno =
-        internoOriginal.filter(function (item) {
-
-            return !ehLinhaTotal(item);
-
-        });
-
-    let totalPortal = 0;
-    let totalSistema = 0;
-
-    premmia.forEach(function (item) {
-
-        totalPortal +=
-            Number(item.valor) || 0;
-
-    });
-
-    interno.forEach(function (item) {
-
-        totalSistema +=
-            Number(item.valor) || 0;
-
-    });
-
-    totalPortal =
-        Math.round(
-            totalPortal * 100
-        ) / 100;
-
-    totalSistema =
-        Math.round(
-            totalSistema * 100
-        ) / 100;
-
-    const diferenca =
-        Math.round(
-            (totalPortal - totalSistema) * 100
-        ) / 100;
-
-    console.log(
-        "Total Portal:",
-        totalPortal
-    );
-
-    console.log(
-        "Total Sistema:",
-        totalSistema
-    );
-
-    console.log(
-        "Diferença líquida:",
-        diferenca
-    );
-
-    return diferenca;
-
-}
-
-// ======================================================
-// STATUS DA DIFERENÇA
-// ======================================================
-
-function obterStatusDiferenca(
-    diferenca
-) {
-
-    const valor =
-        Math.round(
-            diferenca * 100
-        ) / 100;
-
-    if (
-        valor === 0
-    ) {
-
-        return "Conferência fechada: Portal e Sistema estão iguais.";
-
-    }
-
-    if (
-        valor > 0
-    ) {
-
-        return (
-            "Falta lançar " +
-            formatarMoeda(valor) +
-            " no sistema."
-        );
-
-    }
-
-    return (
-        "O sistema possui " +
-        formatarMoeda(Math.abs(valor)) +
-        " a mais que o Portal."
-    );
-
-}
-
-// ======================================================
-// SOMAR DIFERENÇA DE AUTORIZAÇÃO
-// ======================================================
-
-function somarDiferencaAutorizacao() {
-
-    let total = 0;
-
-    resultadosConferencia.forEach(function (item) {
-
-        if (
-            item.status !==
-            "AUTORIZACAO_DIVERGENTE"
-        ) {
-
-            return;
-
-        }
-
-        const portal =
-            Number(
-                item.valorPremmia
-            ) || 0;
-
-        const sistema =
-            Number(
-                item.valorInterno
-            ) || 0;
-
-        total +=
-            Math.abs(
-                portal - sistema
-            );
-
-    });
-
-    return total;
-
-}
-
-// ======================================================
-// SOMAR VALORES
+// SOMAR VALORES DOS RESULTADOS
 // ======================================================
 
 function somarValores(
@@ -1357,60 +966,62 @@ function somarValores(
     resultadosConferencia.forEach(function (item) {
 
         if (
-            item.status === status &&
-            item[campo] !== null &&
-            item[campo] !== undefined
-        ) {
-
-            total +=
-                Number(item[campo]) || 0;
-
-        }
-
-    });
-
-    return total;
-
-}
-
-// ======================================================
-// SOMAR DIFERENÇAS
-// ======================================================
-
-function somarDiferencas(
-    status
-) {
-
-    let total = 0;
-
-    resultadosConferencia.forEach(function (item) {
-
-        if (
             item.status !== status
         ) {
 
             return;
+        }
+
+        const valor =
+            converterValor(
+                item[campo]
+            );
+
+        if (
+            valor !== null
+        ) {
+
+            total += valor;
 
         }
 
-        const premmia =
-            Number(
-                item.valorPremmia
-            ) || 0;
+    });
 
-        const interno =
-            Number(
-                item.valorInterno
-            ) || 0;
+    return total / 100;
 
-        total +=
-            Math.abs(
-                premmia - interno
+}
+
+// ======================================================
+// SOMAR VALORES DO ARQUIVO
+// ======================================================
+
+function somarValoresArquivo(
+    lista
+) {
+
+    let totalCentavos = 0;
+
+    lista.forEach(function (item) {
+
+        const valor =
+            converterValor(
+                item.valor
             );
+
+        if (
+            valor !== null
+        ) {
+
+            totalCentavos +=
+                valor;
+
+        }
 
     });
 
-    return total;
+    return (
+        totalCentavos / 100
+    );
 
 }
 
@@ -1558,10 +1169,6 @@ function renderizarTabela(
         tabela.hidden = false;
 
     }
-
-    console.log(
-        "Tabela renderizada."
-    );
 
 }
 
@@ -1737,8 +1344,11 @@ window.renderizarTabela =
 window.atualizarResumo =
     atualizarResumo;
 
-window.calcularDiferencaLiquida =
-    calcularDiferencaLiquida;
+window.mesmoValor =
+    mesmoValor;
+
+window.converterValor =
+    converterValor;
 
 console.log(
     "conferencia.js completo carregado"
