@@ -1,4 +1,3 @@
-```javascript
 // ==========================================
 // CONFERÊNCIA PREMMIA
 // leituraExcel.js
