@@ -1,9 +1,28 @@
+```javascript
 // ======================================================
 // SISTEMA DE CONFERÊNCIA PREMMIA
 // conferencia.js
 // ======================================================
 
 let resultadosConferencia = [];
+
+
+// ======================================================
+// CONFIGURAÇÃO
+// ======================================================
+
+// Tolerância máxima entre os horários.
+//
+// Exemplo:
+// Portal:   19:11:53
+// Sistema:  19:13:20
+//
+// Diferença = 87 segundos
+// Portanto será considerada a mesma transação.
+//
+// 5 minutos = 300 segundos.
+const TOLERANCIA_HORARIO_SEGUNDOS = 300;
+
 
 // ======================================================
 // RESULTADOS GLOBALMENTE
@@ -14,30 +33,41 @@ Object.defineProperty(window, "resultadosConferencia", {
     configurable: true,
 
     get: function () {
+
         return resultadosConferencia;
+
     },
 
     set: function (valor) {
+
         resultadosConferencia =
-            Array.isArray(valor) ? valor : [];
+            Array.isArray(valor)
+                ? valor
+                : [];
+
     }
 
 });
+
 
 // ======================================================
 // INICIALIZAÇÃO
 // ======================================================
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-    console.log("================================");
-    console.log("conferencia.js iniciado");
-    console.log("================================");
+        console.log("================================");
+        console.log("conferencia.js iniciado");
+        console.log("================================");
 
-    ativarBotaoConferir();
-    ativarFiltros();
+        ativarBotaoConferir();
+        ativarFiltros();
 
-});
+    }
+);
+
 
 // ======================================================
 // BOTÃO CONFERIR
@@ -46,7 +76,9 @@ document.addEventListener("DOMContentLoaded", function () {
 function ativarBotaoConferir() {
 
     const btn =
-        document.getElementById("btnConferir");
+        document.getElementById(
+            "btnConferir"
+        );
 
     if (!btn) {
 
@@ -55,17 +87,22 @@ function ativarBotaoConferir() {
         );
 
         return;
+
     }
 
-    btn.addEventListener("click", function (event) {
+    btn.addEventListener(
+        "click",
+        function (event) {
 
-        event.preventDefault();
+            event.preventDefault();
 
-        iniciarConferencia();
+            iniciarConferencia();
 
-    });
+        }
+    );
 
 }
+
 
 // ======================================================
 // INICIAR CONFERÊNCIA
@@ -79,19 +116,23 @@ function iniciarConferencia() {
     const internoOriginal =
         window.dadosInterno || [];
 
+
     console.log("================================");
     console.log("INICIANDO CONFERÊNCIA");
     console.log("================================");
+
 
     console.log(
         "Portal Premmia:",
         premmia.length
     );
 
+
     console.log(
         "Sistema interno:",
         internoOriginal.length
     );
+
 
     // ==================================================
     // VALIDAÇÕES
@@ -104,7 +145,9 @@ function iniciarConferencia() {
         );
 
         return;
+
     }
+
 
     if (internoOriginal.length === 0) {
 
@@ -113,146 +156,273 @@ function iniciarConferencia() {
         );
 
         return;
+
     }
+
 
     // ==================================================
     // REMOVE LINHAS DE TOTAL
     // ==================================================
 
     const interno =
-        internoOriginal.filter(function (item) {
+        internoOriginal.filter(
+            function (item) {
 
-            return !ehLinhaTotal(item);
+                return !ehLinhaTotal(item);
 
-        });
+            }
+        );
+
 
     console.log(
         "Sistema após remover totais:",
         interno.length
     );
 
+
     // ==================================================
-    // LIMPA RESULTADOS ANTERIORES
+    // LIMPA RESULTADOS
     // ==================================================
 
     resultadosConferencia = [];
 
+
     // ==================================================
-    // CONTROLE DOS LANÇAMENTOS INTERNOS UTILIZADOS
+    // CONTROLE DOS LANÇAMENTOS UTILIZADOS
     // ==================================================
 
     const utilizados =
         new Set();
 
-    // ==================================================
-    // CONTROLE DE QUANTIDADES
-    // ==================================================
-
-    let corretas = 0;
-    let naoLancadas = 0;
 
     // ==================================================
-    // PERCORRE O PORTAL
+    // ORDENAR PORTAL POR DATA/HORA
+    //
+    // Isso ajuda a manter a associação
+    // consistente.
     // ==================================================
 
-    premmia.forEach(function (venda, indice) {
+    const portalOrdenado =
+        [...premmia].sort(
+            function (a, b) {
 
-        console.log(
-            "--------------------------------"
+                const dataA =
+                    obterDataHora(
+                        a
+                    );
+
+                const dataB =
+                    obterDataHora(
+                        b
+                    );
+
+                if (
+                    dataA === null &&
+                    dataB === null
+                ) {
+
+                    return 0;
+
+                }
+
+                if (
+                    dataA === null
+                ) {
+
+                    return 1;
+
+                }
+
+                if (
+                    dataB === null
+                ) {
+
+                    return -1;
+
+                }
+
+                return dataA - dataB;
+
+            }
         );
 
-        console.log(
-            "Portal:",
-            indice + 1,
-            venda
-        );
 
-        // ==================================================
-        // PROCURA SOMENTE PELO VALOR
-        // ==================================================
+    // ==================================================
+    // PERCORRE PORTAL
+    // ==================================================
 
-        const encontrado =
-            encontrarPorValor(
-                venda,
-                interno,
-                utilizados
+    portalOrdenado.forEach(
+        function (venda, indice) {
+
+            console.log(
+                "--------------------------------"
             );
 
-        // ==================================================
-        // NÃO ENCONTRADO
-        // ==================================================
 
-        if (!encontrado) {
+            console.log(
+                "Analisando Portal:",
+                indice + 1,
+                venda
+            );
 
-            naoLancadas++;
+
+            // ==================================================
+            // PROCURA A MELHOR CORRESPONDÊNCIA
+            //
+            // PRIMEIRO:
+            // mesmo valor
+            //
+            // SEGUNDO:
+            // horário mais próximo
+            // ==================================================
+
+            const encontrado =
+                encontrarMelhorCorrespondencia(
+                    venda,
+                    interno,
+                    utilizados
+                );
+
+
+            // ==================================================
+            // NÃO ENCONTRADO
+            // ==================================================
+
+            if (!encontrado) {
+
+                console.warn(
+                    "NÃO LANÇADA:",
+                    venda
+                );
+
+
+                resultadosConferencia.push(
+
+                    criarResultado(
+
+                        "NAO_LANCADA",
+
+                        venda,
+
+                        null,
+
+                        "Transação do Portal não localizada pelo valor e horário aproximado."
+
+                    )
+
+                );
+
+                return;
+
+            }
+
+
+            // ==================================================
+            // MARCA COMO UTILIZADO
+            // ==================================================
+
+            utilizados.add(
+                encontrado.item
+            );
+
+
+            console.log(
+                "CORRESPONDÊNCIA ENCONTRADA"
+            );
+
+
+            console.log(
+                "Portal:",
+                venda
+            );
+
+
+            console.log(
+                "Sistema:",
+                encontrado.item
+            );
+
+
+            console.log(
+                "Diferença de horário:",
+                encontrado.diferencaSegundos,
+                "segundos"
+            );
+
+
+            // ==================================================
+            // RESULTADO CORRETO
+            // ==================================================
 
             resultadosConferencia.push(
 
                 criarResultado(
-                    "NAO_LANCADA",
+
+                    "CORRETA",
+
                     venda,
-                    null,
-                    "Valor do Portal não localizado no sistema interno."
+
+                    encontrado.item,
+
+                    "Valor e horário compatíveis. Diferença de horário: " +
+                    formatarDiferencaHorario(
+                        encontrado.diferencaSegundos
+                    )
+
                 )
 
             );
 
-            return;
         }
+    );
 
-        // ==================================================
-        // ENCONTRADO
-        // ==================================================
-
-        utilizados.add(encontrado);
-
-        corretas++;
-
-        resultadosConferencia.push(
-
-            criarResultado(
-                "CORRETA",
-                venda,
-                encontrado,
-                "Valor localizado no sistema interno."
-            )
-
-        );
-
-    });
 
     // ======================================================
     // LANÇAMENTOS A MAIS
     //
-    // TUDO QUE SOBROU NO SISTEMA INTERNO
-    // NÃO FOI ENCONTRADO NO PORTAL.
+    // Depois de tentar associar TODAS as transações
+    // do Portal pela combinação valor + horário,
+    // o que realmente sobrar no sistema é considerado
+    // lançamento a mais.
     // ======================================================
 
-    let lancadasAMais = 0;
+    interno.forEach(
+        function (item) {
 
-    interno.forEach(function (item) {
+            if (
+                utilizados.has(item)
+            ) {
 
-        if (
-            utilizados.has(item)
-        ) {
+                return;
 
-            return;
+            }
+
+
+            console.warn(
+                "LANÇAMENTO A MAIS:",
+                item
+            );
+
+
+            resultadosConferencia.push(
+
+                criarResultado(
+
+                    "LANCADA_A_MAIS",
+
+                    null,
+
+                    item,
+
+                    "Lançamento existente no sistema interno sem correspondência no Portal pelo valor e horário."
+
+                )
+
+            );
+
         }
+    );
 
-        lancadasAMais++;
-
-        resultadosConferencia.push(
-
-            criarResultado(
-                "LANCADA_A_MAIS",
-                null,
-                item,
-                "Valor existente no sistema interno sem correspondência no Portal."
-            )
-
-        );
-
-    });
 
     // ======================================================
     // FINAL
@@ -262,38 +432,27 @@ function iniciarConferencia() {
     console.log("CONFERÊNCIA FINALIZADA");
     console.log("================================");
 
-    console.log(
-        "Corretas:",
-        corretas
-    );
-
-    console.log(
-        "Não lançadas:",
-        naoLancadas
-    );
-
-    console.log(
-        "Lançadas a mais:",
-        lancadasAMais
-    );
-
-    console.log(
-        "Total resultados:",
-        resultadosConferencia.length
-    );
 
     console.log(
         "Resultados:",
         resultadosConferencia
     );
 
+
+    console.log(
+        "Total:",
+        resultadosConferencia.length
+    );
+
+
     // ==================================================
-    // MOSTRAR RESULTADOS
+    // MOSTRAR
     // ==================================================
 
     mostrarResultados();
 
 }
+
 
 // ======================================================
 // IDENTIFICAR LINHA DE TOTAL
@@ -302,8 +461,11 @@ function iniciarConferencia() {
 function ehLinhaTotal(item) {
 
     if (!item) {
+
         return false;
+
     }
+
 
     const administradora =
         String(
@@ -312,11 +474,13 @@ function ehLinhaTotal(item) {
         .trim()
         .toUpperCase();
 
+
     const hora =
         String(
             item.hora || ""
         )
         .trim();
+
 
     const movimento =
         String(
@@ -324,25 +488,36 @@ function ehLinhaTotal(item) {
         )
         .trim();
 
+
     const autorizacao =
         String(
             item.autorizacao || ""
         )
         .trim();
 
+
     const valor =
-        Number(item.valor);
+        converterValor(
+            item.valor
+        );
+
 
     // ==================================================
     // LINHA DE TOTAL CONHECIDA
     // ==================================================
 
     if (
+
         administradora === "" &&
+
         hora === "" &&
+
         movimento === "" &&
+
         autorizacao === "" &&
-        Math.round(valor * 100) === 666541
+
+        valor === 666541
+
     ) {
 
         console.log(
@@ -351,17 +526,33 @@ function ehLinhaTotal(item) {
         );
 
         return true;
+
     }
+
 
     return false;
 
 }
 
+
 // ======================================================
-// ENCONTRAR SOMENTE PELO VALOR
+// ENCONTRAR MELHOR CORRESPONDÊNCIA
+// ======================================================
+//
+// REGRA:
+//
+// 1. Mesmo valor
+// 2. Não utilizado
+// 3. Horário mais próximo
+// 4. Máximo de 5 minutos
+//
+// AUTORIZAÇÃO NÃO É UTILIZADA.
+//
+// OPERADOR NÃO É UTILIZADO.
+//
 // ======================================================
 
-function encontrarPorValor(
+function encontrarMelhorCorrespondencia(
     venda,
     interno,
     utilizados
@@ -371,6 +562,7 @@ function encontrarPorValor(
         converterValor(
             venda.valor
         );
+
 
     // ==================================================
     // VALOR INVÁLIDO
@@ -386,72 +578,726 @@ function encontrarPorValor(
         );
 
         return null;
+
     }
 
+
+    const dataHoraPortal =
+        obterDataHora(
+            venda
+        );
+
+
+    let melhor =
+        null;
+
+
     // ==================================================
-    // PROCURA PRIMEIRO VALOR IGUAL
+    // PROCURA ENTRE TODOS OS LANÇAMENTOS
     // ==================================================
 
-    for (
-        let i = 0;
-        i < interno.length;
-        i++
+    interno.forEach(
+        function (item) {
+
+            // ------------------------------------------
+            // JÁ UTILIZADO
+            // ------------------------------------------
+
+            if (
+                utilizados.has(item)
+            ) {
+
+                return;
+
+            }
+
+
+            // ------------------------------------------
+            // VALOR
+            // ------------------------------------------
+
+            const valorInterno =
+                converterValor(
+                    item.valor
+                );
+
+
+            if (
+                valorInterno === null
+            ) {
+
+                return;
+
+            }
+
+
+            // ------------------------------------------
+            // VALOR DIFERENTE
+            // ------------------------------------------
+
+            if (
+                valorPortal !==
+                valorInterno
+            ) {
+
+                return;
+
+            }
+
+
+            // ------------------------------------------
+            // HORÁRIO
+            // ------------------------------------------
+
+            const dataHoraInterno =
+                obterDataHora(
+                    item
+                );
+
+
+            // ==================================================
+            // SE NÃO HOUVER HORÁRIO
+            //
+            // Não vamos associar automaticamente.
+            //
+            // A conferência precisa de horário para
+            // diferenciar transações de mesmo valor.
+            // ==================================================
+
+            if (
+                dataHoraPortal === null ||
+                dataHoraInterno === null
+            ) {
+
+                return;
+
+            }
+
+
+            // ------------------------------------------
+            // DIFERENÇA EM SEGUNDOS
+            // ------------------------------------------
+
+            const diferenca =
+                Math.abs(
+                    dataHoraPortal -
+                    dataHoraInterno
+                ) / 1000;
+
+
+            // ------------------------------------------
+            // FORA DA TOLERÂNCIA
+            // ------------------------------------------
+
+            if (
+                diferenca >
+                TOLERANCIA_HORARIO_SEGUNDOS
+            ) {
+
+                return;
+
+            }
+
+
+            // ==================================================
+            // PRIMEIRA CORRESPONDÊNCIA
+            // ==================================================
+
+            if (
+                melhor === null
+            ) {
+
+                melhor = {
+
+                    item:
+                        item,
+
+                    diferencaSegundos:
+                        diferenca
+
+                };
+
+                return;
+
+            }
+
+
+            // ==================================================
+            // COMPARA COM A MELHOR ATUAL
+            // ==================================================
+
+            if (
+                diferenca <
+                melhor.diferencaSegundos
+            ) {
+
+                melhor = {
+
+                    item:
+                        item,
+
+                    diferencaSegundos:
+                        diferenca
+
+                };
+
+            }
+
+        }
+    );
+
+
+    return melhor;
+
+}
+
+
+// ======================================================
+// OBTER DATA + HORA
+// ======================================================
+//
+// Tenta trabalhar com:
+//
+// data
+// hora
+// movimento
+//
+// Exemplos:
+//
+// 09/08/2026
+// 19:11:53
+//
+// ou:
+//
+// 09/08/2026 19:11:53
+//
+// ======================================================
+
+function obterDataHora(item) {
+
+    if (!item) {
+
+        return null;
+
+    }
+
+
+    let data =
+        item.data;
+
+
+    let hora =
+        item.hora;
+
+
+    // ==================================================
+    // CASO O CAMPO MOVIMENTO TENHA A DATA/HORA
+    // ==================================================
+
+    if (
+        (!data || String(data).trim() === "") &&
+        item.movimento
     ) {
 
-        const item =
-            interno[i];
+        const movimento =
+            String(
+                item.movimento
+            )
+            .trim();
 
-        // Já utilizado
-        if (
-            utilizados.has(item)
-        ) {
 
-            continue;
-        }
-
-        const valorInterno =
-            converterValor(
-                item.valor
+        const resultado =
+            extrairDataHoraTexto(
+                movimento
             );
 
-        if (
-            valorInterno === null
-        ) {
-
-            continue;
-        }
-
-        // ==================================================
-        // COMPARAÇÃO
-        // ==================================================
 
         if (
-            valorPortal ===
-            valorInterno
+            resultado !== null
         ) {
 
-            return item;
+            return resultado;
 
         }
 
     }
+
+
+    // ==================================================
+    // DATA/HORA DIRETA
+    // ==================================================
+
+    if (
+        data &&
+        hora
+    ) {
+
+        const resultado =
+            converterDataHora(
+                data,
+                hora
+            );
+
+
+        if (
+            resultado !== null
+        ) {
+
+            return resultado;
+
+        }
+
+    }
+
+
+    // ==================================================
+    // SOMENTE DATA COM HORÁRIO DENTRO
+    // ==================================================
+
+    if (
+        data
+    ) {
+
+        const textoData =
+            String(
+                data
+            )
+            .trim();
+
+
+        const resultado =
+            extrairDataHoraTexto(
+                textoData
+            );
+
+
+        if (
+            resultado !== null
+        ) {
+
+            return resultado;
+
+        }
+
+    }
+
+
+    // ==================================================
+    // SOMENTE HORA
+    //
+    // Não conseguimos saber o dia.
+    // Para evitar associações erradas,
+    // não usamos somente a hora.
+    // ==================================================
 
     return null;
 
 }
 
+
+// ======================================================
+// CONVERTER DATA + HORA
+// ======================================================
+
+function converterDataHora(
+    data,
+    hora
+) {
+
+    const textoData =
+        String(
+            data || ""
+        )
+        .trim();
+
+
+    const textoHora =
+        String(
+            hora || ""
+        )
+        .trim();
+
+
+    // ==================================================
+    // DATA BRASILEIRA
+    //
+    // 09/08/2026
+    // ==================================================
+
+    const matchData =
+        textoData.match(
+            /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/
+        );
+
+
+    if (
+        matchData
+    ) {
+
+        const dia =
+            Number(
+                matchData[1]
+            );
+
+
+        const mes =
+            Number(
+                matchData[2]
+            );
+
+
+        const ano =
+            Number(
+                matchData[3]
+            );
+
+
+        const matchHora =
+            textoHora.match(
+                /^(\d{1,2}):(\d{2})(?::(\d{2}))?/
+            );
+
+
+        const horas =
+            matchHora
+                ? Number(matchHora[1])
+                : 0;
+
+
+        const minutos =
+            matchHora
+                ? Number(matchHora[2])
+                : 0;
+
+
+        const segundos =
+            matchHora &&
+            matchHora[3]
+                ? Number(matchHora[3])
+                : 0;
+
+
+        const resultado =
+            new Date(
+                ano,
+                mes - 1,
+                dia,
+                horas,
+                minutos,
+                segundos
+            );
+
+
+        if (
+            !isNaN(
+                resultado.getTime()
+            )
+        ) {
+
+            return resultado.getTime();
+
+        }
+
+    }
+
+
+    // ==================================================
+    // DATA ISO
+    //
+    // 2026-08-09
+    // ==================================================
+
+    const matchISO =
+        textoData.match(
+            /^(\d{4})-(\d{1,2})-(\d{1,2})/
+        );
+
+
+    if (
+        matchISO
+    ) {
+
+        const ano =
+            Number(
+                matchISO[1]
+            );
+
+
+        const mes =
+            Number(
+                matchISO[2]
+            );
+
+
+        const dia =
+            Number(
+                matchISO[3]
+            );
+
+
+        const matchHora =
+            textoHora.match(
+                /^(\d{1,2}):(\d{2})(?::(\d{2}))?/
+            );
+
+
+        const horas =
+            matchHora
+                ? Number(matchHora[1])
+                : 0;
+
+
+        const minutos =
+            matchHora
+                ? Number(matchHora[2])
+                : 0;
+
+
+        const segundos =
+            matchHora &&
+            matchHora[3]
+                ? Number(matchHora[3])
+                : 0;
+
+
+        const resultado =
+            new Date(
+                ano,
+                mes - 1,
+                dia,
+                horas,
+                minutos,
+                segundos
+            );
+
+
+        if (
+            !isNaN(
+                resultado.getTime()
+            )
+        ) {
+
+            return resultado.getTime();
+
+        }
+
+    }
+
+
+    return null;
+
+}
+
+
+// ======================================================
+// EXTRAIR DATA/HORA DE UM TEXTO
+// ======================================================
+
+function extrairDataHoraTexto(
+    texto
+) {
+
+    if (!texto) {
+
+        return null;
+
+    }
+
+
+    const valor =
+        String(
+            texto
+        )
+        .trim();
+
+
+    // ==================================================
+    // BRASILEIRO
+    //
+    // 09/08/2026 19:11:53
+    // ==================================================
+
+    let match =
+        valor.match(
+            /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/
+        );
+
+
+    if (
+        match
+    ) {
+
+        const dia =
+            Number(match[1]);
+
+
+        const mes =
+            Number(match[2]);
+
+
+        const ano =
+            Number(match[3]);
+
+
+        const horas =
+            Number(match[4]);
+
+
+        const minutos =
+            Number(match[5]);
+
+
+        const segundos =
+            match[6]
+                ? Number(match[6])
+                : 0;
+
+
+        const resultado =
+            new Date(
+                ano,
+                mes - 1,
+                dia,
+                horas,
+                minutos,
+                segundos
+            );
+
+
+        return resultado.getTime();
+
+    }
+
+
+    // ==================================================
+    // ISO
+    //
+    // 2026-08-09 19:11:53
+    // ==================================================
+
+    match =
+        valor.match(
+            /(\d{4})-(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/
+        );
+
+
+    if (
+        match
+    ) {
+
+        const ano =
+            Number(match[1]);
+
+
+        const mes =
+            Number(match[2]);
+
+
+        const dia =
+            Number(match[3]);
+
+
+        const horas =
+            Number(match[4]);
+
+
+        const minutos =
+            Number(match[5]);
+
+
+        const segundos =
+            match[6]
+                ? Number(match[6])
+                : 0;
+
+
+        const resultado =
+            new Date(
+                ano,
+                mes - 1,
+                dia,
+                horas,
+                minutos,
+                segundos
+            );
+
+
+        return resultado.getTime();
+
+    }
+
+
+    return null;
+
+}
+
+
+// ======================================================
+// FORMATAR DIFERENÇA DE HORÁRIO
+// ======================================================
+
+function formatarDiferencaHorario(
+    segundos
+) {
+
+    if (
+        segundos === null ||
+        segundos === undefined
+    ) {
+
+        return "horário não disponível";
+
+    }
+
+
+    const total =
+        Math.round(
+            segundos
+        );
+
+
+    if (
+        total < 60
+    ) {
+
+        return (
+            total +
+            " segundo(s)"
+        );
+
+    }
+
+
+    const minutos =
+        Math.floor(
+            total / 60
+        );
+
+
+    const resto =
+        total % 60;
+
+
+    return (
+        minutos +
+        " min " +
+        resto +
+        " s"
+    );
+
+}
+
+
 // ======================================================
 // CONVERTER VALOR
 // ======================================================
 //
-// Trabalhamos sempre em CENTAVOS.
-// Isso evita problemas como:
-//
-// 50.00 !== 49.999999999
-//
+// Trabalhamos em CENTAVOS.
 // ======================================================
 
-function converterValor(valor) {
+function converterValor(
+    valor
+) {
 
     if (
         valor === null ||
@@ -460,10 +1306,12 @@ function converterValor(valor) {
     ) {
 
         return null;
+
     }
 
+
     // ==================================================
-    // SE JÁ FOR NÚMERO
+    // NÚMERO
     // ==================================================
 
     if (
@@ -475,7 +1323,9 @@ function converterValor(valor) {
         ) {
 
             return null;
+
         }
+
 
         return Math.round(
             valor * 100
@@ -483,37 +1333,44 @@ function converterValor(valor) {
 
     }
 
+
     // ==================================================
     // TEXTO
     // ==================================================
 
     let texto =
-        String(valor)
+        String(
+            valor
+        )
         .trim();
+
 
     if (
         texto === ""
     ) {
 
         return null;
+
     }
+
 
     // ==================================================
     // REMOVE R$
     // ==================================================
 
     texto =
-        texto.replace(
+        texto
+        .replace(
             /R\$/gi,
             ""
         )
         .trim();
 
+
     // ==================================================
     // FORMATO BRASILEIRO
     //
     // 1.234,56
-    //
     // ==================================================
 
     if (
@@ -522,20 +1379,32 @@ function converterValor(valor) {
 
         texto =
             texto
-            .replace(/\./g, "")
-            .replace(",", ".");
+            .replace(
+                /\./g,
+                ""
+            )
+            .replace(
+                ",",
+                "."
+            );
 
     }
 
+
     const numero =
-        Number(texto);
+        Number(
+            texto
+        );
+
 
     if (
         isNaN(numero)
     ) {
 
         return null;
+
     }
+
 
     return Math.round(
         numero * 100
@@ -543,17 +1412,23 @@ function converterValor(valor) {
 
 }
 
+
 // ======================================================
 // COMPARAR VALORES
 // ======================================================
 
-function mesmoValor(a, b) {
+function mesmoValor(
+    a,
+    b
+) {
 
     const valorA =
         converterValor(a);
 
+
     const valorB =
         converterValor(b);
+
 
     if (
         valorA === null ||
@@ -561,13 +1436,17 @@ function mesmoValor(a, b) {
     ) {
 
         return false;
+
     }
 
+
     return (
-        valorA === valorB
+        valorA ===
+        valorB
     );
 
 }
+
 
 // ======================================================
 // CRIAR RESULTADO
@@ -582,75 +1461,128 @@ function criarResultado(
 
     return {
 
-        status: status,
+        status:
+
+            status,
+
 
         data:
+
             premmia?.data ||
+
             interno?.data ||
+
             interno?.movimento ||
+
             "",
+
 
         hora:
+
             premmia?.hora ||
+
             interno?.hora ||
+
             "",
+
 
         cliente:
+
             premmia?.cliente ||
+
             "",
+
 
         cpf:
+
             premmia?.cpf ||
+
             "",
+
 
         operacao:
+
             premmia?.operacao ||
+
             "",
+
 
         tipo:
+
             premmia?.operacao ||
+
             interno?.tipo ||
+
             "",
 
-        // Mantemos as autorizações
-        // APENAS PARA EXIBIÇÃO.
+
+        // ==============================================
+        // AUTORIZAÇÕES
         //
-        // Elas NÃO PARTICIPAM DA CONFERÊNCIA.
+        // SOMENTE EXIBIÇÃO.
+        //
+        // NÃO PARTICIPAM DA CONFERÊNCIA.
+        // ==============================================
 
         autorizacaoPremmia:
+
             premmia?.autorizacao ||
+
             "",
+
 
         autorizacaoInterno:
+
             interno?.autorizacao ||
+
             "",
+
 
         valorPremmia:
+
             premmia?.valor ??
+
             null,
+
 
         valorInterno:
+
             interno?.valor ??
+
             null,
 
+
         operador:
+
             interno?.operador ||
+
             "",
+
 
         filial:
+
             interno?.filial ||
+
             "",
+
 
         administradora:
+
             interno?.administradora ||
+
             "",
 
+
         observacao:
-            observacao || ""
+
+            observacao ||
+
+            ""
 
     };
 
 }
+
 
 // ======================================================
 // MOSTRAR RESULTADOS
@@ -662,41 +1594,55 @@ function mostrarResultados() {
         "Mostrando resultados na tela..."
     );
 
+
     console.log(
         "Quantidade:",
         resultadosConferencia.length
     );
 
+
     atualizarResumo();
+
 
     renderizarTabela(
         resultadosConferencia
     );
 
+
     mostrarContainerResultado();
+
 
     const resultado =
         document.getElementById(
             "resultado"
         );
 
-    if (resultado) {
 
-        setTimeout(function () {
+    if (
+        resultado
+    ) {
 
-            resultado.scrollIntoView({
+        setTimeout(
+            function () {
 
-                behavior: "smooth",
+                resultado.scrollIntoView({
 
-                block: "start"
+                    behavior:
+                        "smooth",
 
-            });
+                    block:
+                        "start"
 
-        }, 100);
+                });
+
+            },
+            100
+        );
 
     }
 
 }
+
 
 // ======================================================
 // MOSTRAR CONTAINER
@@ -707,28 +1653,44 @@ function mostrarContainerResultado() {
     const ids = [
 
         "resultado",
+
         "resultadoConferencia",
+
         "areaResultado",
+
         "painelResultado",
+
         "tabelaResultado"
 
     ];
 
-    ids.forEach(function (id) {
 
-        const elemento =
-            document.getElementById(id);
+    ids.forEach(
+        function (id) {
 
-        if (elemento) {
+            const elemento =
+                document.getElementById(
+                    id
+                );
 
-            elemento.style.display = "";
-            elemento.hidden = false;
+
+            if (
+                elemento
+            ) {
+
+                elemento.style.display =
+                    "";
+
+                elemento.hidden =
+                    false;
+
+            }
 
         }
-
-    });
+    );
 
 }
+
 
 // ======================================================
 // RESUMO
@@ -738,29 +1700,39 @@ function atualizarResumo() {
 
     const total = {
 
-        CORRETA: 0,
+        CORRETA:
+            0,
 
-        NAO_LANCADA: 0,
+        NAO_LANCADA:
+            0,
 
-        LANCADA_A_MAIS: 0,
+        LANCADA_A_MAIS:
+            0,
 
-        VALOR_DIVERGENTE: 0,
+        VALOR_DIVERGENTE:
+            0,
 
-        AUTORIZACAO_DIVERGENTE: 0
+        AUTORIZACAO_DIVERGENTE:
+            0
 
     };
 
-    resultadosConferencia.forEach(function (item) {
 
-        if (
-            total[item.status] !== undefined
-        ) {
+    resultadosConferencia.forEach(
+        function (item) {
 
-            total[item.status]++;
+            if (
+                total[item.status] !==
+                undefined
+            ) {
+
+                total[item.status]++;
+
+            }
 
         }
+    );
 
-    });
 
     // ==================================================
     // QUANTIDADES
@@ -771,25 +1743,30 @@ function atualizarResumo() {
         total.CORRETA
     );
 
+
     alterarTexto(
         "totalNaoLancadas",
         total.NAO_LANCADA
     );
+
 
     alterarTexto(
         "totalLancadasMais",
         total.LANCADA_A_MAIS
     );
 
+
     alterarTexto(
         "totalValorErrado",
         total.VALOR_DIVERGENTE
     );
 
+
     alterarTexto(
         "totalAutorizacao",
         total.AUTORIZACAO_DIVERGENTE
     );
+
 
     // ==================================================
     // VALORES
@@ -801,17 +1778,20 @@ function atualizarResumo() {
             "valorPremmia"
         );
 
+
     const somaNaoLancadas =
         somarValores(
             "NAO_LANCADA",
             "valorPremmia"
         );
 
+
     const somaLancadasMais =
         somarValores(
             "LANCADA_A_MAIS",
             "valorInterno"
         );
+
 
     alterarTexto(
         "valorCorretas",
@@ -820,12 +1800,14 @@ function atualizarResumo() {
         )
     );
 
+
     alterarTexto(
         "valorNaoLancadas",
         formatarMoeda(
             somaNaoLancadas
         )
     );
+
 
     alterarTexto(
         "valorLancadasMais",
@@ -834,10 +1816,11 @@ function atualizarResumo() {
         )
     );
 
+
     // ==================================================
     // VALOR DIVERGENTE
     //
-    // Não é mais utilizado.
+    // Não utilizado.
     // ==================================================
 
     alterarTexto(
@@ -845,8 +1828,9 @@ function atualizarResumo() {
         formatarMoeda(0)
     );
 
+
     // ==================================================
-    // DIFERENÇA REAL
+    // TOTAL PORTAL
     // ==================================================
 
     const totalPortal =
@@ -854,69 +1838,113 @@ function atualizarResumo() {
             window.dadosPremmia || []
         );
 
+
+    // ==================================================
+    // TOTAL SISTEMA
+    // ==================================================
+
     const totalSistema =
         somarValoresArquivo(
+
             (window.dadosInterno || [])
-            .filter(function (item) {
+                .filter(
+                    function (item) {
 
-                return !ehLinhaTotal(item);
+                        return !ehLinhaTotal(
+                            item
+                        );
 
-            })
+                    }
+                )
+
         );
 
-    const diferenca =
+
+    // ==================================================
+    // DIFERENÇA
+    // ==================================================
+
+    const diferencaCentavos =
         Math.round(
             (
                 totalPortal -
                 totalSistema
             ) * 100
-        ) / 100;
+        );
+
+
+    const diferenca =
+        diferencaCentavos /
+        100;
+
 
     console.log(
         "================================"
     );
+
 
     console.log(
         "TOTAL PORTAL:",
-        formatarMoeda(totalPortal)
+        formatarMoeda(
+            totalPortal
+        )
     );
+
 
     console.log(
         "TOTAL SISTEMA:",
-        formatarMoeda(totalSistema)
+        formatarMoeda(
+            totalSistema
+        )
     );
+
 
     console.log(
         "DIFERENÇA:",
-        formatarMoeda(diferenca)
+        formatarMoeda(
+            diferenca
+        )
     );
+
 
     console.log(
         "================================"
     );
 
+
     // ==================================================
-    // CAMPOS OPCIONAIS DO HTML
+    // CAMPOS OPCIONAIS
     // ==================================================
 
     alterarTexto(
         "totalPortal",
-        formatarMoeda(totalPortal)
+        formatarMoeda(
+            totalPortal
+        )
     );
+
 
     alterarTexto(
         "totalSistema",
-        formatarMoeda(totalSistema)
+        formatarMoeda(
+            totalSistema
+        )
     );
+
 
     alterarTexto(
         "diferencaLiquida",
         formatarMoeda(
-            Math.abs(diferenca)
+            Math.abs(
+                diferenca
+            )
         )
     );
 
-    let mensagem = "";
+
+    let mensagem =
+        "";
+
 
     if (
         diferenca > 0
@@ -924,8 +1952,11 @@ function atualizarResumo() {
 
         mensagem =
             "Falta lançar " +
-            formatarMoeda(diferenca) +
+            formatarMoeda(
+                diferenca
+            ) +
             " no sistema.";
+
 
     } else if (
         diferenca < 0
@@ -934,9 +1965,12 @@ function atualizarResumo() {
         mensagem =
             "O sistema possui " +
             formatarMoeda(
-                Math.abs(diferenca)
+                Math.abs(
+                    diferenca
+                )
             ) +
             " a mais que o Portal.";
+
 
     } else {
 
@@ -945,12 +1979,14 @@ function atualizarResumo() {
 
     }
 
+
     alterarTexto(
         "statusDiferenca",
         mensagem
     );
 
 }
+
 
 // ======================================================
 // SOMAR VALORES DOS RESULTADOS
@@ -961,69 +1997,91 @@ function somarValores(
     campo
 ) {
 
-    let total = 0;
+    let totalCentavos =
+        0;
 
-    resultadosConferencia.forEach(function (item) {
 
-        if (
-            item.status !== status
-        ) {
+    resultadosConferencia.forEach(
+        function (item) {
 
-            return;
+            if (
+                item.status !==
+                status
+            ) {
+
+                return;
+
+            }
+
+
+            const valor =
+                converterValor(
+                    item[campo]
+                );
+
+
+            if (
+                valor !== null
+            ) {
+
+                totalCentavos +=
+                    valor;
+
+            }
+
         }
+    );
 
-        const valor =
-            converterValor(
-                item[campo]
-            );
 
-        if (
-            valor !== null
-        ) {
-
-            total += valor;
-
-        }
-
-    });
-
-    return total / 100;
+    return (
+        totalCentavos /
+        100
+    );
 
 }
 
+
 // ======================================================
-// SOMAR VALORES DO ARQUIVO
+// SOMAR VALORES DOS ARQUIVOS
 // ======================================================
 
 function somarValoresArquivo(
     lista
 ) {
 
-    let totalCentavos = 0;
+    let totalCentavos =
+        0;
 
-    lista.forEach(function (item) {
 
-        const valor =
-            converterValor(
-                item.valor
-            );
+    lista.forEach(
+        function (item) {
 
-        if (
-            valor !== null
-        ) {
+            const valor =
+                converterValor(
+                    item.valor
+                );
 
-            totalCentavos +=
-                valor;
+
+            if (
+                valor !== null
+            ) {
+
+                totalCentavos +=
+                    valor;
+
+            }
 
         }
+    );
 
-    });
 
     return (
-        totalCentavos / 100
+        totalCentavos /
+        100
     );
 
 }
+
 
 // ======================================================
 // ALTERAR TEXTO
@@ -1035,9 +2093,14 @@ function alterarTexto(
 ) {
 
     const elemento =
-        document.getElementById(id);
+        document.getElementById(
+            id
+        );
 
-    if (elemento) {
+
+    if (
+        elemento
+    ) {
 
         elemento.textContent =
             valor;
@@ -1045,6 +2108,7 @@ function alterarTexto(
     }
 
 }
+
 
 // ======================================================
 // FORMATAR MOEDA
@@ -1059,12 +2123,18 @@ function formatarMoeda(
     ).toLocaleString(
         "pt-BR",
         {
-            style: "currency",
-            currency: "BRL"
+
+            style:
+                "currency",
+
+            currency:
+                "BRL"
+
         }
     );
 
 }
+
 
 // ======================================================
 // RENDERIZAR TABELA
@@ -1079,12 +2149,16 @@ function renderizarTabela(
         lista.length
     );
 
+
     const corpo =
         document.getElementById(
             "corpoTabela"
         );
 
-    if (!corpo) {
+
+    if (
+        !corpo
+    ) {
 
         console.error(
             "ERRO: #corpoTabela não encontrado no HTML."
@@ -1094,83 +2168,103 @@ function renderizarTabela(
 
     }
 
-    corpo.innerHTML = "";
 
-    lista.forEach(function (item) {
+    corpo.innerHTML =
+        "";
 
-        const tr =
-            document.createElement("tr");
 
-        tr.innerHTML = `
+    lista.forEach(
+        function (item) {
 
-            <td>
-                ${escaparHtml(item.status)}
-            </td>
+            const tr =
+                document.createElement(
+                    "tr"
+                );
 
-            <td>
-                ${escaparHtml(item.data)}
-            </td>
 
-            <td>
-                ${escaparHtml(item.hora)}
-            </td>
+            tr.innerHTML = `
 
-            <td>
-                ${escaparHtml(item.cliente)}
-            </td>
+                <td>
+                    ${escaparHtml(item.status)}
+                </td>
 
-            <td>
-                ${escaparHtml(item.operacao)}
-            </td>
+                <td>
+                    ${escaparHtml(item.data)}
+                </td>
 
-            <td>
-                ${escaparHtml(item.autorizacaoPremmia)}
-            </td>
+                <td>
+                    ${escaparHtml(item.hora)}
+                </td>
 
-            <td>
-                ${escaparHtml(item.autorizacaoInterno)}
-            </td>
+                <td>
+                    ${escaparHtml(item.cliente)}
+                </td>
 
-            <td>
-                ${formatarMoeda(item.valorPremmia)}
-            </td>
+                <td>
+                    ${escaparHtml(item.operacao)}
+                </td>
 
-            <td>
-                ${formatarMoeda(item.valorInterno)}
-            </td>
+                <td>
+                    ${escaparHtml(item.autorizacaoPremmia)}
+                </td>
 
-            <td>
-                ${escaparHtml(item.operador)}
-            </td>
+                <td>
+                    ${escaparHtml(item.autorizacaoInterno)}
+                </td>
 
-            <td>
-                ${escaparHtml(item.observacao)}
-            </td>
+                <td>
+                    ${formatarMoeda(item.valorPremmia)}
+                </td>
 
-        `;
+                <td>
+                    ${formatarMoeda(item.valorInterno)}
+                </td>
 
-        aplicarClasseStatus(
-            tr,
-            item.status
-        );
+                <td>
+                    ${escaparHtml(item.operador)}
+                </td>
 
-        corpo.appendChild(tr);
+                <td>
+                    ${escaparHtml(item.observacao)}
+                </td>
 
-    });
+            `;
+
+
+            aplicarClasseStatus(
+                tr,
+                item.status
+            );
+
+
+            corpo.appendChild(
+                tr
+            );
+
+        }
+    );
+
 
     const tabela =
         document.getElementById(
             "tabelaResultado"
         );
 
-    if (tabela) {
 
-        tabela.style.display = "table";
-        tabela.hidden = false;
+    if (
+        tabela
+    ) {
+
+        tabela.style.display =
+            "table";
+
+        tabela.hidden =
+            false;
 
     }
 
 }
+
 
 // ======================================================
 // ESCAPAR HTML
@@ -1189,14 +2283,33 @@ function escaparHtml(
 
     }
 
-    return String(valor)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+
+    return String(
+        valor
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    );
 
 }
+
 
 // ======================================================
 // CLASSE STATUS
@@ -1208,14 +2321,23 @@ function aplicarClasseStatus(
 ) {
 
     linha.classList.remove(
+
         "correta",
+
         "nao-lancada",
+
         "lancada-a-mais",
+
         "valor-divergente",
+
         "autorizacao-divergente"
+
     );
 
-    switch (status) {
+
+    switch (
+        status
+    ) {
 
         case "CORRETA":
 
@@ -1225,6 +2347,7 @@ function aplicarClasseStatus(
 
             break;
 
+
         case "NAO_LANCADA":
 
             linha.classList.add(
@@ -1232,6 +2355,7 @@ function aplicarClasseStatus(
             );
 
             break;
+
 
         case "LANCADA_A_MAIS":
 
@@ -1241,6 +2365,7 @@ function aplicarClasseStatus(
 
             break;
 
+
         case "VALOR_DIVERGENTE":
 
             linha.classList.add(
@@ -1248,6 +2373,7 @@ function aplicarClasseStatus(
             );
 
             break;
+
 
         case "AUTORIZACAO_DIVERGENTE":
 
@@ -1261,6 +2387,7 @@ function aplicarClasseStatus(
 
 }
 
+
 // ======================================================
 // FILTROS
 // ======================================================
@@ -1272,61 +2399,75 @@ function ativarFiltros() {
             ".filtro"
         );
 
-    filtros.forEach(function (botao) {
 
-        botao.addEventListener(
-            "click",
-            function () {
+    filtros.forEach(
+        function (botao) {
 
-                filtros.forEach(function (item) {
+            botao.addEventListener(
+                "click",
+                function () {
 
-                    item.classList.remove(
-                        "ativo"
-                    );
-
-                });
-
-                botao.classList.add(
-                    "ativo"
-                );
-
-                const filtro =
-                    botao.dataset.filtro;
-
-                if (
-                    filtro === "TODOS"
-                ) {
-
-                    renderizarTabela(
-                        resultadosConferencia
-                    );
-
-                    return;
-
-                }
-
-                const filtrados =
-                    resultadosConferencia.filter(
+                    filtros.forEach(
                         function (item) {
 
-                            return (
-                                item.status ===
-                                filtro
+                            item.classList.remove(
+                                "ativo"
                             );
 
                         }
                     );
 
-                renderizarTabela(
-                    filtrados
-                );
 
-            }
-        );
+                    botao.classList.add(
+                        "ativo"
+                    );
 
-    });
+
+                    const filtro =
+                        botao.dataset.filtro;
+
+
+                    if (
+                        filtro ===
+                        "TODOS"
+                    ) {
+
+                        renderizarTabela(
+                            resultadosConferencia
+                        );
+
+                        return;
+
+                    }
+
+
+                    const filtrados =
+                        resultadosConferencia.filter(
+                            function (item) {
+
+                                return (
+
+                                    item.status ===
+                                    filtro
+
+                                );
+
+                            }
+                        );
+
+
+                    renderizarTabela(
+                        filtrados
+                    );
+
+                }
+            );
+
+        }
+    );
 
 }
+
 
 // ======================================================
 // DISPONIBILIZAR FUNÇÕES
@@ -1335,21 +2476,28 @@ function ativarFiltros() {
 window.iniciarConferencia =
     iniciarConferencia;
 
+
 window.mostrarResultados =
     mostrarResultados;
+
 
 window.renderizarTabela =
     renderizarTabela;
 
+
 window.atualizarResumo =
     atualizarResumo;
+
 
 window.mesmoValor =
     mesmoValor;
 
+
 window.converterValor =
     converterValor;
+
 
 console.log(
     "conferencia.js completo carregado"
 );
+```
