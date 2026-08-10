@@ -1,4 +1,3 @@
-```javascript
 // ======================================================
 // SISTEMA DE CONFERÊNCIA PREMMIA
 // conferencia.js
@@ -6,9 +5,8 @@
 
 let resultadosConferencia = [];
 
-
 // ======================================================
-// RESULTADOS GLOBAIS
+// RESULTADOS GLOBALMENTE
 // ======================================================
 
 Object.defineProperty(window, "resultadosConferencia", {
@@ -20,36 +18,26 @@ Object.defineProperty(window, "resultadosConferencia", {
     },
 
     set: function (valor) {
-
         resultadosConferencia =
-            Array.isArray(valor)
-                ? valor
-                : [];
-
+            Array.isArray(valor) ? valor : [];
     }
 
 });
-
 
 // ======================================================
 // INICIALIZAÇÃO
 // ======================================================
 
-document.addEventListener(
-    "DOMContentLoaded",
-    function () {
+document.addEventListener("DOMContentLoaded", function () {
 
-        console.log(
-            "conferencia.js iniciado"
-        );
+    console.log("================================");
+    console.log("conferencia.js iniciado");
+    console.log("================================");
 
-        ativarBotaoConferir();
+    ativarBotaoConferir();
+    ativarFiltros();
 
-        ativarFiltros();
-
-    }
-);
-
+});
 
 // ======================================================
 // BOTÃO CONFERIR
@@ -58,10 +46,7 @@ document.addEventListener(
 function ativarBotaoConferir() {
 
     const btn =
-        document.getElementById(
-            "btnConferir"
-        );
-
+        document.getElementById("btnConferir");
 
     if (!btn) {
 
@@ -70,45 +55,30 @@ function ativarBotaoConferir() {
         );
 
         return;
-
     }
-
 
     console.log(
         "Botão Conferir encontrado:",
         btn
     );
 
+    btn.addEventListener("click", function (event) {
 
-    btn.onclick =
-        function (event) {
+        event.preventDefault();
 
-            event.preventDefault();
+        console.log("================================");
+        console.log("BOTÃO CONFERIR CLICADO");
+        console.log("================================");
 
-            console.log(
-                "================================"
-            );
+        iniciarConferencia();
 
-            console.log(
-                "BOTÃO CONFERIR CLICADO"
-            );
-
-            console.log(
-                "================================"
-            );
-
-
-            iniciarConferencia();
-
-        };
-
+    });
 
     console.log(
         "Botão Conferir conectado!"
     );
 
 }
-
 
 // ======================================================
 // INICIAR CONFERÊNCIA
@@ -119,27 +89,22 @@ function iniciarConferencia() {
     const premmia =
         window.dadosPremmia || [];
 
-
-    const interno =
+    const internoOriginal =
         window.dadosInterno || [];
-
 
     console.log(
         "Iniciando conferência..."
     );
 
-
     console.log(
-        "Premmia:",
+        "Premmia original:",
         premmia.length
     );
 
-
     console.log(
-        "Interno:",
-        interno.length
+        "Interno original:",
+        internoOriginal.length
     );
-
 
     if (premmia.length === 0) {
 
@@ -148,420 +113,412 @@ function iniciarConferencia() {
         );
 
         return;
-
     }
 
-
-    if (interno.length === 0) {
+    if (internoOriginal.length === 0) {
 
         alert(
             "Carregue a planilha do sistema interno."
         );
 
         return;
-
     }
 
+    // ==================================================
+    // REMOVE LINHAS DE TOTAL
+    // ==================================================
+
+    const interno =
+        internoOriginal.filter(function (item) {
+
+            return !ehLinhaTotal(item);
+
+        });
+
+    console.log(
+        "Interno após remover totais:",
+        interno.length
+    );
 
     resultadosConferencia = [];
 
-
     const utilizados =
         new Set();
-
 
     // ==================================================
     // PERCORRE PREMMIA
     // ==================================================
 
-    premmia.forEach(
-        function (venda, indice) {
+    premmia.forEach(function (venda, indice) {
 
-            console.log(
-                "--------------------------------"
-            );
+        console.log("--------------------------------");
 
+        console.log(
+            "Analisando Premmia:",
+            indice + 1,
+            venda
+        );
 
-            console.log(
-                "Analisando Premmia:",
-                indice + 1,
-                venda
-            );
+        const operacao =
+            String(
+                venda.operacao || ""
+            )
+            .trim()
+            .toUpperCase();
 
+        // ==================================================
+        // IDENTIFICA VALE
+        // ==================================================
 
-            const operacao =
-                String(
-                    venda.operacao || ""
-                )
-                .trim()
-                .toUpperCase();
+        const ehVale =
+            operacao.includes("VALE");
 
+        // ==================================================
+        // IDENTIFICA DESCONTO
+        // ==================================================
 
-            // ==================================================
-            // IDENTIFICA VALE
-            // ==================================================
+        const ehDesconto =
+            operacao.includes("DESCONTO");
 
-            const ehVale =
-                operacao.includes(
-                    "VALE"
+        // ==================================================
+        // VALE OU DESCONTO
+        // SOMENTE VALOR
+        // ==================================================
+
+        const comparaSomenteValor =
+            ehVale || ehDesconto;
+
+        console.log(
+            "Operação:",
+            venda.operacao
+        );
+
+        console.log(
+            "É VALE:",
+            ehVale
+        );
+
+        console.log(
+            "É DESCONTO:",
+            ehDesconto
+        );
+
+        console.log(
+            "Compara somente valor:",
+            comparaSomenteValor
+        );
+
+        let encontrado = null;
+
+        // ==================================================
+        // DESCONTO / VALE
+        // LOCALIZA SOMENTE PELO VALOR
+        // ==================================================
+
+        if (comparaSomenteValor) {
+
+            encontrado =
+                encontrarPorValor(
+                    venda,
+                    interno,
+                    utilizados
                 );
 
-
-            // ==================================================
-            // IDENTIFICA DESCONTO
-            // ==================================================
-
-            const ehDesconto =
-                operacao.includes(
-                    "DESCONTO"
-                );
-
-
-            // ==================================================
-            // VALE / DESCONTO
-            //
-            // NÃO COMPARAR AUTORIZAÇÃO
-            //
-            // COMPARAR SOMENTE VALOR
-            // ==================================================
-
-            const comparaSomenteValor =
-                ehVale ||
-                ehDesconto;
-
-
-            console.log(
-                "Operação:",
-                venda.operacao
-            );
-
-
-            console.log(
-                "É VALE:",
-                ehVale
-            );
-
-
-            console.log(
-                "É DESCONTO:",
-                ehDesconto
-            );
-
-
-            console.log(
-                "Compara somente valor:",
-                comparaSomenteValor
-            );
-
-
-            let encontrado = null;
-
-
-            // ==================================================
-            // 1 - VALE / DESCONTO
-            // PROCURA SOMENTE PELO VALOR
-            // ==================================================
-
-            if (
-                comparaSomenteValor
-            ) {
-
-                encontrado =
-                    encontrarPorValor(
-                        venda,
-                        interno,
-                        utilizados
-                    );
-
-
-                if (encontrado) {
-
-                    console.log(
-                        "Vale/Desconto encontrado pelo valor:",
-                        encontrado
-                    );
-
-                }
-
-            }
-
-
-            // ==================================================
-            // 2 - OPERAÇÕES NORMAIS
-            //
-            // PRIMEIRO AUTORIZAÇÃO
-            // ==================================================
-
-            if (
-                !encontrado &&
-                !comparaSomenteValor &&
-                venda.autorizacao
-            ) {
-
-                encontrado =
-                    interno.find(
-                        function (item) {
-
-                            if (
-                                utilizados.has(
-                                    item
-                                )
-                            ) {
-
-                                return false;
-
-                            }
-
-
-                            if (
-                                !item.autorizacao
-                            ) {
-
-                                return false;
-
-                            }
-
-
-                            return (
-                                normalizarAutorizacao(
-                                    item.autorizacao
-                                )
-                                ===
-                                normalizarAutorizacao(
-                                    venda.autorizacao
-                                )
-                            );
-
-                        }
-                    );
-
-
-                if (encontrado) {
-
-                    console.log(
-                        "Premmia encontrada pela autorização:",
-                        encontrado
-                    );
-
-                }
-
-            }
-
-
-            // ==================================================
-            // 3 - OPERAÇÕES NORMAIS
-            //
-            // SE NÃO ACHOU PELA AUTORIZAÇÃO,
-            // TENTA PELO VALOR
-            // ==================================================
-
-            if (
-                !encontrado &&
-                !comparaSomenteValor
-            ) {
-
-                encontrado =
-                    encontrarPorValor(
-                        venda,
-                        interno,
-                        utilizados
-                    );
-
-
-                if (encontrado) {
-
-                    console.log(
-                        "Encontrada pelo valor:",
-                        encontrado
-                    );
-
-                }
-
-            }
-
-
-            // ==================================================
-            // NÃO ENCONTRADA
-            // ==================================================
-
-            if (!encontrado) {
-
-                resultadosConferencia.push(
-
-                    criarResultado(
-                        "NAO_LANCADA",
-                        venda,
-                        null,
-                        comparaSomenteValor
-                            ? "Desconto/Vale não localizado pelo valor."
-                            : "Venda não localizada no sistema interno."
-                    )
-
-                );
-
-                return;
-
-            }
-
-
-            // ==================================================
-            // MARCA INTERNO COMO UTILIZADO
-            // ==================================================
-
-            utilizados.add(
-                encontrado
-            );
-
-
-            console.log(
-                "Valor Premmia:",
-                venda.valor
-            );
-
-
-            console.log(
-                "Valor Interno:",
-                encontrado.valor
-            );
-
-
-            // ==================================================
-            // COMPARAÇÃO DO VALOR
-            // ==================================================
-
-            if (
-                mesmoValor(
-                    venda.valor,
-                    encontrado.valor
-                )
-            ) {
-
-                resultadosConferencia.push(
-
-                    criarResultado(
-                        "CORRETA",
-                        venda,
-                        encontrado,
-                        comparaSomenteValor
-                            ? "Conferida somente pelo valor."
-                            : "Conferida pela autorização e valor."
-                    )
-
-                );
-
-            }
-
-            else {
-
-                resultadosConferencia.push(
-
-                    criarResultado(
-                        "VALOR_DIVERGENTE",
-                        venda,
-                        encontrado,
-                        comparaSomenteValor
-                            ? "Desconto/Vale localizado, porém o valor é diferente."
-                            : "Autorização localizada, porém o valor é diferente."
-                    )
-
+            if (encontrado) {
+
+                console.log(
+                    "Encontrado somente pelo valor:",
+                    encontrado
                 );
 
             }
 
         }
-    );
 
+        // ==================================================
+        // OPERAÇÃO NORMAL
+        // LOCALIZA PELA AUTORIZAÇÃO
+        // ==================================================
 
-    // ==================================================
-    // LANÇAMENTOS A MAIS
-    // ==================================================
-    //
-    // IMPORTANTE:
-    // Linhas de TOTAL já foram removidas na leitura.
-    //
-    // ==================================================
+        if (
+            !encontrado &&
+            !comparaSomenteValor
+        ) {
 
-    interno.forEach(
-        function (item) {
+            encontrado =
+                encontrarPorAutorizacao(
+                    venda,
+                    interno,
+                    utilizados
+                );
 
-            if (
-                utilizados.has(
-                    item
-                )
-            ) {
+            if (encontrado) {
 
-                return;
-
-            }
-
-
-            // Segurança extra:
-            // nunca considerar linha de total
-            if (
-                ehLinhaTotal(
-                    item
-                )
-            ) {
-
-                return;
+                console.log(
+                    "Encontrado pela autorização:",
+                    encontrado
+                );
 
             }
 
+        }
+
+        // ==================================================
+        // NÃO ENCONTRADO
+        // ==================================================
+
+        if (!encontrado) {
 
             resultadosConferencia.push(
 
                 criarResultado(
-                    "LANCADA_A_MAIS",
+                    "NAO_LANCADA",
+                    venda,
                     null,
-                    item,
-                    "Lançamento interno sem correspondência no Portal Premmia."
+                    comparaSomenteValor
+                        ? "Desconto/Vale não localizado pelo valor."
+                        : "Venda não localizada pela autorização."
+                )
+
+            );
+
+            return;
+        }
+
+        // ==================================================
+        // MARCA INTERNO COMO UTILIZADO
+        // ==================================================
+
+        utilizados.add(encontrado);
+
+        console.log(
+            "Valor Premmia:",
+            venda.valor
+        );
+
+        console.log(
+            "Valor Interno:",
+            encontrado.valor
+        );
+
+        // ==================================================
+        // COMPARA VALOR
+        // ==================================================
+
+        if (
+            mesmoValor(
+                venda.valor,
+                encontrado.valor
+            )
+        ) {
+
+            resultadosConferencia.push(
+
+                criarResultado(
+                    "CORRETA",
+                    venda,
+                    encontrado,
+                    comparaSomenteValor
+                        ? "Conferida somente pelo valor."
+                        : "Conferida pela autorização e valor."
+                )
+
+            );
+
+        } else {
+
+            resultadosConferencia.push(
+
+                criarResultado(
+                    "VALOR_DIVERGENTE",
+                    venda,
+                    encontrado,
+                    comparaSomenteValor
+                        ? "Desconto/Vale localizado pelo valor, porém o valor diverge."
+                        : "Autorização localizada, porém o valor é diferente."
                 )
 
             );
 
         }
-    );
 
+    });
 
-    // ==================================================
+    // ======================================================
+    // LANÇAMENTOS A MAIS
+    // ======================================================
+
+    interno.forEach(function (item) {
+
+        if (
+            utilizados.has(item)
+        ) {
+
+            return;
+        }
+
+        resultadosConferencia.push(
+
+            criarResultado(
+                "LANCADA_A_MAIS",
+                null,
+                item,
+                "Lançamento interno sem correspondência no Portal Premmia."
+            )
+
+        );
+
+    });
+
+    // ======================================================
     // FINAL
-    // ==================================================
+    // ======================================================
 
-    console.log(
-        "================================"
-    );
-
-
-    console.log(
-        "CONFERÊNCIA FINALIZADA"
-    );
-
+    console.log("================================");
+    console.log("CONFERÊNCIA FINALIZADA");
+    console.log("================================");
 
     console.log(
         "Resultados:",
         resultadosConferencia
     );
 
-
     console.log(
         "Total:",
         resultadosConferencia.length
     );
 
-
-    console.log(
-        "================================"
-    );
-
+    console.log("================================");
 
     // ==================================================
-    // MOSTRAR RESULTADOS
+    // MOSTRAR NA TELA
     // ==================================================
 
     mostrarResultados();
 
 }
 
+// ======================================================
+// IDENTIFICAR LINHA DE TOTAL
+// ======================================================
+
+function ehLinhaTotal(item) {
+
+    if (!item) {
+        return false;
+    }
+
+    const administradora =
+        String(
+            item.administradora || ""
+        )
+        .trim()
+        .toUpperCase();
+
+    const hora =
+        String(
+            item.hora || ""
+        )
+        .trim();
+
+    const movimento =
+        String(
+            item.movimento || ""
+        )
+        .trim();
+
+    const autorizacao =
+        String(
+            item.autorizacao || ""
+        )
+        .trim();
+
+    const valor =
+        Number(item.valor);
+
+    // Linha que apareceu no seu arquivo:
+    //
+    // administradora: ""
+    // valor: 6665.41
+    // hora: ""
+    // movimento: ""
+    //
+    // Portanto não participa da conferência.
+
+    if (
+        administradora === "" &&
+        hora === "" &&
+        movimento === "" &&
+        autorizacao === "" &&
+        Math.round(valor * 100) === 666541
+    ) {
+
+        console.log(
+            "Linha de TOTAL ignorada:",
+            item
+        );
+
+        return true;
+    }
+
+    return false;
+
+}
+
+// ======================================================
+// ENCONTRAR PELA AUTORIZAÇÃO
+// ======================================================
+
+function encontrarPorAutorizacao(
+    venda,
+    interno,
+    utilizados
+) {
+
+    if (!venda.autorizacao) {
+
+        return null;
+    }
+
+    const autorizacaoVenda =
+        normalizarAutorizacao(
+            venda.autorizacao
+        );
+
+    if (!autorizacaoVenda) {
+
+        return null;
+    }
+
+    return interno.find(function (item) {
+
+        if (
+            utilizados.has(item)
+        ) {
+
+            return false;
+        }
+
+        if (
+            !item.autorizacao
+        ) {
+
+            return false;
+        }
+
+        const autorizacaoInterno =
+            normalizarAutorizacao(
+                item.autorizacao
+            );
+
+        return (
+            autorizacaoInterno ===
+            autorizacaoVenda
+        );
+
+    }) || null;
+
+}
 
 // ======================================================
 // ENCONTRAR PELO VALOR
@@ -573,108 +530,29 @@ function encontrarPorValor(
     utilizados
 ) {
 
-    return interno.find(
-        function (item) {
+    return interno.find(function (item) {
 
-            if (
-                utilizados.has(
-                    item
-                )
-            ) {
+        if (
+            utilizados.has(item)
+        ) {
 
-                return false;
-
-            }
-
-
-            if (
-                ehLinhaTotal(
-                    item
-                )
-            ) {
-
-                return false;
-
-            }
-
-
-            return mesmoValor(
-                venda.valor,
-                item.valor
-            );
-
+            return false;
         }
-    );
+
+        return mesmoValor(
+            venda.valor,
+            item.valor
+        );
+
+    }) || null;
 
 }
-
-
-// ======================================================
-// IDENTIFICAR LINHA DE TOTAL
-// ======================================================
-//
-// NÃO CONSIDERAR:
-// R$ 6.665,41
-// ou qualquer outra linha de TOTAL.
-//
-// ======================================================
-
-function ehLinhaTotal(
-    item
-) {
-
-    if (!item) {
-        return false;
-    }
-
-
-    const textos = [
-
-        item.administradora,
-        item.cliente,
-        item.filial,
-        item.operador,
-        item.tipo,
-        item.movimento,
-        item.bomPara,
-        item.centroCusto
-
-    ];
-
-
-    const texto =
-        textos
-            .map(
-                function (valor) {
-
-                    return String(
-                        valor || ""
-                    )
-                    .trim()
-                    .toUpperCase();
-
-                }
-            )
-            .join(" ");
-
-
-    return (
-        texto.includes("TOTAL")
-        ||
-        texto.includes("TOTAIS")
-    );
-
-}
-
 
 // ======================================================
 // COMPARAR VALORES
 // ======================================================
 
-function mesmoValor(
-    a,
-    b
-) {
+function mesmoValor(a, b) {
 
     if (
         a === null ||
@@ -684,17 +562,13 @@ function mesmoValor(
     ) {
 
         return false;
-
     }
-
 
     const valorA =
         Number(a);
 
-
     const valorB =
         Number(b);
-
 
     if (
         isNaN(valorA) ||
@@ -702,30 +576,20 @@ function mesmoValor(
     ) {
 
         return false;
-
     }
 
-
     return (
-        Math.round(
-            valorA * 100
-        )
-        ===
-        Math.round(
-            valorB * 100
-        )
+        Math.round(valorA * 100) ===
+        Math.round(valorB * 100)
     );
 
 }
-
 
 // ======================================================
 // NORMALIZAR AUTORIZAÇÃO
 // ======================================================
 
-function normalizarAutorizacao(
-    valor
-) {
+function normalizarAutorizacao(valor) {
 
     if (
         valor === null ||
@@ -733,33 +597,16 @@ function normalizarAutorizacao(
     ) {
 
         return "";
-
     }
 
-
     return String(valor)
-
         .trim()
-
         .toUpperCase()
-
-        .replace(
-            /\s/g,
-            ""
-        )
-
-        .replace(
-            /\.0$/,
-            ""
-        )
-
-        .replace(
-            /[^\w]/g,
-            ""
-        );
+        .replace(/\s/g, "")
+        .replace(/\.0$/, "")
+        .replace(/[^\w]/g, "");
 
 }
-
 
 // ======================================================
 // CRIAR RESULTADO
@@ -774,86 +621,70 @@ function criarResultado(
 
     return {
 
-        status:
-            status,
-
+        status: status,
 
         data:
             premmia?.data ||
             interno?.data ||
+            interno?.movimento ||
             "",
-
 
         hora:
             premmia?.hora ||
             interno?.hora ||
             "",
 
-
         cliente:
             premmia?.cliente ||
             "",
-
 
         cpf:
             premmia?.cpf ||
             "",
 
-
         operacao:
             premmia?.operacao ||
             "",
-
 
         tipo:
             premmia?.operacao ||
             interno?.tipo ||
             "",
 
-
         autorizacaoPremmia:
             premmia?.autorizacao ||
             "",
-
 
         autorizacaoInterno:
             interno?.autorizacao ||
             "",
 
-
         valorPremmia:
             premmia?.valor ??
             null,
-
 
         valorInterno:
             interno?.valor ??
             null,
 
-
         operador:
             interno?.operador ||
             "",
-
 
         filial:
             interno?.filial ||
             "",
 
-
         administradora:
             interno?.administradora ||
             "",
 
-
         observacao:
-            observacao ||
-            ""
+            observacao || ""
 
     };
 
 }
-
 
 // ======================================================
 // MOSTRAR RESULTADOS
@@ -865,103 +696,41 @@ function mostrarResultados() {
         "Mostrando resultados na tela..."
     );
 
-
     console.log(
         "Quantidade:",
         resultadosConferencia.length
     );
 
-
     atualizarResumo();
-
 
     renderizarTabela(
         resultadosConferencia
     );
 
-
     mostrarContainerResultado();
-
-
-    // ==================================================
-    // GARANTIA VISUAL
-    // ==================================================
 
     const resultado =
         document.getElementById(
             "resultado"
         );
 
-
     if (resultado) {
 
-        resultado.hidden =
-            false;
+        setTimeout(function () {
 
-        resultado.style.display =
-            "block";
+            resultado.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
 
-        resultado.style.visibility =
-            "visible";
-
-        resultado.style.opacity =
-            "1";
+        }, 100);
 
     }
-
-
-    const resultadoConferencia =
-        document.getElementById(
-            "resultadoConferencia"
-        );
-
-
-    if (resultadoConferencia) {
-
-        resultadoConferencia.hidden =
-            false;
-
-        resultadoConferencia.style.display =
-            "block";
-
-    }
-
-
-    // ==================================================
-    // ROLAR PARA RESULTADO
-    // ==================================================
-
-    setTimeout(
-        function () {
-
-            const alvo =
-                document.getElementById(
-                    "resultado"
-                )
-                ||
-                document.getElementById(
-                    "resultadoConferencia"
-                );
-
-
-            if (alvo) {
-
-                alvo.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-
-            }
-
-        },
-        100
-    );
 
 }
 
-
 // ======================================================
-// MOSTRAR CONTAINER RESULTADO
+// MOSTRAR CONTAINER
 // ======================================================
 
 function mostrarContainerResultado() {
@@ -976,48 +745,25 @@ function mostrarContainerResultado() {
 
     ];
 
+    ids.forEach(function (id) {
 
-    ids.forEach(
-        function (id) {
+        const elemento =
+            document.getElementById(id);
 
-            const elemento =
-                document.getElementById(
-                    id
-                );
+        if (elemento) {
 
-
-            if (!elemento) {
-                return;
-            }
-
-
-            elemento.hidden =
-                false;
-
-
-            elemento.style.display =
-                id === "tabelaResultado"
-                    ? "table"
-                    : "block";
-
-
-            elemento.style.visibility =
-                "visible";
-
-
-            elemento.style.opacity =
-                "1";
+            elemento.style.display = "";
+            elemento.hidden = false;
 
         }
-    );
 
+    });
 
     console.log(
         "Container de resultados exibido."
     );
 
 }
-
 
 // ======================================================
 // RESUMO
@@ -1039,55 +785,45 @@ function atualizarResumo() {
 
     };
 
+    resultadosConferencia.forEach(function (item) {
 
-    resultadosConferencia.forEach(
-        function (item) {
+        if (
+            total[item.status] !== undefined
+        ) {
 
-            if (
-                total[item.status] !==
-                undefined
-            ) {
-
-                total[item.status]++;
-
-            }
+            total[item.status]++;
 
         }
-    );
 
+    });
 
     alterarTexto(
         "totalCorretas",
         total.CORRETA
     );
 
-
     alterarTexto(
         "totalNaoLancadas",
         total.NAO_LANCADA
     );
-
 
     alterarTexto(
         "totalLancadasMais",
         total.LANCADA_A_MAIS
     );
 
-
     alterarTexto(
         "totalValorErrado",
         total.VALOR_DIVERGENTE
     );
-
 
     alterarTexto(
         "totalAutorizacao",
         total.AUTORIZACAO_DIVERGENTE
     );
 
-
     // ==================================================
-    // TOTAIS EM DINHEIRO
+    // VALORES
     // ==================================================
 
     const somaCorretas =
@@ -1096,13 +832,11 @@ function atualizarResumo() {
             "valorPremmia"
         );
 
-
     const somaNaoLancadas =
         somarValores(
             "NAO_LANCADA",
             "valorPremmia"
         );
-
 
     const somaLancadasMais =
         somarValores(
@@ -1110,12 +844,10 @@ function atualizarResumo() {
             "valorInterno"
         );
 
-
     const somaValorDivergente =
         somarDiferencas(
             "VALOR_DIVERGENTE"
         );
-
 
     alterarTexto(
         "valorCorretas",
@@ -1124,14 +856,12 @@ function atualizarResumo() {
         )
     );
 
-
     alterarTexto(
         "valorNaoLancadas",
         formatarMoeda(
             somaNaoLancadas
         )
     );
-
 
     alterarTexto(
         "valorLancadasMais",
@@ -1140,7 +870,6 @@ function atualizarResumo() {
         )
     );
 
-
     alterarTexto(
         "valorValorErrado",
         formatarMoeda(
@@ -1148,14 +877,12 @@ function atualizarResumo() {
         )
     );
 
-
     console.log(
         "Resumo atualizado:",
         total
     );
 
 }
-
 
 // ======================================================
 // SOMAR VALORES
@@ -1168,43 +895,24 @@ function somarValores(
 
     let total = 0;
 
+    resultadosConferencia.forEach(function (item) {
 
-    resultadosConferencia.forEach(
-        function (item) {
-
-            if (
-                item.status !==
-                status
-            ) {
-
-                return;
-
-            }
-
-
-            if (
-                item[campo] === null ||
-                item[campo] === undefined
-            ) {
-
-                return;
-
-            }
-
+        if (
+            item.status === status &&
+            item[campo] !== null &&
+            item[campo] !== undefined
+        ) {
 
             total +=
-                Number(
-                    item[campo]
-                ) || 0;
+                Number(item[campo]) || 0;
 
         }
-    );
 
+    });
 
     return total;
 
 }
-
 
 // ======================================================
 // SOMAR DIFERENÇAS
@@ -1216,46 +924,35 @@ function somarDiferencas(
 
     let total = 0;
 
+    resultadosConferencia.forEach(function (item) {
 
-    resultadosConferencia.forEach(
-        function (item) {
+        if (
+            item.status !== status
+        ) {
 
-            if (
-                item.status !==
-                status
-            ) {
-
-                return;
-
-            }
-
-
-            const premmia =
-                Number(
-                    item.valorPremmia
-                ) || 0;
-
-
-            const interno =
-                Number(
-                    item.valorInterno
-                ) || 0;
-
-
-            total +=
-                Math.abs(
-                    premmia -
-                    interno
-                );
-
+            return;
         }
-    );
 
+        const premmia =
+            Number(
+                item.valorPremmia
+            ) || 0;
+
+        const interno =
+            Number(
+                item.valorInterno
+            ) || 0;
+
+        total +=
+            Math.abs(
+                premmia - interno
+            );
+
+    });
 
     return total;
 
 }
-
 
 // ======================================================
 // ALTERAR TEXTO
@@ -1267,10 +964,7 @@ function alterarTexto(
 ) {
 
     const elemento =
-        document.getElementById(
-            id
-        );
-
+        document.getElementById(id);
 
     if (elemento) {
 
@@ -1281,9 +975,8 @@ function alterarTexto(
 
 }
 
-
 // ======================================================
-// MOEDA
+// FORMATAR MOEDA
 // ======================================================
 
 function formatarMoeda(
@@ -1292,8 +985,7 @@ function formatarMoeda(
 
     return Number(
         valor || 0
-    )
-    .toLocaleString(
+    ).toLocaleString(
         "pt-BR",
         {
             style: "currency",
@@ -1302,7 +994,6 @@ function formatarMoeda(
     );
 
 }
-
 
 // ======================================================
 // RENDERIZAR TABELA
@@ -1317,12 +1008,10 @@ function renderizarTabela(
         lista.length
     );
 
-
     const corpo =
         document.getElementById(
             "corpoTabela"
         );
-
 
     if (!corpo) {
 
@@ -1331,136 +1020,89 @@ function renderizarTabela(
         );
 
         return;
-
     }
-
 
     corpo.innerHTML = "";
 
+    lista.forEach(function (item) {
 
-    lista.forEach(
-        function (item) {
+        const tr =
+            document.createElement("tr");
 
-            const tr =
-                document.createElement(
-                    "tr"
-                );
+        tr.innerHTML = `
 
+            <td>
+                ${escaparHtml(item.status)}
+            </td>
 
-            tr.innerHTML = `
+            <td>
+                ${escaparHtml(item.data)}
+            </td>
 
-                <td>
-                    ${escaparHtml(
-                        item.status
-                    )}
-                </td>
+            <td>
+                ${escaparHtml(item.hora)}
+            </td>
 
-                <td>
-                    ${escaparHtml(
-                        item.data
-                    )}
-                </td>
+            <td>
+                ${escaparHtml(item.cliente)}
+            </td>
 
-                <td>
-                    ${escaparHtml(
-                        item.hora
-                    )}
-                </td>
+            <td>
+                ${escaparHtml(item.operacao)}
+            </td>
 
-                <td>
-                    ${escaparHtml(
-                        item.cliente
-                    )}
-                </td>
+            <td>
+                ${escaparHtml(item.autorizacaoPremmia)}
+            </td>
 
-                <td>
-                    ${escaparHtml(
-                        item.operacao
-                    )}
-                </td>
+            <td>
+                ${escaparHtml(item.autorizacaoInterno)}
+            </td>
 
-                <td>
-                    ${escaparHtml(
-                        item.autorizacaoPremmia
-                    )}
-                </td>
+            <td>
+                ${formatarMoeda(item.valorPremmia)}
+            </td>
 
-                <td>
-                    ${escaparHtml(
-                        item.autorizacaoInterno
-                    )}
-                </td>
+            <td>
+                ${formatarMoeda(item.valorInterno)}
+            </td>
 
-                <td>
-                    ${formatarMoeda(
-                        item.valorPremmia
-                    )}
-                </td>
+            <td>
+                ${escaparHtml(item.operador)}
+            </td>
 
-                <td>
-                    ${formatarMoeda(
-                        item.valorInterno
-                    )}
-                </td>
+            <td>
+                ${escaparHtml(item.observacao)}
+            </td>
 
-                <td>
-                    ${escaparHtml(
-                        item.operador
-                    )}
-                </td>
+        `;
 
-                <td>
-                    ${escaparHtml(
-                        item.observacao
-                    )}
-                </td>
+        aplicarClasseStatus(
+            tr,
+            item.status
+        );
 
-            `;
+        corpo.appendChild(tr);
 
-
-            aplicarClasseStatus(
-                tr,
-                item.status
-            );
-
-
-            corpo.appendChild(
-                tr
-            );
-
-        }
-    );
-
+    });
 
     const tabela =
         document.getElementById(
             "tabelaResultado"
         );
 
-
     if (tabela) {
 
-        tabela.hidden =
-            false;
-
-        tabela.style.display =
-            "table";
-
-        tabela.style.visibility =
-            "visible";
-
-        tabela.style.opacity =
-            "1";
+        tabela.style.display = "table";
+        tabela.hidden = false;
 
     }
-
 
     console.log(
         "Tabela renderizada."
     );
 
 }
-
 
 // ======================================================
 // ESCAPAR HTML
@@ -1479,36 +1121,14 @@ function escaparHtml(
 
     }
 
-
     return String(valor)
-
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-
-        .replace(
-            /</g,
-            "&lt;"
-        )
-
-        .replace(
-            />/g,
-            "&gt;"
-        )
-
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-
-        .replace(
-            /'/g,
-            "&#039;"
-        );
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 
 }
-
 
 // ======================================================
 // CLASSE STATUS
@@ -1527,7 +1147,6 @@ function aplicarClasseStatus(
         "autorizacao-divergente"
     );
 
-
     switch (status) {
 
         case "CORRETA":
@@ -1538,7 +1157,6 @@ function aplicarClasseStatus(
 
             break;
 
-
         case "NAO_LANCADA":
 
             linha.classList.add(
@@ -1546,7 +1164,6 @@ function aplicarClasseStatus(
             );
 
             break;
-
 
         case "LANCADA_A_MAIS":
 
@@ -1556,7 +1173,6 @@ function aplicarClasseStatus(
 
             break;
 
-
         case "VALOR_DIVERGENTE":
 
             linha.classList.add(
@@ -1564,7 +1180,6 @@ function aplicarClasseStatus(
             );
 
             break;
-
 
         case "AUTORIZACAO_DIVERGENTE":
 
@@ -1578,7 +1193,6 @@ function aplicarClasseStatus(
 
 }
 
-
 // ======================================================
 // FILTROS
 // ======================================================
@@ -1590,73 +1204,61 @@ function ativarFiltros() {
             ".filtro"
         );
 
+    filtros.forEach(function (botao) {
 
-    filtros.forEach(
-        function (botao) {
+        botao.addEventListener(
+            "click",
+            function () {
 
-            botao.addEventListener(
-                "click",
-                function () {
+                filtros.forEach(function (item) {
 
-                    filtros.forEach(
+                    item.classList.remove(
+                        "ativo"
+                    );
+
+                });
+
+                botao.classList.add(
+                    "ativo"
+                );
+
+                const filtro =
+                    botao.dataset.filtro;
+
+                if (
+                    filtro === "TODOS"
+                ) {
+
+                    renderizarTabela(
+                        resultadosConferencia
+                    );
+
+                    return;
+
+                }
+
+                const filtrados =
+                    resultadosConferencia.filter(
                         function (item) {
 
-                            item.classList.remove(
-                                "ativo"
+                            return (
+                                item.status ===
+                                filtro
                             );
 
                         }
                     );
 
+                renderizarTabela(
+                    filtrados
+                );
 
-                    botao.classList.add(
-                        "ativo"
-                    );
+            }
+        );
 
-
-                    const filtro =
-                        botao.dataset.filtro;
-
-
-                    if (
-                        filtro ===
-                        "TODOS"
-                    ) {
-
-                        renderizarTabela(
-                            resultadosConferencia
-                        );
-
-                        return;
-
-                    }
-
-
-                    const filtrados =
-                        resultadosConferencia.filter(
-                            function (item) {
-
-                                return (
-                                    item.status ===
-                                    filtro
-                                );
-
-                            }
-                        );
-
-
-                    renderizarTabela(
-                        filtrados
-                    );
-
-                }
-            );
-
-        }
-    );
+    });
 
 }
-
 
 // ======================================================
 // DISPONIBILIZAR FUNÇÕES
@@ -1665,20 +1267,15 @@ function ativarFiltros() {
 window.iniciarConferencia =
     iniciarConferencia;
 
-
 window.mostrarResultados =
     mostrarResultados;
-
 
 window.renderizarTabela =
     renderizarTabela;
 
-
 window.atualizarResumo =
     atualizarResumo;
-
 
 console.log(
     "conferencia.js completo carregado"
 );
-```
