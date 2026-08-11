@@ -1,1125 +1,720 @@
-// ======================================================
-// SISTEMA DE CONFERÊNCIA PREMMIA
+// ==========================================
+// CONFERÊNCIA PREMMIA
 // leituraExcel.js
-// ====================================================== 
+// ==========================================
+
 
 let dadosPremmia = [];
 let dadosInterno = [];
 
 
-// ======================================================
-// INICIALIZAÇÃO
-// ======================================================
 
-function iniciarLeituraExcel() {
-
-    console.log("================================");
-    console.log("leituraExcel.js iniciado");
-    console.log("================================");
-
-    configurarArquivos();
-    atualizarInterface();
-}
+const arquivoPremmia =
+document.getElementById("arquivoPremmia");
 
 
-// ======================================================
-// GARANTIR EXECUÇÃO
-// ======================================================
-
-if (document.readyState === "loading") {
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        iniciarLeituraExcel
-    );
-
-} else {
-
-    iniciarLeituraExcel();
-
-}
+const arquivoInterno =
+document.getElementById("arquivoInterno");
 
 
-// ======================================================
-// CONFIGURAR ARQUIVOS
-// ======================================================
 
-function configurarArquivos() {
-
-    const arquivoPremmia =
-        document.getElementById("arquivoPremmia");
-
-    const arquivoInterno =
-        document.getElementById("arquivoInterno");
+const nomePremmia =
+document.getElementById("nomePremmia");
 
 
-    // ==================================================
-    // PREMMIA
-    // ==================================================
-
-    if (arquivoPremmia) {
-
-        arquivoPremmia.addEventListener(
-            "change",
-            function () {
-
-                const file =
-                    this.files && this.files[0];
-
-                if (!file) {
-                    return;
-                }
-
-                console.log(
-                    "Arquivo Premmia selecionado:",
-                    file.name
-                );
-
-                const nome =
-                    document.getElementById(
-                        "nomePremmia"
-                    );
-
-                if (nome) {
-
-                    nome.textContent =
-                        file.name;
-
-                }
-
-                lerPremmia(file);
-
-            }
-        );
-
-    } else {
-
-        console.error(
-            "ERRO: #arquivoPremmia não encontrado."
-        );
-
-    }
+const nomeInterno =
+document.getElementById("nomeInterno");
 
 
-    // ==================================================
-    // SISTEMA INTERNO
-    // ==================================================
 
-    if (arquivoInterno) {
-
-        arquivoInterno.addEventListener(
-            "change",
-            function () {
-
-                const file =
-                    this.files && this.files[0];
-
-                if (!file) {
-                    return;
-                }
-
-                console.log(
-                    "Arquivo interno selecionado:",
-                    file.name
-                );
-
-                const nome =
-                    document.getElementById(
-                        "nomeInterno"
-                    );
-
-                if (nome) {
-
-                    nome.textContent =
-                        file.name;
-
-                }
-
-                lerInterno(file);
-
-            }
-        );
-
-    } else {
-
-        console.error(
-            "ERRO: #arquivoInterno não encontrado."
-        );
-
-    }
-
-}
+const btnConferir =
+document.getElementById("btnConferir");
 
 
-// ======================================================
-// ABRIR EXCEL
-// ======================================================
 
-function abrirExcel(
-    file,
-    callback
-) {
 
-    if (
-        typeof XLSX === "undefined"
-    ) {
 
-        console.error(
-            "Biblioteca XLSX não carregada."
-        );
 
-        alert(
-            "Erro: a biblioteca Excel (XLSX) não foi carregada."
-        );
+// ==========================================
+// ARQUIVO PREMMIA
+// ==========================================
 
+
+if(arquivoPremmia){
+
+
+arquivoPremmia.addEventListener(
+"change",
+function(){
+
+
+    const file =
+    this.files[0];
+
+
+    if(!file)
         return;
 
-    }
 
 
-    const reader =
-        new FileReader();
+    nomePremmia.textContent =
+    file.name;
 
 
-    reader.onload =
-        function (evento) {
 
-            try {
-
-                const dados =
-                    new Uint8Array(
-                        evento.target.result
-                    );
+    lerPremmia(file);
 
 
-                const workbook =
-                    XLSX.read(
-                        dados,
-                        {
-                            type: "array",
-                            cellDates: true
-                        }
-                    );
 
-
-                if (
-                    !workbook.SheetNames ||
-                    workbook.SheetNames.length === 0
-                ) {
-
-                    throw new Error(
-                        "Nenhuma aba encontrada."
-                    );
-
-                }
-
-
-                const nomeAba =
-                    workbook.SheetNames[0];
-
-
-                const planilha =
-                    workbook.Sheets[nomeAba];
-
-
-                const linhas =
-                    XLSX.utils.sheet_to_json(
-                        planilha,
-                        {
-                            header: 1,
-                            defval: "",
-                            raw: true
-                        }
-                    );
-
-
-                console.log(
-                    "Aba carregada:",
-                    nomeAba
-                );
-
-                console.log(
-                    "Quantidade de linhas:",
-                    linhas.length
-                );
-
-
-                callback(linhas);
-
-            }
-            catch (erro) {
-
-                console.error(
-                    "Erro ao ler Excel:",
-                    erro
-                );
-
-                alert(
-                    "Não foi possível ler a planilha."
-                );
-
-            }
-
-        };
-
-
-    reader.onerror =
-        function () {
-
-            console.error(
-                "Erro ao abrir arquivo."
-            );
-
-            alert(
-                "Erro ao abrir o arquivo."
-            );
-
-        };
-
-
-    reader.readAsArrayBuffer(file);
+});
 
 }
 
 
-// ======================================================
+
+
+
+
+// ==========================================
+// ARQUIVO INTERNO
+// ==========================================
+
+
+if(arquivoInterno){
+
+
+arquivoInterno.addEventListener(
+"change",
+function(){
+
+
+    const file =
+    this.files[0];
+
+
+    if(!file)
+        return;
+
+
+
+    nomeInterno.textContent =
+    file.name;
+
+
+
+    lerInterno(file);
+
+
+
+});
+
+}
+
+
+
+
+
+
+
+
+// ==========================================
+// LER EXCEL
+// ==========================================
+
+
+function abrirExcel(
+file,
+callback
+){
+
+
+const reader =
+new FileReader();
+
+
+
+reader.onload =
+function(e){
+
+
+const dados =
+new Uint8Array(
+e.target.result
+);
+
+
+
+const workbook =
+XLSX.read(
+dados,
+{
+type:"array"
+}
+);
+
+
+
+const primeira =
+workbook.SheetNames[0];
+
+
+
+const planilha =
+workbook.Sheets[primeira];
+
+
+
+const linhas =
+XLSX.utils.sheet_to_json(
+planilha,
+{
+header:1,
+defval:""
+}
+);
+
+
+
+callback(linhas);
+
+
+
+};
+
+
+
+reader.readAsArrayBuffer(file);
+
+
+}
+
+
+
+
+
+
+// ==========================================
 // LER PREMMIA
-// ======================================================
-
-function lerPremmia(file) {
-
-    console.log(
-        "================================"
-    );
-
-    console.log(
-        "LENDO PREMMIA"
-    );
-
-    console.log(
-        "================================"
-    );
+// ==========================================
 
 
-    abrirExcel(
-        file,
-        function (linhas) {
-
-            dadosPremmia =
-                transformarPremmia(
-                    linhas
-                );
+function lerPremmia(file){
 
 
-            window.dadosPremmia =
-                dadosPremmia;
+abrirExcel(
+file,
+function(linhas){
 
 
-            console.log(
-                "Premmia carregado:",
-                dadosPremmia
-            );
+dadosPremmia =
+transformarPremmia(
+linhas
+);
 
 
-            console.log(
-                "Quantidade Premmia:",
-                dadosPremmia.length
-            );
+
+window.dadosPremmia =
+dadosPremmia;
 
 
-            atualizarInterface();
 
-        }
-    );
+console.log(
+"Premmia:",
+dadosPremmia
+);
+
+
+
+verificarArquivos();
+
+
+
+});
 
 }
 
 
-// ======================================================
+
+
+
+
+// ==========================================
 // LER INTERNO
-// ======================================================
-
-function lerInterno(file) {
-
-    console.log(
-        "================================"
-    );
-
-    console.log(
-        "LENDO SISTEMA INTERNO"
-    );
-
-    console.log(
-        "================================"
-    );
+// ==========================================
 
 
-    abrirExcel(
-        file,
-        function (linhas) {
-
-            console.log(
-                "Linhas internas:",
-                linhas.length
-            );
+function lerInterno(file){
 
 
-            dadosInterno =
-                transformarInterno(
-                    linhas
-                );
+abrirExcel(
+file,
+function(linhas){
 
 
-            window.dadosInterno =
-                dadosInterno;
+dadosInterno =
+transformarInterno(
+linhas
+);
 
 
-            console.log(
-                "Interno carregado:",
-                dadosInterno
-            );
+
+window.dadosInterno =
+dadosInterno;
 
 
-            console.log(
-                "Quantidade Interno:",
-                dadosInterno.length
-            );
+
+console.log(
+"Interno:",
+dadosInterno
+);
 
 
-            atualizarInterface();
 
-        }
-    );
+verificarArquivos();
+
+
+
+});
 
 }
 
 
-// ======================================================
+
+
+
+
+// ==========================================
+// LIBERA BOTÃO
+// ==========================================
+
+
+function verificarArquivos(){
+
+
+if(
+btnConferir &&
+dadosPremmia.length > 0 &&
+dadosInterno.length > 0
+){
+
+
+btnConferir.disabled =
+false;
+
+
+}
+
+
+}
+// ==========================================
 // TRANSFORMAR PREMMIA
-// ======================================================
+// ==========================================
+
 
 function transformarPremmia(
-    linhas
-) {
+linhas
+){
+
+
+const registros = [];
+
+
+
+linhas.forEach(
+(linha,index)=>{
+
+
+
+// pula cabeçalho
+
+if(index === 0){
+
+return;
+
+}
+
+
+
+
+if(!linha || linha.length < 8){
+
+return;
+
+}
+
+
+
+
+const registro = {
+
+
+
+origem:
+"PREMMIA",
+
+
+
+cpf:
+limparTexto(
+linha[0]
+),
+
+
+
+cliente:
+limparTexto(
+linha[1]
+),
+
+
+
+operacao:
+limparTexto(
+linha[2]
+),
+
+
+
+valor:
+converterValor(
+linha[3]
+),
+
+
+
+dataHora:
+linha[4],
+
+
+
+data:
+extrairData(
+linha[4]
+),
+
+
+
+hora:
+extrairHora(
+linha[4]
+),
+
+
+
+
+// CÓDIGO TRANSAÇÃO
+
+autorizacao:
+normalizarAutorizacao(
+linha[5]
+),
+
+
+
+
+pagamento:
+limparTexto(
+linha[6]
+),
+
+
+
+
+status:
+limparTexto(
+linha[7]
+)
+
+
+
+};
+
+
+
+
+
+
+if(
+registro.autorizacao &&
+registro.valor !== null
+){
+
+
+registros.push(
+registro
+);
+
+
+}
+
+
+
+}
+
+);
+
+
+
+return registros;
+
+
+}
+
+
+
+
+
+
+
+
+
+// ==========================================
+// TRANSFORMAR INTERNO
+// ==========================================
+
+function transformarInterno(linhas){
 
     const registros = [];
 
 
-    if (
-        !Array.isArray(linhas)
-    ) {
+    let cabecalho = null;
 
-        return registros;
+
+    // encontra o cabeçalho correto
+
+    for(let i = 0; i < linhas.length; i++){
+
+        const texto =
+            linhas[i]
+            .map(x => String(x).toLowerCase())
+            .join(" ");
+
+
+        if(
+            texto.includes("administradora") &&
+            texto.includes("autorização")
+        ){
+
+            cabecalho = linhas[i];
+            linhas = linhas.slice(i+1);
+            break;
+
+        }
 
     }
 
 
-    linhas.forEach(
-        function (linha, index) {
 
-            if (
-                !Array.isArray(linha)
-            ) {
+    if(!cabecalho){
 
-                return;
+        console.error(
+            "Cabeçalho interno não encontrado"
+        );
 
-            }
+        return [];
 
-
-            if (
-                index === 0
-            ) {
-
-                return;
-
-            }
+    }
 
 
-            if (
-                linha.length < 7
-            ) {
 
-                return;
-
-            }
+    const coluna = {};
 
 
-            const valor =
+
+    cabecalho.forEach(
+        (nome,index)=>{
+
+
+            coluna[
+                String(nome)
+                .trim()
+                .toLowerCase()
+            ] = index;
+
+
+        }
+    );
+
+
+
+
+    linhas.forEach(linha=>{
+
+
+        if(!Array.isArray(linha))
+            return;
+
+
+
+        const registro = {
+
+
+            origem:"INTERNO",
+
+
+            valor:
                 converterValor(
-                    linha[3]
-                );
+                    linha[
+                        coluna["valor"]
+                    ]
+                ),
 
 
-            if (
-                valor === null
-            ) {
 
-                return;
+            hora:
+                limparTexto(
+                    linha[
+                        coluna["horário"]
+                    ]
+                ),
 
-            }
 
 
-            const registro = {
+            data:
+                limparTexto(
+                    linha[
+                        coluna["data fiscal"]
+                    ]
+                ),
 
-                origem:
-                    "PREMMIA",
 
-                cpf:
-                    limparTexto(
-                        linha[0]
-                    ),
 
-                cliente:
-                    limparTexto(
-                        linha[1]
-                    ),
+            cliente:
+                limparTexto(
+                    linha[
+                        coluna["cliente"]
+                    ]
+                ),
 
-                operacao:
-                    limparTexto(
-                        linha[2]
-                    ),
 
-                valor:
-                    valor,
 
-                dataHora:
-                    linha[4],
+            filial:
+                limparTexto(
+                    linha[
+                        coluna["filial"]
+                    ]
+                ),
 
-                data:
-                    extrairData(
-                        linha[4]
-                    ),
 
-                hora:
-                    extrairHoraCompleta(
-                        linha[4]
-                    ),
 
-                autorizacao:
-                    normalizarAutorizacao(
-                        linha[5]
-                    ),
+            operador:
+                limparTexto(
+                    linha[
+                        coluna["funcionário"]
+                    ]
+                ),
 
-                pagamento:
-                    limparTexto(
-                        linha[6]
-                    ),
 
-                status:
-                    limparTexto(
-                        linha[7]
-                    )
 
-            };
+            tipo:
+                limparTexto(
+                    linha[
+                        coluna["tipo inclusão"]
+                    ]
+                ),
 
+
+
+            autorizacao:
+                normalizarAutorizacao(
+                    linha[
+                        coluna["autorização"]
+                    ]
+                )
+
+
+        };
+
+
+
+        console.log(
+            "INTERNO CORRETO:",
+            registro
+        );
+
+
+
+        if(
+            registro.autorizacao &&
+            registro.valor !== null
+        ){
 
             registros.push(
                 registro
             );
 
         }
-    );
+
+
+    });
+
 
 
     return registros;
 
 }
+// ==========================================
+// NORMALIZAR AUTORIZAÇÃO
+// ==========================================
 
 
-// ======================================================
-// TRANSFORMAR INTERNO
-// ======================================================
+function normalizarAutorizacao(
+valor
+){
 
-function transformarInterno(
-    linhas
-) {
 
-    const registros = [];
+if(
+valor === null ||
+valor === undefined
+){
 
-
-    if (
-        !Array.isArray(linhas)
-    ) {
-
-        return registros;
-
-    }
-
-
-    const indiceCabecalho =
-        encontrarCabecalho(
-            linhas
-        );
-
-
-    if (
-        indiceCabecalho === -1
-    ) {
-
-        console.error(
-            "Cabeçalho do sistema interno não encontrado."
-        );
-
-        return registros;
-
-    }
-
-
-    const cabecalho =
-        linhas[indiceCabecalho];
-
-
-    const colunas =
-        cabecalho.map(
-            function (valor) {
-
-                return normalizarCabecalho(
-                    valor
-                );
-
-            }
-        );
-
-
-    const colunaAdministradora =
-        localizarColuna(
-            colunas,
-            [
-                "ADMINISTRADORA"
-            ]
-        );
-
-
-    const colunaValor =
-        localizarColuna(
-            colunas,
-            [
-                "VALOR"
-            ]
-        );
-
-
-    const colunaHorario =
-        localizarColuna(
-            colunas,
-            [
-                "HORÁRIO",
-                "HORARIO"
-            ]
-        );
-
-
-    const colunaMovimento =
-        localizarColuna(
-            colunas,
-            [
-                "MOVIMENTO"
-            ]
-        );
-
-
-    const colunaData =
-        localizarColuna(
-            colunas,
-            [
-                "DATA FISCAL",
-                "DATA"
-            ]
-        );
-
-
-    const colunaBomPara =
-        localizarColuna(
-            colunas,
-            [
-                "BOM PARA"
-            ]
-        );
-
-
-    const colunaValorLiquido =
-        localizarColuna(
-            colunas,
-            [
-                "VALOR LÍQUIDO",
-                "VALOR LIQUIDO"
-            ]
-        );
-
-
-    const colunaCliente =
-        localizarColuna(
-            colunas,
-            [
-                "CLIENTE"
-            ]
-        );
-
-
-    const colunaFilial =
-        localizarColuna(
-            colunas,
-            [
-                "FILIAL"
-            ]
-        );
-
-
-    const colunaFuncionario =
-        localizarColuna(
-            colunas,
-            [
-                "FUNCIONÁRIO",
-                "FUNCIONARIO"
-            ]
-        );
-
-
-    const colunaTipo =
-        localizarColuna(
-            colunas,
-            [
-                "TIPO INCLUSÃO",
-                "TIPO INCLUSAO"
-            ]
-        );
-
-
-    const colunaCentroCusto =
-        localizarColuna(
-            colunas,
-            [
-                "C. DE CUSTO",
-                "C DE CUSTO"
-            ]
-        );
-
-
-    const colunaAutorizacao =
-        localizarColuna(
-            colunas,
-            [
-                "AUTORIZAÇÃO",
-                "AUTORIZACAO"
-            ]
-        );
-
-
-    console.log(
-        "MAPEAMENTO INTERNO:",
-        {
-            administradora:
-                colunaAdministradora,
-
-            valor:
-                colunaValor,
-
-            horario:
-                colunaHorario,
-
-            movimento:
-                colunaMovimento,
-
-            data:
-                colunaData,
-
-            funcionario:
-                colunaFuncionario,
-
-            tipo:
-                colunaTipo,
-
-            autorizacao:
-                colunaAutorizacao
-        }
-    );
-
-
-    for (
-        let i =
-            indiceCabecalho + 1;
-
-        i <
-            linhas.length;
-
-        i++
-    ) {
-
-        const linha =
-            linhas[i];
-
-
-        if (
-            !Array.isArray(linha)
-        ) {
-
-            continue;
-
-        }
-
-
-        const vazia =
-            linha.every(
-                function (valor) {
-
-                    return (
-                        valor === "" ||
-                        valor === null ||
-                        valor === undefined
-                    );
-
-                }
-            );
-
-
-        if (vazia) {
-
-            continue;
-
-        }
-
-
-        const valor =
-            colunaValor >= 0
-                ? converterValor(
-                    linha[colunaValor]
-                )
-                : null;
-
-
-        if (
-            valor === null
-        ) {
-
-            continue;
-
-        }
-
-
-        const registro = {
-
-            origem:
-                "INTERNO",
-
-            administradora:
-                pegarTexto(
-                    linha,
-                    colunaAdministradora
-                ),
-
-            valor:
-                valor,
-
-            hora:
-                pegarTexto(
-                    linha,
-                    colunaHorario
-                ),
-
-            movimento:
-                pegarTexto(
-                    linha,
-                    colunaMovimento
-                ),
-
-            data:
-                pegarTexto(
-                    linha,
-                    colunaData
-                ),
-
-            bomPara:
-                pegarTexto(
-                    linha,
-                    colunaBomPara
-                ),
-
-            valorLiquido:
-                converterValor(
-                    pegarBruto(
-                        linha,
-                        colunaValorLiquido
-                    )
-                ),
-
-            cliente:
-                pegarTexto(
-                    linha,
-                    colunaCliente
-                ),
-
-            filial:
-                pegarTexto(
-                    linha,
-                    colunaFilial
-                ),
-
-            operador:
-                pegarTexto(
-                    linha,
-                    colunaFuncionario
-                ),
-
-            tipo:
-                pegarTexto(
-                    linha,
-                    colunaTipo
-                ),
-
-            centroCusto:
-                pegarTexto(
-                    linha,
-                    colunaCentroCusto
-                ),
-
-            autorizacao:
-                normalizarAutorizacao(
-                    pegarBruto(
-                        linha,
-                        colunaAutorizacao
-                    )
-                )
-
-        };
-
-
-        registros.push(
-            registro
-        );
-
-    }
-
-
-    return registros;
+return "";
 
 }
 
 
-// ======================================================
-// ENCONTRAR CABEÇALHO
-// ======================================================
-
-function encontrarCabecalho(
-    linhas
-) {
-
-    const obrigatorios = [
-
-        "ADMINISTRADORA",
-        "VALOR",
-        "HORARIO",
-        "MOVIMENTO",
-        "DATA FISCAL"
-
-    ];
 
 
-    for (
-        let i = 0;
+return String(valor)
 
-        i <
-            Math.min(
-                linhas.length,
-                30
-            );
+.trim()
 
-        i++
-    ) {
+.replace(/\s/g,"")
 
-        const linha =
-            Array.isArray(
-                linhas[i]
-            )
-                ? linhas[i]
-                : [];
+.replace(".0","")
+
+.toUpperCase();
 
 
-        const colunas =
-            linha.map(
-                function (valor) {
-
-                    return normalizarCabecalho(
-                        valor
-                    );
-
-                }
-            );
-
-
-        let encontrados = 0;
-
-
-        obrigatorios.forEach(
-            function (nome) {
-
-                if (
-                    colunas.includes(nome)
-                ) {
-
-                    encontrados++;
-
-                }
-
-            }
-        );
-
-
-        if (
-            encontrados >= 3
-        ) {
-
-            return i;
-
-        }
-
-    }
-
-
-    return -1;
 
 }
 
 
-// ======================================================
-// LOCALIZAR COLUNA
-// ======================================================
-
-function localizarColuna(
-    colunas,
-    nomes
-) {
-
-    for (
-        let i = 0;
-
-        i <
-            nomes.length;
-
-        i++
-    ) {
-
-        const indice =
-            colunas.indexOf(
-                normalizarCabecalho(
-                    nomes[i]
-                )
-            );
 
 
-        if (
-            indice !== -1
-        ) {
-
-            return indice;
-
-        }
-
-    }
 
 
-    return -1;
-
-}
-
-
-// ======================================================
-// NORMALIZAR CABEÇALHO
-// ======================================================
-
-function normalizarCabecalho(
-    valor
-) {
-
-    return limparTexto(valor)
-        .toUpperCase()
-        .normalize("NFD")
-        .replace(
-            /[\u0300-\u036f]/g,
-            ""
-        )
-        .replace(
-            /\s+/g,
-            " "
-        )
-        .trim();
-
-}
-
-
-// ======================================================
-// PEGAR BRUTO
-// ======================================================
-
-function pegarBruto(
-    linha,
-    coluna
-) {
-
-    if (
-        coluna === undefined ||
-        coluna < 0
-    ) {
-
-        return "";
-
-    }
-
-
-    return linha[coluna];
-
-}
-
-
-// ======================================================
-// PEGAR TEXTO
-// ======================================================
-
-function pegarTexto(
-    linha,
-    coluna
-) {
-
-    return limparTexto(
-        pegarBruto(
-            linha,
-            coluna
-        )
-    );
-
-}
-
-
-// ======================================================
+// ==========================================
 // CONVERTER VALOR
-// ======================================================
+// ==========================================
 
-function converterValor(
-    valor
-) {
+function converterValor(valor){
 
-    if (
+    if(
         valor === null ||
         valor === undefined ||
         valor === ""
-    ) {
+    ){
 
         return null;
 
     }
 
 
-    if (
+
+    if(
         typeof valor === "number"
-    ) {
-
-        if (
-            !Number.isFinite(valor)
-        ) {
-
-            return null;
-
-        }
-
+    ){
 
         return Number(
             valor.toFixed(2)
@@ -1128,67 +723,49 @@ function converterValor(
     }
 
 
+
     let texto =
         String(valor)
         .trim();
 
 
-    if (
-        !texto
-    ) {
 
-        return null;
-
-    }
-
-
+    // remove R$
     texto =
-        texto
-        .replace(
-            /R\$/gi,
-            ""
-        )
-        .trim();
+        texto.replace("R$","")
+             .trim();
 
 
-    if (
+
+    // formato brasileiro:
+    // 1.234,56
+
+    if(
         texto.includes(",")
-    ) {
+    ){
 
         texto =
             texto
-            .replace(
-                /\./g,
-                ""
-            )
-            .replace(
-                ",",
-                "."
-            );
+            .replace(/\./g,"")
+            .replace(",", ".");
 
     }
-    else {
 
-        texto =
-            texto.replace(
-                /[^\d.-]/g,
-                ""
-            );
-
-    }
 
 
     const numero =
         Number(texto);
 
 
-    if (
-        !Number.isFinite(numero)
-    ) {
+
+    if(
+        isNaN(numero)
+    ){
 
         return null;
 
     }
+
 
 
     return Number(
@@ -1198,420 +775,298 @@ function converterValor(
 }
 
 
-// ======================================================
-// LIMPAR TEXTO
-// ======================================================
+
+
+
+
+// ==========================================
+// TEXTO
+// ==========================================
+
 
 function limparTexto(
-    valor
-) {
-
-    if (
-        valor === null ||
-        valor === undefined
-    ) {
-
-        return "";
-
-    }
+valor
+){
 
 
-    if (
-        valor instanceof Date
-    ) {
+if(
+valor === null ||
+valor === undefined
+){
 
-        return valor.toLocaleString(
-            "pt-BR"
-        );
-
-    }
-
-
-    return String(valor)
-        .trim();
+return "";
 
 }
 
 
-// ======================================================
-// EXTRAIR DATA
-// ======================================================
+
+return String(valor)
+.trim();
+
+
+
+}
+
+
+
+
+
+
+// ==========================================
+// DATA
+// ==========================================
+
 
 function extrairData(
-    valor
-) {
-
-    if (!valor) {
-        return "";
-    }
+valor
+){
 
 
-    if (
-        valor instanceof Date
-    ) {
+if(!valor){
 
-        return valor.toLocaleDateString(
-            "pt-BR"
-        );
-
-    }
-
-
-    const texto =
-        String(valor);
-
-
-    const encontrado =
-        texto.match(
-            /\d{1,2}\/\d{1,2}\/\d{4}/
-        );
-
-
-    if (
-        encontrado
-    ) {
-
-        return encontrado[0];
-
-    }
-
-
-    return texto;
+return "";
 
 }
 
 
-// ======================================================
-// EXTRAIR HORA COMPLETA
-// ======================================================
 
-function extrairHoraCompleta(
-    valor
-) {
+if(
+valor instanceof Date
+){
 
-    if (!valor) {
-        return "";
-    }
-
-
-    if (
-        valor instanceof Date
-    ) {
-
-        return valor.toLocaleTimeString(
-            "pt-BR",
-            {
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit"
-            }
-        );
-
-    }
-
-
-    const texto =
-        String(valor);
-
-
-    const encontrado =
-        texto.match(
-            /\d{1,2}:\d{2}(?::\d{2})?/
-        );
-
-
-    if (
-        encontrado
-    ) {
-
-        return encontrado[0];
-
-    }
-
-
-    return "";
+return valor.toLocaleDateString(
+"pt-BR"
+);
 
 }
 
 
-// ======================================================
-// NORMALIZAR AUTORIZAÇÃO
-// ======================================================
 
-function normalizarAutorizacao(
-    valor
-) {
-
-    if (
-        valor === null ||
-        valor === undefined
-    ) {
-
-        return "";
-
-    }
+return String(valor);
 
 
-    return String(valor)
-        .trim()
-        .toUpperCase()
-        .replace(
-            /\.0$/,
-            ""
-        )
-        .replace(
-            /\s/g,
-            ""
-        )
-        .replace(
-            /[^\w]/g,
-            ""
-        );
 
 }
 
 
-// ======================================================
-// ATUALIZAR INTERFACE
-// ======================================================
-
-function atualizarInterface() {
-
-    const btn =
-        document.getElementById(
-            "btnConferir"
-        );
 
 
-    const quantidadePremmia =
-        dadosPremmia.length;
 
 
-    const quantidadeInterno =
-        dadosInterno.length;
+// ==========================================
+// HORA
+// ==========================================
 
 
-    console.log(
-        "================================"
-    );
-
-    console.log(
-        "VERIFICANDO PLANILHAS"
-    );
-
-    console.log(
-        "Premmia:",
-        quantidadePremmia
-    );
-
-    console.log(
-        "Interno:",
-        quantidadeInterno
-    );
+function extrairHora(
+valor
+){
 
 
-    if (btn) {
+if(!valor){
 
-        // IMPORTANTE:
-        // O botão NÃO depende mais
-        // somente do atributo disabled
-        // colocado no HTML.
-
-        if (
-            quantidadePremmia > 0 &&
-            quantidadeInterno > 0
-        ) {
-
-            btn.disabled = false;
-
-            btn.removeAttribute(
-                "disabled"
-            );
-
-            btn.style.pointerEvents =
-                "auto";
-
-            btn.style.opacity =
-                "1";
-
-            btn.style.cursor =
-                "pointer";
-
-            atualizarStatus(
-                "Planilhas carregadas. Pronto para conferir."
-            );
-
-        }
-        else {
-
-            btn.disabled = true;
-
-            atualizarStatus(
-                "Aguardando carregamento das planilhas."
-            );
-
-        }
-
-    }
-
-
-    atualizarContador();
+return "";
 
 }
 
 
-// ======================================================
-// CONTADOR
-// ======================================================
 
-function atualizarContador() {
-
-    const contador =
-        document.getElementById(
-            "contadorDados"
-        );
+const texto =
+String(valor);
 
 
-    if (!contador) {
-        return;
-    }
+
+const resultado =
+texto.match(
+/\d{2}:\d{2}/
+);
 
 
-    contador.innerHTML =
-        "Premmia: <strong>" +
-        dadosPremmia.length +
-        "</strong> registros" +
 
-        " &nbsp; | &nbsp; " +
+return resultado
+?
+resultado[0]
+:
+"";
 
-        "Interno: <strong>" +
-        dadosInterno.length +
-        "</strong> registros";
+
+}
+// ==========================================
+// CONTADOR NA TELA
+// ==========================================
+
+
+function atualizarContador(){
+
+
+const contador =
+document.getElementById(
+"contadorDados"
+);
+
+
+
+if(!contador){
+
+return;
 
 }
 
 
-// ======================================================
-// STATUS
-// ======================================================
+
+
+contador.innerHTML = `
+
+Premmia:
+<strong>${dadosPremmia.length}</strong>
+registros
+
+|
+
+Interno:
+<strong>${dadosInterno.length}</strong>
+registros
+
+`;
+
+
+
+}
+
+
+
+
+
+
+
+// ==========================================
+// ATUALIZA STATUS
+// ==========================================
+
 
 function atualizarStatus(
-    texto
-) {
-
-    const status =
-        document.getElementById(
-            "statusSistema"
-        );
+texto
+){
 
 
-    if (status) {
 
-        status.textContent =
-            texto;
+const status =
+document.getElementById(
+"statusSistema"
+);
 
-    }
+
+
+if(status){
+
+status.textContent =
+texto;
 
 }
 
 
-// ======================================================
-// DISPONIBILIZAR GLOBAL
-// ======================================================
+
+}
+
+
+
+
+
+
+
+// ==========================================
+// SOBRESCREVE VERIFICAR
+// ==========================================
+
+
+function atualizarTela(){
+
+
+atualizarContador();
+
+
+
+if(
+dadosPremmia.length > 0 &&
+dadosInterno.length > 0
+){
+
+
+atualizarStatus(
+"Planilhas carregadas. Pronto para conferir."
+);
+
+
+
+if(btnConferir){
+
+btnConferir.disabled =
+false;
+
+}
+
+
+
+}else{
+
+
+
+atualizarStatus(
+"Aguardando carregamento das planilhas."
+);
+
+
+
+if(btnConferir){
+
+btnConferir.disabled =
+true;
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+// ==========================================
+// ATUALIZA APÓS LEITURA
+// ==========================================
+
+
+// substitui a função antiga
+
+verificarArquivos =
+atualizarTela;
+
+
+
+
+
+
+
+// ==========================================
+// DISPONIBILIZA PARA O SISTEMA
+// ==========================================
+
 
 window.dadosPremmia =
-    dadosPremmia;
+dadosPremmia;
+
 
 window.dadosInterno =
-    dadosInterno;
+dadosInterno;
 
-
-// ======================================================
-// LIMPAR
-// ======================================================
-
-window.limparDadosPlanilhas =
-    function () {
-
-        dadosPremmia = [];
-
-        dadosInterno = [];
-
-
-        window.dadosPremmia =
-            dadosPremmia;
-
-        window.dadosInterno =
-            dadosInterno;
-
-
-        const arquivoPremmia =
-            document.getElementById(
-                "arquivoPremmia"
-            );
-
-        const arquivoInterno =
-            document.getElementById(
-                "arquivoInterno"
-            );
-
-
-        if (arquivoPremmia) {
-            arquivoPremmia.value = "";
-        }
-
-
-        if (arquivoInterno) {
-            arquivoInterno.value = "";
-        }
-
-
-        const nomePremmia =
-            document.getElementById(
-                "nomePremmia"
-            );
-
-        const nomeInterno =
-            document.getElementById(
-                "nomeInterno"
-            );
-
-
-        if (nomePremmia) {
-
-            nomePremmia.textContent =
-                "Nenhum arquivo selecionado";
-
-        }
-
-
-        if (nomeInterno) {
-
-            nomeInterno.textContent =
-                "Nenhum arquivo selecionado";
-
-        }
-
-
-        atualizarInterface();
-
-    };
-
-
-// ======================================================
-// EXPORTAR FUNÇÕES
-// ======================================================
-
-window.atualizarInterface =
-    atualizarInterface;
-
-window.converterValor =
-    converterValor;
-
-window.normalizarAutorizacao =
-    normalizarAutorizacao;
 
 
 console.log(
-    "leituraExcel.js completo carregado"
+"leituraExcel.js completo carregado"
 );
