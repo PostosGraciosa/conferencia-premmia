@@ -1,4 +1,4 @@
-```javascript
+
 // ======================================================
 // SISTEMA DE CONFERÊNCIA PREMMIA
 // conferencia.js
