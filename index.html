@@ -1,1175 +1,279 @@
-
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <title>Conferência Premmia</title>
 
-    <title>
-        Conferência Premmia
-    </title>
-
-    <!-- ============================= -->
-    <!-- BOOTSTRAP -->
-    <!-- ============================= -->
-
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
-
-    <!-- ============================= -->
-    <!-- CSS DO SISTEMA -->
-    <!-- ============================= -->
-
-    <link
-        rel="stylesheet"
-        href="css/style.css"
-    >
-
+    <link rel="stylesheet" href="css/style.css">
 </head>
-
 
 <body>
 
+    <div class="container">
 
-<!-- ====================================================== -->
-<!-- CONTAINER PRINCIPAL -->
-<!-- ====================================================== -->
+        <!-- CABEÇALHO -->
+        <header class="header">
 
-<div class="container-fluid py-4">
+            <div class="logo-area">
+                <h1>CONFERÊNCIA PREMMIA</h1>
+                <p>Conferência de vendas e lançamentos</p>
+            </div>
 
-
-    <!-- ================================================== -->
-    <!-- CABEÇALHO -->
-    <!-- ================================================== -->
-
-    <div class="text-center mb-4">
-
-        <h1>
-            🔍 Conferência Premmia
-        </h1>
-
-        <p class="text-muted">
-
-            Compare as transações do Portal Premmia
-            com o sistema interno.
-
-        </p>
-
-    </div>
+        </header>
 
 
-    <!-- ================================================== -->
-    <!-- ÁREA DE IMPORTAÇÃO -->
-    <!-- ================================================== -->
+        <!-- IMPORTAÇÃO DAS PLANILHAS -->
+        <section class="card">
 
-    <div class="card shadow-sm mb-4">
+            <h2>📂 Importar arquivos</h2>
 
-        <div class="card-body">
-
-
-            <h4 class="mb-3">
-
-                📂 Carregar planilhas
-
-            </h4>
-
-
-            <p class="text-muted">
-
-                Selecione a planilha do Portal Premmia
-                e a planilha do sistema interno.
-
+            <p class="descricao">
+                Selecione a planilha do Portal Premmia e a planilha
+                de lançamentos do sistema interno.
             </p>
 
 
-            <div class="row g-3">
+            <!-- PORTAL PREMMIA -->
+            <div class="arquivo">
 
+                <label for="arquivoPremmia">
+                    Planilha do Portal Premmia
+                </label>
 
-                <!-- ====================================== -->
-                <!-- PORTAL -->
-                <!-- ====================================== -->
-
-                <div class="col-md-6">
-
-                    <label
-                        for="arquivoPremmia"
-                        class="form-label fw-bold"
-                    >
-
-                        Planilha Portal Premmia
-
-                    </label>
-
-
-                    <input
-                        type="file"
-                        id="arquivoPremmia"
-                        class="form-control"
-                        accept=".xlsx,.xls,.csv"
-                    >
-
-
-                    <div
-                        id="statusPremmia"
-                        class="small text-muted mt-2"
-                    >
-
-                        Aguardando carregamento.
-
-                    </div>
-
-                </div>
-
-
-                <!-- ====================================== -->
-                <!-- SISTEMA INTERNO -->
-                <!-- ====================================== -->
-
-                <div class="col-md-6">
-
-                    <label
-                        for="arquivoInterno"
-                        class="form-label fw-bold"
-                    >
-
-                        Planilha Sistema Interno
-
-                    </label>
-
-
-                    <input
-                        type="file"
-                        id="arquivoInterno"
-                        class="form-control"
-                        accept=".xlsx,.xls,.csv"
-                    >
-
-
-                    <div
-                        id="statusInterno"
-                        class="small text-muted mt-2"
-                    >
-
-                        Aguardando carregamento.
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- ================================================== -->
-            <!-- BOTÕES -->
-            <!-- ================================================== -->
-
-            <div class="d-flex gap-2 mt-4 flex-wrap">
-
-
-                <button
-                    type="button"
-                    id="btnConferir"
-                    class="btn btn-primary"
-                    disabled
+                <input
+                    type="file"
+                    id="arquivoPremmia"
+                    accept=".xlsx,.xls,.csv"
                 >
 
-                    🔍 CONFERIR VENDAS
+                <span id="nomePremmia">
+                    Nenhum arquivo selecionado
+                </span>
 
-                </button>
+            </div>
 
 
-                <button
-                    type="button"
-                    id="btnLimpar"
-                    class="btn btn-secondary"
+            <!-- SISTEMA INTERNO -->
+            <div class="arquivo">
+
+                <label for="arquivoInterno">
+                    Planilha do Sistema Interno
+                </label>
+
+                <input
+                    type="file"
+                    id="arquivoInterno"
+                    accept=".xlsx,.xls,.csv"
                 >
 
-                    🗑 LIMPAR
-
-                </button>
-
-
-            </div>
-
-
-            <!-- ================================================== -->
-            <!-- STATUS -->
-            <!-- ================================================== -->
-
-            <div
-                id="statusSistema"
-                class="alert alert-secondary mt-3 mb-0"
-            >
-
-                Aguardando carregamento das planilhas.
+                <span id="nomeInterno">
+                    Nenhum arquivo selecionado
+                </span>
 
             </div>
 
 
-        </div>
-
-    </div>
-
-
-    <!-- ====================================================== -->
-    <!-- RESUMO -->
-    <!-- ====================================================== -->
-
-    <div
-        id="resultado"
-        style="display:none;"
-    >
-
-
-        <div class="row g-3 mb-4">
-
-
-            <!-- CORRETAS -->
-
-            <div class="col-md-3">
-
-                <div class="card shadow-sm h-100">
-
-                    <div class="card-body">
-
-                        <h6>
-                            Corretas
-                        </h6>
-
-                        <h3 id="totalCorretas">
-                            0
-                        </h3>
-
-                        <div
-                            id="valorCorretas"
-                            class="text-muted"
-                        >
-                            R$ 0,00
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- NÃO LANÇADAS -->
-
-            <div class="col-md-3">
-
-                <div class="card shadow-sm h-100">
-
-                    <div class="card-body">
-
-                        <h6>
-                            Não lançadas
-                        </h6>
-
-                        <h3 id="totalNaoLancadas">
-                            0
-                        </h3>
-
-                        <div
-                            id="valorNaoLancadas"
-                            class="text-muted"
-                        >
-                            R$ 0,00
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- LANÇADAS A MAIS -->
-
-            <div class="col-md-3">
-
-                <div class="card shadow-sm h-100">
-
-                    <div class="card-body">
-
-                        <h6>
-                            Lançadas a mais
-                        </h6>
-
-                        <h3 id="totalLancadasMais">
-                            0
-                        </h3>
-
-                        <div
-                            id="valorLancadasMais"
-                            class="text-muted"
-                        >
-                            R$ 0,00
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- DIFERENÇA -->
-
-            <div class="col-md-3">
-
-                <div class="card shadow-sm h-100">
-
-                    <div class="card-body">
-
-                        <h6>
-                            Diferença
-                        </h6>
-
-                        <h3 id="diferencaLiquida">
-                            R$ 0,00
-                        </h3>
-
-                        <div
-                            id="statusDiferenca"
-                            class="text-muted"
-                        >
-                            Portal e Sistema estão iguais.
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- ================================================== -->
-        <!-- TOTAIS -->
-        <!-- ================================================== -->
-
-        <div class="card shadow-sm mb-4">
-
-            <div class="card-body">
-
-                <div class="row">
-
-
-                    <div class="col-md-4">
-
-                        <strong>
-                            Total Portal
-                        </strong>
-
-                        <div id="totalPortal">
-                            R$ 0,00
-                        </div>
-
-                    </div>
-
-
-                    <div class="col-md-4">
-
-                        <strong>
-                            Total Sistema
-                        </strong>
-
-                        <div id="totalSistema">
-                            R$ 0,00
-                        </div>
-
-                    </div>
-
-
-                    <div class="col-md-4">
-
-                        <strong>
-                            Diferença
-                        </strong>
-
-                        <div id="diferencaLiquida2">
-                            R$ 0,00
-                        </div>
-
-                    </div>
-
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- ================================================== -->
-        <!-- FILTROS -->
-        <!-- ================================================== -->
-
-        <div class="card shadow-sm mb-4">
-
-            <div class="card-body">
-
-
-                <div
-                    class="d-flex gap-2 flex-wrap"
-                >
-
-
-                    <button
-                        type="button"
-                        class="btn btn-outline-primary filtro ativo"
-                        data-filtro="TODOS"
-                    >
-
-                        Todos
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="btn btn-outline-success filtro"
-                        data-filtro="CORRETA"
-                    >
-
-                        Corretas
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="btn btn-outline-warning filtro"
-                        data-filtro="NAO_LANCADA"
-                    >
-
-                        Não lançadas
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="btn btn-outline-danger filtro"
-                        data-filtro="LANCADA_A_MAIS"
-                    >
-
-                        Lançadas a mais
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary filtro"
-                        data-filtro="VALOR_DIVERGENTE"
-                    >
-
-                        Valor divergente
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary filtro"
-                        data-filtro="AUTORIZACAO_DIVERGENTE"
-                    >
-
-                        Autorização divergente
-
-                    </button>
-
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- ================================================== -->
-        <!-- EXPORTAR -->
-        <!-- ================================================== -->
-
-        <div class="mb-3">
-
+            <!-- BOTÃO -->
             <button
                 type="button"
-                id="btnExportar"
-                class="btn btn-success"
+                id="btnConferir"
+                disabled
             >
-
-                ⬇ Exportar Excel
-
+                🔍 CONFERIR VENDAS
             </button>
 
-        </div>
+        </section>
 
 
-        <!-- ================================================== -->
-        <!-- TABELA -->
-        <!-- ================================================== -->
-
-        <div
-            id="areaResultado"
-            class="card shadow-sm"
+        <!-- RESUMO -->
+        <section
+            class="card resultado"
+            id="resultado"
+            style="display: none;"
         >
 
-            <div class="card-body">
+            <h2>📊 Resultado da Conferência</h2>
 
 
-                <h4 class="mb-3">
+            <div class="resumo-grid">
 
-                    Conferência Premmia
-
-                </h4>
-
-
-                <div
-                    class="table-responsive"
-                >
-
-                    <table
-                        id="tabelaResultado"
-                        class="table table-bordered table-hover align-middle"
-                    >
-
-                        <thead>
-
-                            <tr>
-
-                                <th>
-                                    Status
-                                </th>
-
-                                <th>
-                                    Data
-                                </th>
-
-                                <th>
-                                    Hora
-                                </th>
-
-                                <th>
-                                    Cliente
-                                </th>
-
-                                <th>
-                                    Operação
-                                </th>
-
-                                <th>
-                                    Autorização Premmia
-                                </th>
-
-                                <th>
-                                    Autorização Interno
-                                </th>
-
-                                <th>
-                                    Valor Premmia
-                                </th>
-
-                                <th>
-                                    Valor Interno
-                                </th>
-
-                                <th>
-                                    Diferença
-                                </th>
-
-                                <th>
-                                    Operador
-                                </th>
-
-                                <th>
-                                    Observação
-                                </th>
-
-                            </tr>
-
-                        </thead>
+                <div class="resumo-item correto">
+                    <span>Corretas</span>
+                    <strong id="totalCorretas">0</strong>
+                    <small id="valorCorretas">R$ 0,00</small>
+                </div>
 
 
-                        <tbody
-                            id="corpoTabela"
-                        >
+                <div class="resumo-item nao-lancada">
+                    <span>Não lançadas</span>
+                    <strong id="totalNaoLancadas">0</strong>
+                    <small id="valorNaoLancadas">R$ 0,00</small>
+                </div>
 
-                        </tbody>
 
-                    </table>
+                <div class="resumo-item lancada-mais">
+                    <span>Lançadas a mais</span>
+                    <strong id="totalLancadasMais">0</strong>
+                    <small id="valorLancadasMais">R$ 0,00</small>
+                </div>
 
+
+                <div class="resumo-item valor-errado">
+                    <span>Valor divergente</span>
+                    <strong id="totalValorErrado">0</strong>
+                    <small id="valorValorErrado">R$ 0,00</small>
+                </div>
+
+
+                <div class="resumo-item autorizacao">
+                    <span>Autorização divergente</span>
+                    <strong id="totalAutorizacao">0</strong>
+                    <small id="valorAutorizacao">R$ 0,00</small>
                 </div>
 
             </div>
 
-        </div>
+        </section>
 
+
+        <!-- TABELA -->
+        <section
+            class="card tabela-card"
+            id="tabelaResultado"
+            style="display: none;"
+        >
+
+            <div class="tabela-topo">
+
+                <h2>📋 Detalhamento</h2>
+
+                <button
+                    type="button"
+                    id="btnExportar"
+                >
+                    ⬇ Exportar Excel
+                </button>
+
+            </div>
+
+
+            <div class="filtros">
+
+                <button
+                    type="button"
+                    class="filtro ativo"
+                    data-filtro="TODOS"
+                >
+                    Todos
+                </button>
+
+                <button
+                    type="button"
+                    class="filtro"
+                    data-filtro="CORRETA"
+                >
+                    Corretas
+                </button>
+
+                <button
+                    type="button"
+                    class="filtro"
+                    data-filtro="NAO_LANCADA"
+                >
+                    Não lançadas
+                </button>
+
+                <button
+                    type="button"
+                    class="filtro"
+                    data-filtro="LANCADA_A_MAIS"
+                >
+                    Lançadas a mais
+                </button>
+
+                <button
+                    type="button"
+                    class="filtro"
+                    data-filtro="VALOR_DIVERGENTE"
+                >
+                    Valor divergente
+                </button>
+
+                <button
+                    type="button"
+                    class="filtro"
+                    data-filtro="AUTORIZACAO_DIVERGENTE"
+                >
+                    Autorização divergente
+                </button>
+
+            </div>
+
+
+            <div class="tabela-container">
+
+                <table id="tabela">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Status</th>
+
+                            <th>Data</th>
+
+                            <th>Hora</th>
+
+                            <th>Autorização Premmia</th>
+
+                            <th>Autorização Interno</th>
+
+                            <th>Valor Premmia</th>
+
+                            <th>Valor Interno</th>
+
+                            <th>Diferença</th>
+
+                            <th>Operador</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="corpoTabela">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- RODAPÉ -->
+        <footer>
+
+            Conferência Premmia
+
+        </footer>
 
     </div>
 
 
-</div>
-
-
-<!-- ====================================================== -->
-<!-- BIBLIOTECA XLSX -->
-<!-- ====================================================== -->
-
-<script
-    src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
-></script>
-
-
-<!-- ====================================================== -->
-<!-- LEITURA DOS ARQUIVOS -->
-<!-- ====================================================== -->
-
-<script
-    src="js/leituraExcel.js"
-></script>
-
-
-<!-- ====================================================== -->
-<!-- CONFERÊNCIA -->
-<!-- ====================================================== -->
-
-<script
-    src="js/conferencia.js"
-></script>
-
-
-<!-- ====================================================== -->
-<!-- EXPORTAÇÃO -->
-<!-- ====================================================== -->
-
-<script
-    src="js/exportar.js"
-></script>
-
-
-<!-- ====================================================== -->
-<!-- CONTROLE PRINCIPAL -->
-<!-- ====================================================== -->
-
-<script>
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function () {
-
-        console.log(
-            "index.html carregado."
-        );
-
-        const arquivoPremmia =
-            document.getElementById(
-                "arquivoPremmia"
-            );
-
-        const arquivoInterno =
-            document.getElementById(
-                "arquivoInterno"
-            );
-
-        const btnConferir =
-            document.getElementById(
-                "btnConferir"
-            );
-
-        const btnLimpar =
-            document.getElementById(
-                "btnLimpar"
-            );
-
-        const statusPremmia =
-            document.getElementById(
-                "statusPremmia"
-            );
-
-        const statusInterno =
-            document.getElementById(
-                "statusInterno"
-            );
-
-        const statusSistema =
-            document.getElementById(
-                "statusSistema"
-            );
-
-
-        // ==================================================
-        // CONTROLE
-        // ==================================================
-
-        let portalCarregado = false;
-        let internoCarregado = false;
-
-
-        // ==================================================
-        // ATUALIZA BOTÃO
-        // ==================================================
-
-        function atualizarBotao() {
-
-            portalCarregado =
-                Array.isArray(
-                    window.dadosPremmia
-                ) &&
-                window.dadosPremmia.length > 0;
-
-
-            internoCarregado =
-                Array.isArray(
-                    window.dadosInterno
-                ) &&
-                window.dadosInterno.length > 0;
-
-
-            btnConferir.disabled =
-                !(
-                    portalCarregado &&
-                    internoCarregado
-                );
-
-
-            console.log(
-                "Portal carregado:",
-                portalCarregado
-            );
-
-            console.log(
-                "Interno carregado:",
-                internoCarregado
-            );
-
-            console.log(
-                "Botão habilitado:",
-                !btnConferir.disabled
-            );
-
-
-            if (
-                portalCarregado &&
-                internoCarregado
-            ) {
-
-                statusSistema.className =
-                    "alert alert-success mt-3 mb-0";
-
-                statusSistema.textContent =
-                    "As duas planilhas foram carregadas. Você pode iniciar a conferência.";
-
-            } else if (
-                portalCarregado
-            ) {
-
-                statusSistema.className =
-                    "alert alert-warning mt-3 mb-0";
-
-                statusSistema.textContent =
-                    "Portal carregado. Agora carregue a planilha do sistema interno.";
-
-            } else if (
-                internoCarregado
-            ) {
-
-                statusSistema.className =
-                    "alert alert-warning mt-3 mb-0";
-
-                statusSistema.textContent =
-                    "Sistema interno carregado. Agora carregue a planilha do Portal Premmia.";
-
-            } else {
-
-                statusSistema.className =
-                    "alert alert-secondary mt-3 mb-0";
-
-                statusSistema.textContent =
-                    "Aguardando carregamento das planilhas.";
-
-            }
-
-        }
-
-
-        // ==================================================
-        // PORTAL
-        // ==================================================
-
-        arquivoPremmia.addEventListener(
-            "change",
-            async function () {
-
-                const arquivo =
-                    this.files[0];
-
-                if (!arquivo) {
-                    return;
-                }
-
-
-                statusPremmia.textContent =
-                    "Carregando " +
-                    arquivo.name +
-                    "...";
-
-
-                try {
-
-                    if (
-                        typeof window.lerArquivoPremmia ===
-                        "function"
-                    ) {
-
-                        await window.lerArquivoPremmia(
-                            arquivo
-                        );
-
-                    } else {
-
-                        throw new Error(
-                            "A função lerArquivoPremmia não foi encontrada em leituraExcel.js."
-                        );
-
-                    }
-
-
-                    if (
-                        !Array.isArray(
-                            window.dadosPremmia
-                        ) ||
-                        window.dadosPremmia.length === 0
-                    ) {
-
-                        throw new Error(
-                            "Nenhum lançamento foi encontrado na planilha do Portal."
-                        );
-
-                    }
-
-
-                    statusPremmia.className =
-                        "small text-success mt-2";
-
-
-                    statusPremmia.textContent =
-                        "✓ " +
-                        window.dadosPremmia.length +
-                        " transações carregadas.";
-
-
-                    atualizarBotao();
-
-
-                } catch (erro) {
-
-                    console.error(
-                        erro
-                    );
-
-
-                    statusPremmia.className =
-                        "small text-danger mt-2";
-
-
-                    statusPremmia.textContent =
-                        "❌ Erro ao carregar a planilha.";
-
-
-                    alert(
-                        "Erro ao carregar a planilha do Portal Premmia:\n\n" +
-                        erro.message
-                    );
-
-
-                    window.dadosPremmia = [];
-
-
-                    atualizarBotao();
-
-                }
-
-            }
-        );
-
-
-        // ==================================================
-        // SISTEMA INTERNO
-        // ==================================================
-
-        arquivoInterno.addEventListener(
-            "change",
-            async function () {
-
-                const arquivo =
-                    this.files[0];
-
-                if (!arquivo) {
-                    return;
-                }
-
-
-                statusInterno.textContent =
-                    "Carregando " +
-                    arquivo.name +
-                    "...";
-
-
-                try {
-
-                    if (
-                        typeof window.lerArquivoInterno ===
-                        "function"
-                    ) {
-
-                        await window.lerArquivoInterno(
-                            arquivo
-                        );
-
-                    } else {
-
-                        throw new Error(
-                            "A função lerArquivoInterno não foi encontrada em leituraExcel.js."
-                        );
-
-                    }
-
-
-                    if (
-                        !Array.isArray(
-                            window.dadosInterno
-                        ) ||
-                        window.dadosInterno.length === 0
-                    ) {
-
-                        throw new Error(
-                            "Nenhum lançamento foi encontrado na planilha do sistema interno."
-                        );
-
-                    }
-
-
-                    statusInterno.className =
-                        "small text-success mt-2";
-
-
-                    statusInterno.textContent =
-                        "✓ " +
-                        window.dadosInterno.length +
-                        " lançamentos carregados.";
-
-
-                    atualizarBotao();
-
-
-                } catch (erro) {
-
-                    console.error(
-                        erro
-                    );
-
-
-                    statusInterno.className =
-                        "small text-danger mt-2";
-
-
-                    statusInterno.textContent =
-                        "❌ Erro ao carregar a planilha.";
-
-
-                    alert(
-                        "Erro ao carregar a planilha do sistema interno:\n\n" +
-                        erro.message
-                    );
-
-
-                    window.dadosInterno = [];
-
-
-                    atualizarBotao();
-
-                }
-
-            }
-        );
-
-
-        // ==================================================
-        // BOTÃO CONFERIR
-        // ==================================================
-
-        btnConferir.addEventListener(
-            "click",
-            function () {
-
-                console.log(
-                    "================================"
-                );
-
-                console.log(
-                    "BOTÃO CONFERIR CLICADO"
-                );
-
-                console.log(
-                    "================================"
-                );
-
-
-                if (
-                    !Array.isArray(
-                        window.dadosPremmia
-                    ) ||
-                    window.dadosPremmia.length === 0
-                ) {
-
-                    alert(
-                        "Carregue primeiro a planilha do Portal Premmia."
-                    );
-
-                    return;
-                }
-
-
-                if (
-                    !Array.isArray(
-                        window.dadosInterno
-                    ) ||
-                    window.dadosInterno.length === 0
-                ) {
-
-                    alert(
-                        "Carregue primeiro a planilha do sistema interno."
-                    );
-
-                    return;
-                }
-
-
-                if (
-                    typeof window.iniciarConferencia !==
-                    "function"
-                ) {
-
-                    alert(
-                        "Erro: conferencia.js não foi carregado corretamente."
-                    );
-
-                    console.error(
-                        "window.iniciarConferencia não existe."
-                    );
-
-                    return;
-                }
-
-
-                window.iniciarConferencia();
-
-            }
-        );
-
-
-        // ==================================================
-        // LIMPAR
-        // ==================================================
-
-        btnLimpar.addEventListener(
-            "click",
-            function () {
-
-                console.log(
-                    "Limpando sistema..."
-                );
-
-
-                window.dadosPremmia = [];
-
-                window.dadosInterno = [];
-
-                window.resultadosConferencia = [];
-
-
-                arquivoPremmia.value = "";
-
-                arquivoInterno.value = "";
-
-
-                statusPremmia.className =
-                    "small text-muted mt-2";
-
-                statusPremmia.textContent =
-                    "Aguardando carregamento.";
-
-
-                statusInterno.className =
-                    "small text-muted mt-2";
-
-                statusInterno.textContent =
-                    "Aguardando carregamento.";
-
-
-                statusSistema.className =
-                    "alert alert-secondary mt-3 mb-0";
-
-                statusSistema.textContent =
-                    "Aguardando carregamento das planilhas.";
-
-
-                btnConferir.disabled =
-                    true;
-
-
-                const resultado =
-                    document.getElementById(
-                        "resultado"
-                    );
-
-                if (resultado) {
-
-                    resultado.style.display =
-                        "none";
-
-                }
-
-
-                const corpo =
-                    document.getElementById(
-                        "corpoTabela"
-                    );
-
-                if (corpo) {
-
-                    corpo.innerHTML =
-                        "";
-
-                }
-
-            }
-        );
-
-
-        // ==================================================
-        // ESTADO INICIAL
-        // ==================================================
-
-        atualizarBotao();
-
-    }
-);
-
-</script>
-
+    <!-- BIBLIOTECA PARA EXCEL -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+
+    <!-- JAVASCRIPT DO SISTEMA -->
+    <script src="js/leituraExcel.js"></script>
+    <script src="js/conferencia.js"></script>
+    <script src="js/exportar.js"></script>
+    <script src="js/app.js"></script>
 
 </body>
 
