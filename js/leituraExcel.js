@@ -9,16 +9,23 @@
 // 3. Normalizar valores
 // 4. Normalizar datas
 // 5. Normalizar horários
-// 6. Entregar os dados para conferencia.js
+// 6. Calcular totais das duas planilhas
+// 7. Entregar os dados para conferencia.js
+//
+// IMPORTANTE:
 //
 // A conferência NÃO depende da autorização.
+//
 // A comparação será feita por:
 //
 // VALOR
-// + DATA
-// + HORÁRIO APROXIMADO
+// +
+// DATA
+// +
+// HORÁRIO
 //
-// A tolerância é controlada pelo conferencia.js.
+// A tolerância de horário de 10 minutos
+// será controlada pelo conferencia.js.
 // ==========================================
 
 
@@ -37,18 +44,14 @@ let dadosInterno = [];
 const arquivoPremmia =
     document.getElementById("arquivoPremmia");
 
-
 const arquivoInterno =
     document.getElementById("arquivoInterno");
-
 
 const nomePremmia =
     document.getElementById("nomePremmia");
 
-
 const nomeInterno =
     document.getElementById("nomeInterno");
-
 
 const btnConferir =
     document.getElementById("btnConferir");
@@ -67,11 +70,9 @@ if (arquivoPremmia) {
             const file =
                 this.files[0];
 
-
             if (!file) {
                 return;
             }
-
 
             if (nomePremmia) {
 
@@ -79,7 +80,6 @@ if (arquivoPremmia) {
                     file.name;
 
             }
-
 
             lerPremmia(file);
 
@@ -102,11 +102,9 @@ if (arquivoInterno) {
             const file =
                 this.files[0];
 
-
             if (!file) {
                 return;
             }
-
 
             if (nomeInterno) {
 
@@ -114,7 +112,6 @@ if (arquivoInterno) {
                     file.name;
 
             }
-
 
             lerInterno(file);
 
@@ -136,7 +133,6 @@ function abrirExcel(
     const reader =
         new FileReader();
 
-
     reader.onload =
         function (e) {
 
@@ -147,7 +143,6 @@ function abrirExcel(
                         e.target.result
                     );
 
-
                 const workbook =
                     XLSX.read(
                         dados,
@@ -156,7 +151,6 @@ function abrirExcel(
                             cellDates: true
                         }
                     );
-
 
                 if (
                     !workbook.SheetNames ||
@@ -173,16 +167,13 @@ function abrirExcel(
 
                 }
 
-
                 const primeira =
                     workbook.SheetNames[0];
-
 
                 const planilha =
                     workbook.Sheets[
                         primeira
                     ];
-
 
                 const linhas =
                     XLSX.utils.sheet_to_json(
@@ -194,7 +185,6 @@ function abrirExcel(
                         }
                     );
 
-
                 callback(linhas);
 
             }
@@ -205,11 +195,9 @@ function abrirExcel(
                     erro
                 );
 
-
                 alert(
                     "Não foi possível ler a planilha."
                 );
-
 
                 callback([]);
 
@@ -225,11 +213,9 @@ function abrirExcel(
                 "Erro ao abrir arquivo."
             );
 
-
             alert(
                 "Erro ao abrir o arquivo."
             );
-
 
             callback([]);
 
@@ -256,7 +242,6 @@ function lerPremmia(file) {
                     linhas
                 );
 
-
             window.dadosPremmia =
                 dadosPremmia;
 
@@ -270,8 +255,13 @@ function lerPremmia(file) {
             );
 
             console.log(
-                "Total:",
+                "Total de registros:",
                 dadosPremmia.length
+            );
+
+            console.log(
+                "Valor total:",
+                calcularTotalPremmia()
             );
 
             console.log(
@@ -282,6 +272,8 @@ function lerPremmia(file) {
                 "================================="
             );
 
+
+            atualizarTotaisPlanilhas();
 
             verificarArquivos();
 
@@ -306,7 +298,6 @@ function lerInterno(file) {
                     linhas
                 );
 
-
             window.dadosInterno =
                 dadosInterno;
 
@@ -320,8 +311,13 @@ function lerInterno(file) {
             );
 
             console.log(
-                "Total:",
+                "Total de registros:",
                 dadosInterno.length
+            );
+
+            console.log(
+                "Valor total:",
+                calcularTotalInterno()
             );
 
             console.log(
@@ -332,6 +328,8 @@ function lerInterno(file) {
                 "================================="
             );
 
+
+            atualizarTotaisPlanilhas();
 
             verificarArquivos();
 
@@ -346,6 +344,10 @@ function lerInterno(file) {
 // ==========================================
 
 function verificarArquivos() {
+
+    atualizarContador();
+
+    atualizarTotaisPlanilhas();
 
     atualizarTela();
 
@@ -394,7 +396,7 @@ function transformarPremmia(
 
 
             if (
-                linha.length < 8
+                linha.length < 5
             ) {
 
                 return;
@@ -423,6 +425,16 @@ function transformarPremmia(
 
 
             // ----------------------------------
+            // VALOR
+            // ----------------------------------
+
+            const valor =
+                converterValor(
+                    linha[3]
+                );
+
+
+            // ----------------------------------
             // REGISTRO
             // ----------------------------------
 
@@ -431,61 +443,42 @@ function transformarPremmia(
                 origem:
                     "PREMMIA",
 
-
                 cpf:
                     limparTexto(
                         linha[0]
                     ),
-
 
                 cliente:
                     limparTexto(
                         linha[1]
                     ),
 
-
                 operacao:
                     limparTexto(
                         linha[2]
                     ),
 
-
                 valor:
-                    converterValor(
-                        linha[3]
-                    ),
-
-
-                // Mantém o valor original
-                // para facilitar diagnóstico
+                    valor,
 
                 dataHora:
                     dataHoraOriginal,
 
-
                 data:
                     data,
 
-
                 hora:
                     hora,
-
-
-                // --------------------------------
-                // AUTORIZAÇÃO
-                // --------------------------------
 
                 autorizacao:
                     normalizarAutorizacao(
                         linha[5]
                     ),
 
-
                 pagamento:
                     limparTexto(
                         linha[6]
                     ),
-
 
                 status:
                     limparTexto(
@@ -498,9 +491,16 @@ function transformarPremmia(
             // ----------------------------------
             // VALIDAÇÃO
             // ----------------------------------
+            //
+            // NÃO exigimos autorização.
+            //
+            // A nova conferência será por:
+            //
+            // VALOR + DATA + HORA
+            //
+            // ----------------------------------
 
             if (
-                registro.autorizacao &&
                 registro.valor !== null
             ) {
 
@@ -574,24 +574,31 @@ function transformarInterno(
                 .join(" ");
 
 
-        // Procuramos termos que identificam
-        // o cabeçalho do sistema interno.
+        // ----------------------------------
+        // IDENTIFICA CABEÇALHO
+        // ----------------------------------
 
         if (
-            texto.includes("administradora") &&
             (
-                texto.includes("autorizacao") ||
+                texto.includes("administradora")
+                ||
+                texto.includes("valor")
+            )
+            &&
+            (
+                texto.includes("autorizacao")
+                ||
                 texto.includes("autorização")
+                ||
+                texto.includes("data")
             )
         ) {
 
             cabecalho =
                 linhas[i];
 
-
             indiceCabecalho =
                 i;
-
 
             break;
 
@@ -612,12 +619,10 @@ function transformarInterno(
             "Cabeçalho interno não encontrado."
         );
 
-
         console.log(
             "Linhas recebidas:",
             linhas
         );
-
 
         return [];
 
@@ -638,7 +643,6 @@ function transformarInterno(
                 normalizarTexto(
                     nome
                 );
-
 
             if (
                 nomeNormalizado
@@ -661,7 +665,7 @@ function transformarInterno(
 
 
     // ======================================
-    // FUNÇÃO PARA LOCALIZAR COLUNA
+    // LOCALIZAR COLUNA
     // ======================================
 
     function encontrarColuna(
@@ -677,7 +681,6 @@ function transformarInterno(
                     nome
                 );
 
-
             if (
                 coluna[
                     chave
@@ -692,14 +695,13 @@ function transformarInterno(
 
         }
 
-
         return -1;
 
     }
 
 
     // ======================================
-    // LOCALIZAR COLUNAS
+    // COLUNAS
     // ======================================
 
     const colunaValor =
@@ -759,7 +761,11 @@ function transformarInterno(
 
 
     console.log(
-        "Mapeamento das colunas:"
+        "================================="
+    );
+
+    console.log(
+        "MAPEAMENTO DAS COLUNAS"
     );
 
     console.log(
@@ -783,8 +789,27 @@ function transformarInterno(
     );
 
     console.log(
+        "Filial:",
+        colunaFilial
+    );
+
+    console.log(
+        "Funcionário:",
+        colunaFuncionario
+    );
+
+    console.log(
+        "Tipo:",
+        colunaTipo
+    );
+
+    console.log(
         "Autorização:",
         colunaAutorizacao
+    );
+
+    console.log(
+        "================================="
     );
 
 
@@ -812,7 +837,7 @@ function transformarInterno(
 
 
         // ----------------------------------
-        // PEGAR DATA
+        // DATA
         // ----------------------------------
 
         const valorData =
@@ -822,7 +847,7 @@ function transformarInterno(
 
 
         // ----------------------------------
-        // PEGAR HORA
+        // HORA
         // ----------------------------------
 
         const valorHora =
@@ -832,7 +857,7 @@ function transformarInterno(
 
 
         // ----------------------------------
-        // NORMALIZAR DATA
+        // NORMALIZAR
         // ----------------------------------
 
         const data =
@@ -841,13 +866,21 @@ function transformarInterno(
             );
 
 
-        // ----------------------------------
-        // NORMALIZAR HORA
-        // ----------------------------------
-
         const hora =
             extrairHora(
                 valorHora
+            );
+
+
+        // ----------------------------------
+        // VALOR
+        // ----------------------------------
+
+        const valor =
+            converterValor(
+                colunaValor >= 0
+                    ? linha[colunaValor]
+                    : null
             );
 
 
@@ -860,32 +893,20 @@ function transformarInterno(
             origem:
                 "INTERNO",
 
-
             valor:
-                converterValor(
-                    colunaValor >= 0
-                        ? linha[colunaValor]
-                        : null
-                ),
-
+                valor,
 
             data:
                 data,
 
-
             hora:
                 hora,
-
-
-            // Guarda também a combinação
-            // original para diagnóstico
 
             dataHora:
                 combinarDataHora(
                     data,
                     hora
                 ),
-
 
             cliente:
                 limparTexto(
@@ -894,14 +915,12 @@ function transformarInterno(
                         : ""
                 ),
 
-
             filial:
                 limparTexto(
                     colunaFilial >= 0
                         ? linha[colunaFilial]
                         : ""
                 ),
-
 
             operador:
                 limparTexto(
@@ -910,14 +929,12 @@ function transformarInterno(
                         : ""
                 ),
 
-
             tipo:
                 limparTexto(
                     colunaTipo >= 0
                         ? linha[colunaTipo]
                         : ""
                 ),
-
 
             autorizacao:
                 normalizarAutorizacao(
@@ -930,21 +947,18 @@ function transformarInterno(
 
 
         // ----------------------------------
-        // IGNORAR LINHAS INVÁLIDAS
+        // IGNORAR LINHAS SEM VALOR
+        // ----------------------------------
+        //
+        // NÃO exigimos autorização.
+        //
         // ----------------------------------
 
         if (
-            registro.autorizacao &&
             registro.valor !== null
         ) {
 
             registros.push(
-                registro
-            );
-
-
-            console.log(
-                "INTERNO CORRETO:",
                 registro
             );
 
@@ -1069,7 +1083,7 @@ function converterValor(
 
 
     // --------------------------------------
-    // BRASILEIRO
+    // FORMATO BRASILEIRO
     // 1.234,56
     // --------------------------------------
 
@@ -1084,6 +1098,11 @@ function converterValor(
 
     }
 
+
+    // --------------------------------------
+    // FORMATO DECIMAL
+    // 1234.56
+    // --------------------------------------
 
     const numero =
         Number(
@@ -1108,7 +1127,7 @@ function converterValor(
 
 
 // ==========================================
-// TEXTO
+// LIMPAR TEXTO
 // ==========================================
 
 function limparTexto(
@@ -1234,36 +1253,48 @@ function extrairData(
         typeof valor === "number"
     ) {
 
-        const data =
-            XLSX.SSF.parse_date_code(
+        try {
+
+            const data =
+                XLSX.SSF.parse_date_code(
+                    valor
+                );
+
+
+            if (
+                data &&
+                data.y
+            ) {
+
+                const dia =
+                    String(
+                        data.d
+                    ).padStart(
+                        2,
+                        "0"
+                    );
+
+
+                const mes =
+                    String(
+                        data.m
+                    ).padStart(
+                        2,
+                        "0"
+                    );
+
+
+                return `${dia}/${mes}/${data.y}`;
+
+            }
+
+        }
+        catch (erro) {
+
+            console.warn(
+                "Erro ao converter data Excel:",
                 valor
             );
-
-
-        if (
-            data &&
-            data.y
-        ) {
-
-            const dia =
-                String(
-                    data.d
-                ).padStart(
-                    2,
-                    "0"
-                );
-
-
-            const mes =
-                String(
-                    data.m
-                ).padStart(
-                    2,
-                    "0"
-                );
-
-
-            return `${dia}/${mes}/${data.y}`;
 
         }
 
@@ -1442,8 +1473,7 @@ function extrairHora(
     // --------------------------------------
     // NÚMERO DO EXCEL
     //
-    // Exemplo:
-    // 0.5 = 12:00
+    // 0.5 = 12:00:00
     // --------------------------------------
 
     if (
@@ -1454,7 +1484,10 @@ function extrairHora(
 
         const totalSegundos =
             Math.round(
-                valor * 24 * 60 * 60
+                valor *
+                24 *
+                60 *
+                60
             );
 
 
@@ -1479,17 +1512,26 @@ function extrairHora(
         return (
             String(
                 horas
-            ).padStart(2, "0")
+            ).padStart(
+                2,
+                "0"
+            )
             +
             ":" +
             String(
                 minutos
-            ).padStart(2, "0")
+            ).padStart(
+                2,
+                "0"
+            )
             +
             ":" +
             String(
                 segundos
-            ).padStart(2, "0")
+            ).padStart(
+                2,
+                "0"
+            )
         );
 
     }
@@ -1501,6 +1543,7 @@ function extrairHora(
 
 
     // --------------------------------------
+    // HH:MM
     // HH:MM:SS
     // --------------------------------------
 
@@ -1662,64 +1705,25 @@ function atualizarTela() {
 
 
 // ==========================================
-// DISPONIBILIZAR GLOBALMENTE
-// ==========================================
-
-window.dadosPremmia =
-    dadosPremmia;
-
-
-window.dadosInterno =
-    dadosInterno;
-
-
-window.lerPremmia =
-    lerPremmia;
-
-
-window.lerInterno =
-    lerInterno;
-
-
-window.transformarPremmia =
-    transformarPremmia;
-
-
-window.transformarInterno =
-    transformarInterno;
-
-
-console.log(
-    "================================="
-);
-
-console.log(
-    "leituraExcel.js iniciado"
-);
-
-console.log(
-    "Leitura por DATA + HORA preparada."
-);
-
-console.log(
-    "================================="
-);
-// ==========================================
 // TOTAL DO PORTAL PREMMIA
 // ==========================================
 
 function calcularTotalPremmia() {
 
-    return dadosPremmia.reduce(
-        (total, registro) => {
+    return Number(
+        dadosPremmia
+            .reduce(
+                (total, registro) => {
 
-            return total +
-                Number(
-                    registro.valor || 0
-                );
+                    return total +
+                        Number(
+                            registro.valor || 0
+                        );
 
-        },
-        0
+                },
+                0
+            )
+            .toFixed(2)
     );
 
 }
@@ -1731,16 +1735,20 @@ function calcularTotalPremmia() {
 
 function calcularTotalInterno() {
 
-    return dadosInterno.reduce(
-        (total, registro) => {
+    return Number(
+        dadosInterno
+            .reduce(
+                (total, registro) => {
 
-            return total +
-                Number(
-                    registro.valor || 0
-                );
+                    return total +
+                        Number(
+                            registro.valor || 0
+                        );
 
-        },
-        0
+                },
+                0
+            )
+            .toFixed(2)
     );
 
 }
@@ -1768,6 +1776,10 @@ function atualizarTotaisPlanilhas() {
             ).toFixed(2)
         );
 
+
+    // --------------------------------------
+    // CONSOLE
+    // --------------------------------------
 
     console.log(
         "================================="
@@ -1798,7 +1810,7 @@ function atualizarTotaisPlanilhas() {
 
 
     // --------------------------------------
-    // DISPONIBILIZAR GLOBALMENTE
+    // GLOBAIS
     // --------------------------------------
 
     window.totalPremmia =
@@ -1814,7 +1826,7 @@ function atualizarTotaisPlanilhas() {
 
 
     // --------------------------------------
-    // ATUALIZAR TELA
+    // ELEMENTOS HTML
     // --------------------------------------
 
     const elementoPremmia =
@@ -1835,6 +1847,10 @@ function atualizarTotaisPlanilhas() {
         );
 
 
+    // --------------------------------------
+    // PORTAL
+    // --------------------------------------
+
     if (elementoPremmia) {
 
         elementoPremmia.textContent =
@@ -1845,6 +1861,10 @@ function atualizarTotaisPlanilhas() {
     }
 
 
+    // --------------------------------------
+    // INTERNO
+    // --------------------------------------
+
     if (elementoInterno) {
 
         elementoInterno.textContent =
@@ -1854,6 +1874,10 @@ function atualizarTotaisPlanilhas() {
 
     }
 
+
+    // --------------------------------------
+    // DIFERENÇA
+    // --------------------------------------
 
     if (elementoDiferenca) {
 
@@ -1889,16 +1913,57 @@ function formatarMoedaLeitura(
 
 
 // ==========================================
-// DISPONIBILIZAR
+// DISPONIBILIZAR GLOBALMENTE
 // ==========================================
+
+window.dadosPremmia =
+    dadosPremmia;
+
+window.dadosInterno =
+    dadosInterno;
+
+window.lerPremmia =
+    lerPremmia;
+
+window.lerInterno =
+    lerInterno;
+
+window.transformarPremmia =
+    transformarPremmia;
+
+window.transformarInterno =
+    transformarInterno;
 
 window.calcularTotalPremmia =
     calcularTotalPremmia;
 
-
 window.calcularTotalInterno =
     calcularTotalInterno;
 
-
 window.atualizarTotaisPlanilhas =
     atualizarTotaisPlanilhas;
+
+
+// ==========================================
+// INÍCIO
+// ==========================================
+
+console.log(
+    "================================="
+);
+
+console.log(
+    "leituraExcel.js iniciado"
+);
+
+console.log(
+    "Leitura por VALOR + DATA + HORA preparada."
+);
+
+console.log(
+    "Tolerância de horário: 10 minutos."
+);
+
+console.log(
+    "================================="
+);
