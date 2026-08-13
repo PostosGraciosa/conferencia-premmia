@@ -22,13 +22,12 @@
 
 <body>
 
-
 <div class="container">
 
 
-    <!-- =====================================================
+    <!-- ======================================
          CABEÇALHO
-    ====================================================== -->
+    ======================================= -->
 
     <header class="header">
 
@@ -48,9 +47,9 @@
 
 
 
-    <!-- =====================================================
-         IMPORTAÇÃO DAS PLANILHAS
-    ====================================================== -->
+    <!-- ======================================
+         IMPORTAÇÃO
+    ======================================= -->
 
     <section class="card">
 
@@ -68,9 +67,9 @@
 
 
 
-        <!-- =================================================
+        <!-- ==================================
              PORTAL PREMMIA
-        ================================================== -->
+        =================================== -->
 
         <div class="arquivo">
 
@@ -98,9 +97,9 @@
 
 
 
-        <!-- =================================================
+        <!-- ==================================
              SISTEMA INTERNO
-        ================================================== -->
+        =================================== -->
 
         <div class="arquivo">
 
@@ -128,24 +127,32 @@
 
 
 
-        <!-- =================================================
+        <!-- ==================================
              CONTADOR
-        ================================================== -->
+        =================================== -->
 
         <div
             id="contadorDados"
             class="contador-dados"
         >
 
-            Aguardando planilhas...
+            Premmia:
+            <strong>0</strong>
+            registros
+
+            |
+
+            Interno:
+            <strong>0</strong>
+            registros
 
         </div>
 
 
 
-        <!-- =================================================
-             STATUS DO SISTEMA
-        ================================================== -->
+        <!-- ==================================
+             STATUS
+        =================================== -->
 
         <div
             id="statusSistema"
@@ -158,9 +165,9 @@
 
 
 
-        <!-- =================================================
+        <!-- ==================================
              BOTÃO CONFERIR
-        ================================================== -->
+        =================================== -->
 
         <button
             type="button"
@@ -172,19 +179,19 @@
 
         </button>
 
-
     </section>
 
 
 
-    <!-- =====================================================
+
+    <!-- ======================================
          RESULTADO
-    ====================================================== -->
+    ======================================= -->
 
     <section
         class="card resultado"
         id="resultado"
-        style="display: none;"
+        style="display:none;"
     >
 
 
@@ -196,86 +203,162 @@
 
 
 
-        <!-- =================================================
-             EXPLICAÇÃO DA REGRA
-        ================================================== -->
-
-        <div class="regra-conferencia">
-
-            <strong>
-                Como a conferência é realizada:
-            </strong>
-
-            <p>
-
-                O sistema procura a venda do Premmia
-                no sistema interno utilizando principalmente
-                <strong>valor, data e horário aproximado</strong>.
-
-                A autorização é apresentada apenas para
-                comparação e consulta.
-
-            </p>
-
-            <p>
-
-                A tolerância de horário será definida no
-                sistema de conferência.
-
-            </p>
-
-        </div>
-
-
-
-        <!-- =================================================
+        <!-- ==================================
              RESUMO
-        ================================================== -->
+        =================================== -->
 
         <div class="resumo-grid">
 
 
-            <!-- CONFERIDAS -->
+
+            <!-- =================================
+                 TOTAL PORTAL
+            ================================== -->
+
+            <div class="resumo-item">
+
+                <span>
+                    💰 Total Portal Premmia
+                </span>
+
+
+                <strong id="totalPortalPremmia">
+
+                    R$ 0,00
+
+                </strong>
+
+
+                <small>
+
+                    Valor total importado
+
+                </small>
+
+            </div>
+
+
+
+
+            <!-- =================================
+                 TOTAL SISTEMA
+            ================================== -->
+
+            <div class="resumo-item">
+
+                <span>
+                    💰 Total Sistema Interno
+                </span>
+
+
+                <strong id="totalSistemaInterno">
+
+                    R$ 0,00
+
+                </strong>
+
+
+                <small>
+
+                    Valor total importado
+
+                </small>
+
+            </div>
+
+
+
+
+            <!-- =================================
+                 DIFERENÇA TOTAL
+            ================================== -->
+
+            <div class="resumo-item">
+
+                <span>
+                    📊 Diferença Total
+                </span>
+
+
+                <strong id="diferencaTotais">
+
+                    R$ 0,00
+
+                </strong>
+
+
+                <small>
+
+                    Sistema − Portal
+
+                </small>
+
+            </div>
+
+
+
+
+            <!-- =================================
+                 CORRETAS
+            ================================== -->
 
             <div class="resumo-item correto">
 
                 <span>
-                    Conferidas
+                    Corretas
                 </span>
+
 
                 <strong id="totalCorretas">
+
                     0
+
                 </strong>
+
 
                 <small id="valorCorretas">
+
                     R$ 0,00
+
                 </small>
 
             </div>
 
 
 
-            <!-- CONFERIDAS POR DATA/HORA -->
 
-            <div class="resumo-item correspondencia">
+            <!-- =================================
+                 CORRESPONDÊNCIA DATA/HORA
+            ================================== -->
+
+            <div class="resumo-item">
 
                 <span>
-                    Conferidas por data/hora
+                    Data/Hora
                 </span>
 
+
                 <strong id="totalCorrespondencias">
+
                     0
+
                 </strong>
 
+
                 <small id="valorCorrespondencias">
+
                     R$ 0,00
+
                 </small>
 
             </div>
 
 
 
-            <!-- NÃO LANÇADAS -->
+
+            <!-- =================================
+                 NÃO LANÇADAS
+            ================================== -->
 
             <div class="resumo-item nao-lancada">
 
@@ -283,19 +366,28 @@
                     Não lançadas
                 </span>
 
+
                 <strong id="totalNaoLancadas">
+
                     0
+
                 </strong>
 
+
                 <small id="valorNaoLancadas">
+
                     R$ 0,00
+
                 </small>
 
             </div>
 
 
 
-            <!-- LANÇADAS A MAIS -->
+
+            <!-- =================================
+                 LANÇADAS A MAIS
+            ================================== -->
 
             <div class="resumo-item lancada-mais">
 
@@ -303,19 +395,28 @@
                     Lançadas a mais
                 </span>
 
+
                 <strong id="totalLancadasMais">
+
                     0
+
                 </strong>
 
+
                 <small id="valorLancadasMais">
+
                     R$ 0,00
+
                 </small>
 
             </div>
 
 
 
-            <!-- VALOR DIVERGENTE -->
+
+            <!-- =================================
+                 VALOR DIVERGENTE
+            ================================== -->
 
             <div class="resumo-item valor-errado">
 
@@ -323,12 +424,47 @@
                     Valor divergente
                 </span>
 
+
                 <strong id="totalValorErrado">
+
                     0
+
                 </strong>
 
+
                 <small id="valorValorErrado">
+
                     R$ 0,00
+
+                </small>
+
+            </div>
+
+
+
+
+            <!-- =================================
+                 AUTORIZAÇÃO
+            ================================== -->
+
+            <div class="resumo-item autorizacao">
+
+                <span>
+                    Autorização divergente
+                </span>
+
+
+                <strong id="totalAutorizacao">
+
+                    0
+
+                </strong>
+
+
+                <small id="valorAutorizacao">
+
+                    R$ 0,00
+
                 </small>
 
             </div>
@@ -336,32 +472,30 @@
 
         </div>
 
-
     </section>
 
 
 
-    <!-- =====================================================
+
+    <!-- ======================================
          TABELA
-    ====================================================== -->
+    ======================================= -->
 
     <section
         class="card tabela-card"
         id="tabelaResultado"
-        style="display: none;"
+        style="display:none;"
     >
 
 
-        <!-- =================================================
+        <!-- ==================================
              TOPO DA TABELA
-        ================================================== -->
+        =================================== -->
 
         <div class="tabela-topo">
 
             <h2>
-
                 📋 Detalhamento
-
             </h2>
 
 
@@ -378,14 +512,13 @@
 
 
 
-        <!-- =================================================
+
+        <!-- ==================================
              FILTROS
-        ================================================== -->
+        =================================== -->
 
         <div class="filtros">
 
-
-            <!-- TODOS -->
 
             <button
                 type="button"
@@ -399,21 +532,17 @@
 
 
 
-            <!-- CONFERIDAS -->
-
             <button
                 type="button"
                 class="filtro"
                 data-filtro="CORRETA"
             >
 
-                🟢 Conferidas
+                Corretas
 
             </button>
 
 
-
-            <!-- CONFERIDAS POR DATA/HORA -->
 
             <button
                 type="button"
@@ -421,13 +550,11 @@
                 data-filtro="CORRESPONDENCIA_DATA_HORA"
             >
 
-                🔵 Data/hora
+                Data/Hora
 
             </button>
 
 
-
-            <!-- NÃO LANÇADAS -->
 
             <button
                 type="button"
@@ -435,13 +562,11 @@
                 data-filtro="NAO_LANCADA"
             >
 
-                🔴 Não lançadas
+                Não lançadas
 
             </button>
 
 
-
-            <!-- LANÇADAS A MAIS -->
 
             <button
                 type="button"
@@ -449,13 +574,11 @@
                 data-filtro="LANCADA_A_MAIS"
             >
 
-                🟡 Lançadas a mais
+                Lançadas a mais
 
             </button>
 
 
-
-            <!-- VALOR DIVERGENTE -->
 
             <button
                 type="button"
@@ -463,7 +586,19 @@
                 data-filtro="VALOR_DIVERGENTE"
             >
 
-                🟠 Valor divergente
+                Valor divergente
+
+            </button>
+
+
+
+            <button
+                type="button"
+                class="filtro"
+                data-filtro="AUTORIZACAO_DIVERGENTE"
+            >
+
+                Autorização divergente
 
             </button>
 
@@ -472,12 +607,12 @@
 
 
 
-        <!-- =================================================
+
+        <!-- ==================================
              TABELA
-        ================================================== -->
+        =================================== -->
 
         <div class="tabela-container">
-
 
             <table id="tabela">
 
@@ -512,7 +647,7 @@
 
 
                         <th>
-                            Diferença de horário
+                            Dif. Horário
                         </th>
 
 
@@ -550,7 +685,6 @@
                             Operador
                         </th>
 
-
                     </tr>
 
                 </thead>
@@ -564,17 +698,16 @@
 
             </table>
 
-
         </div>
-
 
     </section>
 
 
 
-    <!-- =====================================================
+
+    <!-- ======================================
          RODAPÉ
-    ====================================================== -->
+    ======================================= -->
 
     <footer>
 
@@ -587,9 +720,10 @@
 
 
 
-<!-- =========================================================
+
+<!-- ==========================================
      BIBLIOTECA XLSX
-========================================================== -->
+=========================================== -->
 
 <script
     src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"
@@ -597,9 +731,9 @@
 
 
 
-<!-- =========================================================
+<!-- ==========================================
      JAVASCRIPT
-========================================================== -->
+=========================================== -->
 
 <script
     src="js/leituraExcel.js"
