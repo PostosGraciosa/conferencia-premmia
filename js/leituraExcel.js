@@ -1704,3 +1704,201 @@ console.log(
 console.log(
     "================================="
 );
+// ==========================================
+// TOTAL DO PORTAL PREMMIA
+// ==========================================
+
+function calcularTotalPremmia() {
+
+    return dadosPremmia.reduce(
+        (total, registro) => {
+
+            return total +
+                Number(
+                    registro.valor || 0
+                );
+
+        },
+        0
+    );
+
+}
+
+
+// ==========================================
+// TOTAL DO SISTEMA INTERNO
+// ==========================================
+
+function calcularTotalInterno() {
+
+    return dadosInterno.reduce(
+        (total, registro) => {
+
+            return total +
+                Number(
+                    registro.valor || 0
+                );
+
+        },
+        0
+    );
+
+}
+
+
+// ==========================================
+// ATUALIZAR TOTAIS
+// ==========================================
+
+function atualizarTotaisPlanilhas() {
+
+    const totalPremmia =
+        calcularTotalPremmia();
+
+
+    const totalInterno =
+        calcularTotalInterno();
+
+
+    const diferenca =
+        Number(
+            (
+                totalInterno -
+                totalPremmia
+            ).toFixed(2)
+        );
+
+
+    console.log(
+        "================================="
+    );
+
+    console.log(
+        "TOTAIS DAS PLANILHAS"
+    );
+
+    console.log(
+        "Portal Premmia:",
+        totalPremmia
+    );
+
+    console.log(
+        "Sistema Interno:",
+        totalInterno
+    );
+
+    console.log(
+        "Diferença:",
+        diferenca
+    );
+
+    console.log(
+        "================================="
+    );
+
+
+    // --------------------------------------
+    // DISPONIBILIZAR GLOBALMENTE
+    // --------------------------------------
+
+    window.totalPremmia =
+        totalPremmia;
+
+
+    window.totalInterno =
+        totalInterno;
+
+
+    window.diferencaTotais =
+        diferenca;
+
+
+    // --------------------------------------
+    // ATUALIZAR TELA
+    // --------------------------------------
+
+    const elementoPremmia =
+        document.getElementById(
+            "totalPortalPremmia"
+        );
+
+
+    const elementoInterno =
+        document.getElementById(
+            "totalSistemaInterno"
+        );
+
+
+    const elementoDiferenca =
+        document.getElementById(
+            "diferencaTotais"
+        );
+
+
+    if (elementoPremmia) {
+
+        elementoPremmia.textContent =
+            formatarMoedaLeitura(
+                totalPremmia
+            );
+
+    }
+
+
+    if (elementoInterno) {
+
+        elementoInterno.textContent =
+            formatarMoedaLeitura(
+                totalInterno
+            );
+
+    }
+
+
+    if (elementoDiferenca) {
+
+        elementoDiferenca.textContent =
+            formatarMoedaLeitura(
+                diferenca
+            );
+
+    }
+
+}
+
+
+// ==========================================
+// FORMATAR MOEDA
+// ==========================================
+
+function formatarMoedaLeitura(
+    valor
+) {
+
+    return Number(
+        valor || 0
+    ).toLocaleString(
+        "pt-BR",
+        {
+            style: "currency",
+            currency: "BRL"
+        }
+    );
+
+}
+
+
+// ==========================================
+// DISPONIBILIZAR
+// ==========================================
+
+window.calcularTotalPremmia =
+    calcularTotalPremmia;
+
+
+window.calcularTotalInterno =
+    calcularTotalInterno;
+
+
+window.atualizarTotaisPlanilhas =
+    atualizarTotaisPlanilhas;
