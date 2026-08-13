@@ -26,6 +26,18 @@
 //
 // A tolerância de horário é controlada
 // pelo conferencia.js.
+//
+// IMPORTANTE:
+//
+// No Sistema Interno, somente entram registros
+// que possuam:
+//
+// VALOR + DATA + HORA
+//
+// Registros sem data e/ou sem hora são ignorados.
+// Isso evita que totais/resumos da planilha
+// sejam contaminados por linhas administrativas,
+// totais ou lançamentos sem data/hora.
 // ==========================================
 
 
@@ -323,7 +335,6 @@ function verificarArquivos() {
 
     atualizarContador();
 
-    // IMPORTANTE:
     // Atualiza os totais sempre que qualquer
     // planilha for carregada.
 
@@ -438,12 +449,11 @@ function transformarPremmia(linhas) {
             };
 
             // ----------------------------------
-            // IMPORTANTE
+            // PREMMIA
             //
-            // AUTORIZAÇÃO NÃO É OBRIGATÓRIA.
+            // O registro precisa possuir valor.
             //
-            // A conferência usa:
-            // VALOR + DATA + HORA
+            // A autorização NÃO é obrigatória.
             // ----------------------------------
 
             if (
@@ -722,14 +732,35 @@ function transformarInterno(linhas) {
                 : "";
 
 
+        // ----------------------------------
+        // NORMALIZAR DATA
+        // ----------------------------------
+
         const data =
             extrairData(
                 valorData
             );
 
+
+        // ----------------------------------
+        // NORMALIZAR HORA
+        // ----------------------------------
+
         const hora =
             extrairHora(
                 valorHora
+            );
+
+
+        // ----------------------------------
+        // CONVERTER VALOR
+        // ----------------------------------
+
+        const valor =
+            converterValor(
+                colunaValor >= 0
+                    ? linha[colunaValor]
+                    : null
             );
 
 
@@ -743,11 +774,7 @@ function transformarInterno(linhas) {
                 "INTERNO",
 
             valor:
-                converterValor(
-                    colunaValor >= 0
-                        ? linha[colunaValor]
-                        : null
-                ),
+                valor,
 
             data:
                 data,
@@ -799,16 +826,28 @@ function transformarInterno(linhas) {
         };
 
 
-        // ----------------------------------
-        // IMPORTANTE
+        // ==================================
+        // VALIDAR REGISTRO INTERNO
+        // ==================================
         //
-        // NÃO exigimos autorização.
+        // O lançamento somente entra na
+        // conferência se possuir:
         //
-        // O lançamento entra se possuir valor.
-        // ----------------------------------
+        // 1. VALOR
+        // 2. DATA
+        // 3. HORA
+        //
+        // A autorização NÃO é obrigatória.
+        //
+        // Isso impede que linhas administrativas,
+        // totais ou valores sem data/hora sejam
+        // consideradas como vendas.
+        // ==================================
 
         if (
-            registro.valor !== null
+            registro.valor !== null &&
+            registro.data !== "" &&
+            registro.hora !== ""
         ) {
 
             registros.push(
@@ -816,9 +855,27 @@ function transformarInterno(linhas) {
             );
 
             console.log(
-                "INTERNO:",
+                "INTERNO ACEITO:",
                 registro
             );
+
+        }
+        else {
+
+            // ----------------------------------
+            // LINHA IGNORADA
+            // ----------------------------------
+
+            if (
+                registro.valor !== null
+            ) {
+
+                console.log(
+                    "INTERNO IGNORADO — SEM DATA/HORA:",
+                    registro
+                );
+
+            }
 
         }
 
@@ -836,12 +893,22 @@ function transformarInterno(linhas) {
 
 function combinarDataHora(data, hora) {
 
-    if (!data && !hora) {
+    if (
+        !data &&
+        !hora
+    ) {
+
         return "";
+
     }
 
-    if (data && hora) {
+    if (
+        data &&
+        hora
+    ) {
+
         return `${data} ${hora}`;
+
     }
 
     return data || hora || "";
@@ -922,6 +989,7 @@ function converterValor(valor) {
 
     // --------------------------------------
     // BRASILEIRO
+    //
     // 1.234,56
     // --------------------------------------
 
@@ -1109,8 +1177,12 @@ function extrairData(valor) {
         let ano =
             Number(match[3]);
 
-        if (ano < 100) {
+        if (
+            ano < 100
+        ) {
+
             ano += 2000;
+
         }
 
         return (
@@ -1138,7 +1210,9 @@ function extrairData(valor) {
         new Date(texto);
 
     if (
-        !isNaN(data.getTime())
+        !isNaN(
+            data.getTime()
+        )
     ) {
 
         const dia =
@@ -1190,7 +1264,9 @@ function extrairHora(valor) {
     ) {
 
         if (
-            isNaN(valor.getTime())
+            isNaN(
+                valor.getTime()
+            )
         ) {
 
             return "";
@@ -1291,7 +1367,9 @@ function extrairHora(valor) {
 
         const segundo =
             String(
-                Number(match[3] || 0)
+                Number(
+                    match[3] || 0
+                )
             ).padStart(2, "0");
 
         return `${hora}:${minuto}:${segundo}`;
@@ -1352,7 +1430,10 @@ function atualizarStatus(texto) {
         );
 
     if (status) {
-        status.textContent = texto;
+
+        status.textContent =
+            texto;
+
     }
 
 }
@@ -1376,7 +1457,10 @@ function atualizarTela() {
         );
 
         if (btnConferir) {
-            btnConferir.disabled = false;
+
+            btnConferir.disabled =
+                false;
+
         }
 
     }
@@ -1387,7 +1471,10 @@ function atualizarTela() {
         );
 
         if (btnConferir) {
-            btnConferir.disabled = true;
+
+            btnConferir.disabled =
+                true;
+
         }
 
     }
@@ -1402,7 +1489,9 @@ function atualizarTela() {
 function calcularTotalPremmia() {
 
     return Number(
+
         dadosPremmia.reduce(
+
             (total, registro) => {
 
                 return total +
@@ -1411,8 +1500,11 @@ function calcularTotalPremmia() {
                     );
 
             },
+
             0
+
         ).toFixed(2)
+
     );
 
 }
@@ -1425,7 +1517,9 @@ function calcularTotalPremmia() {
 function calcularTotalInterno() {
 
     return Number(
+
         dadosInterno.reduce(
+
             (total, registro) => {
 
                 return total +
@@ -1434,8 +1528,11 @@ function calcularTotalInterno() {
                     );
 
             },
+
             0
+
         ).toFixed(2)
+
     );
 
 }
@@ -1455,10 +1552,12 @@ function atualizarTotaisPlanilhas() {
 
     const diferenca =
         Number(
+
             (
                 totalInterno -
                 totalPremmia
             ).toFixed(2)
+
         );
 
 
@@ -1625,6 +1724,10 @@ window.atualizarTotaisPlanilhas =
     atualizarTotaisPlanilhas;
 
 
+// ==========================================
+// LOG INICIAL
+// ==========================================
+
 console.log(
     "================================="
 );
@@ -1635,6 +1738,10 @@ console.log(
 
 console.log(
     "Conferência por VALOR + DATA + HORA"
+);
+
+console.log(
+    "Registros internos sem DATA/HORA são ignorados"
 );
 
 console.log(
