@@ -1,8 +1,18 @@
-```javascript
 // ==========================================
 // CONFERÊNCIA PREMMIA
 // app.js
-// Controle geral da aplicação
+//
+// CONTROLE GERAL DA APLICAÇÃO
+//
+// Responsabilidades:
+// - Inicializar sistema
+// - Atualizar status
+// - Atualizar contador
+// - Limpar sistema
+// - Controlar botão Conferir
+//
+// A CONFERÊNCIA DOS DADOS É FEITA PELO
+// conferencia.js
 // ==========================================
 
 
@@ -15,8 +25,17 @@ document.addEventListener(
     function () {
 
         console.log(
+            "================================="
+        );
+
+        console.log(
             "Sistema Conferência Premmia iniciado."
         );
+
+        console.log(
+            "================================="
+        );
+
 
         inicializarSistema();
 
@@ -34,9 +53,15 @@ function inicializarSistema() {
         "Aguardando carregamento das planilhas."
     );
 
+
+    atualizarContadorArquivos();
+
+
     configurarBotaoLimpar();
 
-    configurarFiltros();
+
+    configurarBotaoConferir();
+
 
     esconderResultado();
 
@@ -47,12 +72,15 @@ function inicializarSistema() {
 // STATUS DO SISTEMA
 // ==========================================
 
-function atualizarStatusSistema(mensagem) {
+function atualizarStatusSistema(
+    mensagem
+) {
 
     const status =
         document.getElementById(
             "statusSistema"
         );
+
 
     if (status) {
 
@@ -61,9 +89,122 @@ function atualizarStatusSistema(mensagem) {
 
     }
 
+
     console.log(
         mensagem
     );
+
+}
+
+
+// ==========================================
+// BOTÃO CONFERIR
+// ==========================================
+
+function configurarBotaoConferir() {
+
+    const btnConferir =
+        document.getElementById(
+            "btnConferir"
+        );
+
+
+    if (!btnConferir) {
+
+        console.warn(
+            "Botão #btnConferir não encontrado."
+        );
+
+        return;
+
+    }
+
+
+    // O conferencia.js também possui
+    // o controle do botão.
+    //
+    // Portanto não adicionamos outro
+    // evento aqui para evitar execução
+    // duplicada.
+
+}
+
+
+// ==========================================
+// ATUALIZAR BOTÃO CONFERIR
+// ==========================================
+
+function atualizarBotaoConferir() {
+
+    const btnConferir =
+        document.getElementById(
+            "btnConferir"
+        );
+
+
+    if (!btnConferir) {
+
+        return;
+
+    }
+
+
+    const temPremmia =
+        Array.isArray(
+            window.dadosPremmia
+        ) &&
+        window.dadosPremmia.length > 0;
+
+
+    const temInterno =
+        Array.isArray(
+            window.dadosInterno
+        ) &&
+        window.dadosInterno.length > 0;
+
+
+    btnConferir.disabled =
+        !(
+            temPremmia &&
+            temInterno
+        );
+
+
+    if (
+        temPremmia &&
+        temInterno
+    ) {
+
+        atualizarStatusSistema(
+            "As duas planilhas foram carregadas. Pronto para conferir."
+        );
+
+    }
+    else if (
+        temPremmia
+    ) {
+
+        atualizarStatusSistema(
+            "Planilha Premmia carregada. Aguardando planilha do sistema interno."
+        );
+
+    }
+    else if (
+        temInterno
+    ) {
+
+        atualizarStatusSistema(
+            "Planilha interna carregada. Aguardando planilha Premmia."
+        );
+
+    }
+    else {
+
+        atualizarStatusSistema(
+            "Aguardando carregamento das planilhas."
+        );
+
+    }
 
 }
 
@@ -79,15 +220,19 @@ function configurarBotaoLimpar() {
             "btnLimpar"
         );
 
-    if (!btnLimpar) {
 
-        console.warn(
-            "Botão Limpar não encontrado."
-        );
+    // Atualmente o index.html não possui
+    // botão Limpar.
+    //
+    // Se futuramente adicionar o botão,
+    // esta função já estará preparada.
+
+    if (!btnLimpar) {
 
         return;
 
     }
+
 
     btnLimpar.addEventListener(
         "click",
@@ -108,6 +253,7 @@ function limparSistema() {
             "Deseja limpar a conferência atual?"
         );
 
+
     if (!confirmar) {
 
         return;
@@ -116,13 +262,14 @@ function limparSistema() {
 
 
     // ======================================
-    // LIMPA ARQUIVOS
+    // LIMPAR ARQUIVOS
     // ======================================
 
     const arquivoPremmia =
         document.getElementById(
             "arquivoPremmia"
         );
+
 
     const arquivoInterno =
         document.getElementById(
@@ -132,89 +279,78 @@ function limparSistema() {
 
     if (arquivoPremmia) {
 
-        arquivoPremmia.value = "";
+        arquivoPremmia.value =
+            "";
 
     }
 
 
     if (arquivoInterno) {
 
-        arquivoInterno.value = "";
+        arquivoInterno.value =
+            "";
 
     }
 
 
     // ======================================
-    // LIMPA NOMES
+    // LIMPAR NOMES
     // ======================================
 
-    const nomes = [
-
-        "nomePremmia",
-        "nomeInterno"
-
-    ];
+    const nomePremmia =
+        document.getElementById(
+            "nomePremmia"
+        );
 
 
-    nomes.forEach(
-        function (id) {
-
-            const elemento =
-                document.getElementById(id);
-
-            if (elemento) {
-
-                elemento.textContent =
-                    "Nenhum arquivo selecionado";
-
-            }
-
-        }
-    );
+    const nomeInterno =
+        document.getElementById(
+            "nomeInterno"
+        );
 
 
-    // ======================================
-    // LIMPA DADOS
-    // ======================================
+    if (nomePremmia) {
 
-    if (
-        Array.isArray(
-            window.dadosPremmia
-        )
-    ) {
-
-        window.dadosPremmia.length = 0;
+        nomePremmia.textContent =
+            "Nenhum arquivo selecionado";
 
     }
 
-    if (
-        Array.isArray(
-            window.dadosInterno
-        )
-    ) {
 
-        window.dadosInterno.length = 0;
+    if (nomeInterno) {
+
+        nomeInterno.textContent =
+            "Nenhum arquivo selecionado";
 
     }
 
 
     // ======================================
-    // LIMPA RESULTADOS
+    // LIMPAR DADOS PREMMIA
     // ======================================
 
-    if (
-        Array.isArray(
-            window.resultadosConferencia
-        )
-    ) {
-
-        window.resultadosConferencia.length = 0;
-
-    }
+    window.dadosPremmia =
+        [];
 
 
     // ======================================
-    // LIMPA TABELA
+    // LIMPAR DADOS INTERNO
+    // ======================================
+
+    window.dadosInterno =
+        [];
+
+
+    // ======================================
+    // LIMPAR RESULTADOS
+    // ======================================
+
+    window.resultadosConferencia =
+        [];
+
+
+    // ======================================
+    // LIMPAR TABELA
     // ======================================
 
     const corpoTabela =
@@ -222,22 +358,24 @@ function limparSistema() {
             "corpoTabela"
         );
 
+
     if (corpoTabela) {
 
-        corpoTabela.innerHTML = "";
+        corpoTabela.innerHTML =
+            "";
 
     }
 
 
     // ======================================
-    // ESCONDE RESULTADO
+    // ESCONDER RESULTADOS
     // ======================================
 
     esconderResultado();
 
 
     // ======================================
-    // DESABILITA CONFERIR
+    // RESETAR BOTÃO
     // ======================================
 
     const btnConferir =
@@ -245,22 +383,67 @@ function limparSistema() {
             "btnConferir"
         );
 
+
     if (btnConferir) {
 
-        btnConferir.disabled = true;
+        btnConferir.disabled =
+            true;
 
     }
 
 
     // ======================================
-    // CONTADOR
+    // RESETAR FILTROS
+    // ======================================
+
+    document
+        .querySelectorAll(
+            ".filtro"
+        )
+        .forEach(
+            function (botao) {
+
+                botao.classList.remove(
+                    "ativo"
+                );
+
+            }
+        );
+
+
+    const primeiroFiltro =
+        document.querySelector(
+            '.filtro[data-filtro="TODOS"]'
+        );
+
+
+    if (primeiroFiltro) {
+
+        primeiroFiltro.classList.add(
+            "ativo"
+        );
+
+    }
+
+
+    // ======================================
+    // ATUALIZAR CONTADOR
     // ======================================
 
     atualizarContadorArquivos();
 
 
+    // ======================================
+    // STATUS
+    // ======================================
+
     atualizarStatusSistema(
         "Sistema limpo. Aguardando novas planilhas."
+    );
+
+
+    console.log(
+        "Sistema limpo."
     );
 
 }
@@ -277,6 +460,13 @@ function esconderResultado() {
             "resultado"
         );
 
+
+    const tabela =
+        document.getElementById(
+            "tabelaResultado"
+        );
+
+
     if (resultado) {
 
         resultado.style.display =
@@ -285,629 +475,152 @@ function esconderResultado() {
     }
 
 
-    const tabela =
-        document.getElementById(
-            "tabelaResultado"
-        );
-
     if (tabela) {
 
         tabela.style.display =
             "none";
 
     }
+
+}
+
+
+// ==========================================
+// ATUALIZAR CONTADOR
+// ==========================================
+
+function atualizarContadorArquivos() {
+
+    const quantidadePremmia =
+        Array.isArray(
+            window.dadosPremmia
+        )
+            ? window.dadosPremmia.length
+            : 0;
+
+
+    const quantidadeInterno =
+        Array.isArray(
+            window.dadosInterno
+        )
+            ? window.dadosInterno.length
+            : 0;
+
+
+    // ======================================
+    // NOVOS CAMPOS DO INDEX
+    // ======================================
+
+    const contadorPremmia =
+        document.getElementById(
+            "contadorPremmia"
+        );
+
+
+    const contadorInterno =
+        document.getElementById(
+            "contadorInterno"
+        );
+
+
+    if (contadorPremmia) {
+
+        contadorPremmia.textContent =
+            quantidadePremmia;
+
+    }
+
+
+    if (contadorInterno) {
+
+        contadorInterno.textContent =
+            quantidadeInterno;
+
+    }
+
+
+    // ======================================
+    // COMPATIBILIDADE COM HTML ANTIGO
+    // ======================================
+
+    const contador =
+        document.getElementById(
+            "contadorDados"
+        );
+
+
+    if (
+        contador &&
+        !contadorPremmia &&
+        !contadorInterno
+    ) {
+
+        contador.innerHTML =
+            `
+                Premmia:
+                <strong>
+                    ${quantidadePremmia}
+                </strong>
+                registros
+
+                &nbsp; | &nbsp;
+
+                Interno:
+                <strong>
+                    ${quantidadeInterno}
+                </strong>
+                registros
+            `;
+
+    }
+
+
+    // ======================================
+    // ATUALIZA BOTÃO
+    // ======================================
+
+    atualizarBotaoConferir();
+
+
+    console.log(
+        "Contador atualizado:",
+        {
+            Premmia:
+                quantidadePremmia,
+
+            Interno:
+                quantidadeInterno
+        }
+    );
+
+}
+
+
+// ==========================================
+// FUNÇÃO AUXILIAR
+//
+// Pode ser chamada pelo leituraExcel.js
+// depois que uma planilha for carregada.
+// ==========================================
+
+function atualizarInterfaceArquivos() {
+
+    atualizarContadorArquivos();
 
 }
 
 
 // ==========================================
 // MOSTRAR RESULTADOS
+//
+// Esta função é apenas uma ponte.
+// A renderização real fica no
+// conferencia.js.
 // ==========================================
 
-function mostrarResultadosTela(lista) {
-
-    console.log(
-        "================================"
-    );
-
-    console.log(
-        "MOSTRANDO RESULTADOS NA TELA"
-    );
-
-    console.log(
-        "Quantidade:",
-        lista.length
-    );
-
-
-    // ======================================
-    // MOSTRA BLOCO DE RESULTADO
-    // ======================================
-
-    const resultado =
-        document.getElementById(
-            "resultado"
-        );
-
-    if (resultado) {
-
-        resultado.style.display =
-            "";
-
-    }
-
-
-    // ======================================
-    // MOSTRA TABELA
-    // ======================================
-
-    const tabela =
-        document.getElementById(
-            "tabelaResultado"
-        );
-
-    if (tabela) {
-
-        tabela.style.display =
-            "";
-
-    }
-
-
-    // ======================================
-    // ATUALIZA RESUMO
-    // ======================================
-
-    atualizarResumoTela(lista);
-
-
-    // ======================================
-    // DESENHA TABELA
-    // ======================================
-
-    renderizarTabela(lista);
-
-
-    atualizarStatusSistema(
-        "Conferência finalizada."
-    );
-
-}
-
-
-// ==========================================
-// RESUMO
-// ==========================================
-
-function atualizarResumoTela(lista) {
-
-    const resumo = {
-
-        CORRETA: 0,
-
-        NAO_LANCADA: 0,
-
-        LANCADA_A_MAIS: 0,
-
-        VALOR_DIVERGENTE: 0,
-
-        AUTORIZACAO_DIVERGENTE: 0
-
-    };
-
-
-    lista.forEach(
-        function (item) {
-
-            if (
-                resumo[item.status] !== undefined
-            ) {
-
-                resumo[item.status]++;
-
-            }
-
-        }
-    );
-
-
-    alterarTexto(
-        "totalCorretas",
-        resumo.CORRETA
-    );
-
-
-    alterarTexto(
-        "totalNaoLancadas",
-        resumo.NAO_LANCADA
-    );
-
-
-    alterarTexto(
-        "totalLancadasMais",
-        resumo.LANCADA_A_MAIS
-    );
-
-
-    alterarTexto(
-        "totalValorErrado",
-        resumo.VALOR_DIVERGENTE
-    );
-
-
-    alterarTexto(
-        "totalAutorizacao",
-        resumo.AUTORIZACAO_DIVERGENTE
-    );
-
-
-    console.log(
-        "RESUMO:",
-        resumo
-    );
-
-}
-
-
-// ==========================================
-// ALTERAR TEXTO
-// ==========================================
-
-function alterarTexto(id, valor) {
-
-    const elemento =
-        document.getElementById(id);
-
-    if (elemento) {
-
-        elemento.textContent =
-            valor;
-
-    }
-
-}
-
-
-// ==========================================
-// MOEDA
-// ==========================================
-
-function formatarMoeda(valor) {
-
-    if (
-        valor === null ||
-        valor === undefined ||
-        valor === ""
-    ) {
-
-        return "R$ 0,00";
-
-    }
-
-
-    const numero =
-        Number(valor);
-
-
-    if (
-        Number.isNaN(numero)
-    ) {
-
-        return "R$ 0,00";
-
-    }
-
-
-    return numero.toLocaleString(
-        "pt-BR",
-        {
-            style: "currency",
-            currency: "BRL"
-        }
-    );
-
-}
-
-
-// ==========================================
-// RENDERIZAR TABELA
-// ==========================================
-
-function renderizarTabela(lista) {
-
-    const corpoTabela =
-        document.getElementById(
-            "corpoTabela"
-        );
-
-
-    if (!corpoTabela) {
-
-        console.error(
-            "Elemento #corpoTabela não encontrado."
-        );
-
-        return;
-
-    }
-
-
-    corpoTabela.innerHTML = "";
-
-
-    lista.forEach(
-        function (item, index) {
-
-            const tr =
-                document.createElement(
-                    "tr"
-                );
-
-
-            // ==================================
-            // STATUS
-            // ==================================
-
-            const tdStatus =
-                document.createElement(
-                    "td"
-                );
-
-            tdStatus.textContent =
-                traduzirStatus(
-                    item.status
-                );
-
-
-            tdStatus.className =
-                "status-" +
-                String(
-                    item.status || ""
-                )
-                .toLowerCase();
-
-
-            // ==================================
-            // DATA
-            // ==================================
-
-            const tdData =
-                document.createElement(
-                    "td"
-                );
-
-            tdData.textContent =
-                item.data || "";
-
-
-            // ==================================
-            // HORA
-            // ==================================
-
-            const tdHora =
-                document.createElement(
-                    "td"
-                );
-
-            tdHora.textContent =
-                item.hora || "";
-
-
-            // ==================================
-            // CLIENTE
-            // ==================================
-
-            const tdCliente =
-                document.createElement(
-                    "td"
-                );
-
-            tdCliente.textContent =
-                item.cliente || "";
-
-
-            // ==================================
-            // AUTORIZAÇÃO PREMMIA
-            // ==================================
-
-            const tdAutPremmia =
-                document.createElement(
-                    "td"
-                );
-
-            tdAutPremmia.textContent =
-                item.autorizacaoPremmia || "-";
-
-
-            // ==================================
-            // AUTORIZAÇÃO INTERNO
-            // ==================================
-
-            const tdAutInterno =
-                document.createElement(
-                    "td"
-                );
-
-            tdAutInterno.textContent =
-                item.autorizacaoInterno || "-";
-
-
-            // ==================================
-            // VALOR PREMMIA
-            // ==================================
-
-            const tdValorPremmia =
-                document.createElement(
-                    "td"
-                );
-
-            tdValorPremmia.textContent =
-                formatarMoeda(
-                    item.valorPremmia
-                );
-
-
-            // ==================================
-            // VALOR INTERNO
-            // ==================================
-
-            const tdValorInterno =
-                document.createElement(
-                    "td"
-                );
-
-            tdValorInterno.textContent =
-                formatarMoeda(
-                    item.valorInterno
-                );
-
-
-            // ==================================
-            // OPERADOR
-            // ==================================
-
-            const tdOperador =
-                document.createElement(
-                    "td"
-                );
-
-            tdOperador.textContent =
-                item.operador || "";
-
-
-            // ==================================
-            // FILIAL
-            // ==================================
-
-            const tdFilial =
-                document.createElement(
-                    "td"
-                );
-
-            tdFilial.textContent =
-                item.filial || "";
-
-
-            // ==================================
-            // TIPO
-            // ==================================
-
-            const tdTipo =
-                document.createElement(
-                    "td"
-                );
-
-            tdTipo.textContent =
-                item.tipo || "";
-
-
-            // ==================================
-            // OBSERVAÇÃO
-            // ==================================
-
-            const tdObservacao =
-                document.createElement(
-                    "td"
-                );
-
-            tdObservacao.textContent =
-                item.observacao || "";
-
-
-            // ==================================
-            // ADICIONA COLUNAS
-            // ==================================
-
-            tr.appendChild(tdStatus);
-
-            tr.appendChild(tdData);
-
-            tr.appendChild(tdHora);
-
-            tr.appendChild(tdCliente);
-
-            tr.appendChild(tdAutPremmia);
-
-            tr.appendChild(tdAutInterno);
-
-            tr.appendChild(tdValorPremmia);
-
-            tr.appendChild(tdValorInterno);
-
-            tr.appendChild(tdOperador);
-
-            tr.appendChild(tdFilial);
-
-            tr.appendChild(tdTipo);
-
-            tr.appendChild(tdObservacao);
-
-
-            corpoTabela.appendChild(tr);
-
-        }
-    );
-
-
-    console.log(
-        "Tabela renderizada:",
-        lista.length,
-        "linhas"
-    );
-
-}
-
-
-// ==========================================
-// TRADUZIR STATUS
-// ==========================================
-
-function traduzirStatus(status) {
-
-    switch (status) {
-
-        case "CORRETA":
-
-            return "✓ CORRETA";
-
-
-        case "NAO_LANCADA":
-
-            return "✗ NÃO LANÇADA";
-
-
-        case "LANCADA_A_MAIS":
-
-            return "⚠ LANÇADA A MAIS";
-
-
-        case "VALOR_DIVERGENTE":
-
-            return "⚠ VALOR DIVERGENTE";
-
-
-        case "AUTORIZACAO_DIVERGENTE":
-
-            return "⚠ AUTORIZAÇÃO DIVERGENTE";
-
-
-        default:
-
-            return status || "";
-
-    }
-
-}
-
-
-// ==========================================
-// FILTROS
-// ==========================================
-
-function configurarFiltros() {
-
-    const botoes =
-        document.querySelectorAll(
-            ".filtro"
-        );
-
-
-    botoes.forEach(
-        function (botao) {
-
-            botao.addEventListener(
-                "click",
-                function () {
-
-                    botoes.forEach(
-                        function (item) {
-
-                            item.classList.remove(
-                                "ativo"
-                            );
-
-                        }
-                    );
-
-
-                    botao.classList.add(
-                        "ativo"
-                    );
-
-
-                    const filtro =
-                        botao.dataset.filtro;
-
-
-                    const resultados =
-                        window.resultadosConferencia ||
-                        [];
-
-
-                    if (
-                        filtro === "TODOS"
-                    ) {
-
-                        renderizarTabela(
-                            resultados
-                        );
-
-                        return;
-
-                    }
-
-
-                    const filtrados =
-                        resultados.filter(
-                            function (item) {
-
-                                return (
-                                    item.status ===
-                                    filtro
-                                );
-
-                            }
-                        );
-
-
-                    renderizarTabela(
-                        filtrados
-                    );
-
-                }
-            );
-
-        }
-    );
-
-}
-
-
-// ==========================================
-// FUNÇÃO CHAMADA PELO CONFERENCIA.JS
-// ==========================================
-
-window.atualizarResumo =
-function () {
-
-    const resultados =
-        window.resultadosConferencia ||
-        [];
-
-
-    atualizarResumoTela(
-        resultados
-    );
-
-};
-
-
-// ==========================================
-// FUNÇÃO CHAMADA PELO CONFERENCIA.JS
-// ==========================================
-
-window.renderizarTabela =
-function (lista) {
+function mostrarResultadosTela(
+    lista
+) {
 
     if (
         !Array.isArray(lista)
@@ -920,22 +633,10 @@ function (lista) {
     }
 
 
-    // ======================================
-    // MOSTRA RESULTADO
-    // ======================================
-
     const resultado =
         document.getElementById(
             "resultado"
         );
-
-
-    if (resultado) {
-
-        resultado.style.display =
-            "";
-
-    }
 
 
     const tabela =
@@ -944,172 +645,70 @@ function (lista) {
         );
 
 
+    if (resultado) {
+
+        resultado.style.display =
+            "block";
+
+    }
+
+
     if (tabela) {
 
         tabela.style.display =
-            "";
+            "block";
 
     }
 
 
-    renderizarTabelaInterna(
-        lista
-    );
+    // Usa as funções do conferencia.js
+    if (
+        typeof window.atualizarResumo ===
+        "function"
+    ) {
 
-};
-
-
-// ==========================================
-// RENDERIZAÇÃO INTERNA
-// ==========================================
-
-function renderizarTabelaInterna(lista) {
-
-    const corpoTabela =
-        document.getElementById(
-            "corpoTabela"
-        );
-
-
-    if (!corpoTabela) {
-
-        console.error(
-            "ERRO: #corpoTabela não existe no HTML."
-        );
-
-        return;
+        window.atualizarResumo();
 
     }
 
 
-    corpoTabela.innerHTML = "";
+    if (
+        typeof window.renderizarTabela ===
+        "function"
+    ) {
+
+        window.renderizarTabela(
+            lista
+        );
+
+    }
 
 
-    lista.forEach(
-        function (item) {
-
-            const tr =
-                document.createElement(
-                    "tr"
-                );
-
-
-            const valores = [
-
-                traduzirStatus(
-                    item.status
-                ),
-
-                item.data || "",
-
-                item.hora || "",
-
-                item.cliente || "",
-
-                item.autorizacaoPremmia || "-",
-
-                item.autorizacaoInterno || "-",
-
-                formatarMoeda(
-                    item.valorPremmia
-                ),
-
-                formatarMoeda(
-                    item.valorInterno
-                ),
-
-                item.operador || "",
-
-                item.filial || "",
-
-                item.tipo || "",
-
-                item.observacao || ""
-
-            ];
-
-
-            valores.forEach(
-                function (valor) {
-
-                    const td =
-                        document.createElement(
-                            "td"
-                        );
-
-                    td.textContent =
-                        valor;
-
-                    tr.appendChild(td);
-
-                }
-            );
-
-
-            corpoTabela.appendChild(tr);
-
-        }
-    );
-
-
-    console.log(
-        "RESULTADOS EXIBIDOS NA TELA:",
-        lista.length
+    atualizarStatusSistema(
+        "Conferência finalizada."
     );
 
 }
 
 
 // ==========================================
-// MONITORAMENTO DOS DADOS
-// ==========================================
-
-function atualizarContadorArquivos() {
-
-    const quantidadePremmia =
-        window.dadosPremmia?.length || 0;
-
-
-    const quantidadeInterno =
-        window.dadosInterno?.length || 0;
-
-
-    const contador =
-        document.getElementById(
-            "contadorDados"
-        );
-
-
-    if (contador) {
-
-        contador.innerHTML =
-            "Premmia: <strong>" +
-            quantidadePremmia +
-            "</strong> registros" +
-            " &nbsp; | &nbsp; " +
-            "Interno: <strong>" +
-            quantidadeInterno +
-            "</strong> registros";
-
-    }
-
-}
-
-
-// ==========================================
-// DISPONIBILIZA FUNÇÕES
+// DISPONIBILIZAR FUNÇÕES GLOBALMENTE
 // ==========================================
 
 window.atualizarStatusSistema =
     atualizarStatusSistema;
 
 
-window.validarArquivos =
-    validarArquivos;
-
-
 window.atualizarContadorArquivos =
     atualizarContadorArquivos;
+
+
+window.atualizarInterfaceArquivos =
+    atualizarInterfaceArquivos;
+
+
+window.atualizarBotaoConferir =
+    atualizarBotaoConferir;
 
 
 window.limparSistema =
@@ -1120,7 +719,10 @@ window.mostrarResultadosTela =
     mostrarResultadosTela;
 
 
+window.esconderResultado =
+    esconderResultado;
+
+
 console.log(
     "app.js completo carregado."
 );
-```
