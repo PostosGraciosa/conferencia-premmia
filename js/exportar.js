@@ -1,89 +1,19 @@
-// ==========================================
-// CONFERÊNCIA PREMMIA
-// exportar.js
-//
-// RESPONSABILIDADE:
-//
-// 1. Exportar os resultados da conferência
-// 2. Gerar arquivo Excel (.xlsx)
-// 3. Exportar todos os resultados
-// 4. Respeitar os dados produzidos pelo
-//    conferencia.js
-//
-// NÃO faz nova conferência.
-// NÃO altera os resultados.
-// ==========================================
+// ============================================================
+// EXPORTAÇÃO DA CONFERÊNCIA
+// ============================================================
+
+console.log("================================");
+console.log("exportar.js iniciado");
+console.log("================================");
 
 
-// ==========================================
-// BOTÃO EXPORTAR
-// ==========================================
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function () {
-
-        const btnExportar =
-            document.getElementById(
-                "btnExportar"
-            );
-
-
-        if (!btnExportar) {
-
-            console.warn(
-                "Botão btnExportar não encontrado."
-            );
-
-            return;
-
-        }
-
-
-        btnExportar.addEventListener(
-            "click",
-            exportarExcel
-        );
-
-    }
-);
-
-
-// ==========================================
-// EXPORTAR EXCEL
-// ==========================================
-
-function exportarExcel() {
-
-    // ======================================
-    // VERIFICAR BIBLIOTECA XLSX
-    // ======================================
-
-    if (
-        typeof XLSX === "undefined"
-    ) {
-
-        alert(
-            "A biblioteca Excel não foi carregada."
-        );
-
-        return;
-
-    }
-
-
-    // ======================================
-    // VERIFICAR RESULTADOS
-    // ======================================
+function exportarConferenciaExcel() {
 
     const resultados =
-        window.resultadosConferencia;
+        window.resultadosConferencia || [];
 
 
-    if (
-        !Array.isArray(resultados) ||
-        resultados.length === 0
-    ) {
+    if (!resultados.length) {
 
         alert(
             "Não existem resultados para exportar."
@@ -94,465 +24,222 @@ function exportarExcel() {
     }
 
 
-    // ======================================
-    // CONFIRMAÇÃO
-    // ======================================
+    const dados =
+        resultados.map(
+            resultado => {
 
-    console.log(
-        "================================="
-    );
+                const portal =
+                    resultado.portal || {};
 
-    console.log(
-        "EXPORTAÇÃO EXCEL"
-    );
-
-    console.log(
-        "Resultados:",
-        resultados.length
-    );
-
-    console.log(
-        "================================="
-    );
+                const interno =
+                    resultado.interno || {};
 
 
-    // ======================================
-    // PREPARAR DADOS
-    // ======================================
+                return {
 
-    const dadosExcel = [];
+                    "STATUS":
+                        resultado.status,
 
+                    "PORTAL - DATA":
+                        window.formatarData
+                            ? window.formatarData(
+                                portal.data
+                            )
+                            : portal.data || "",
 
-    // ======================================
-    // CABEÇALHO
-    // ======================================
+                    "PORTAL - HORÁRIO":
+                        portal.hora || "",
 
-    dadosExcel.push([
+                    "PORTAL - VALOR":
+                        portal.valor || 0,
 
-        "Status",
+                    "PORTAL - FORMA PAGAMENTO":
+                        portal.formaPagamento || "",
 
-        "Data Premmia",
+                    "PORTAL - CÓDIGO TRANSAÇÃO":
+                        portal.codigoTransacao || "",
 
-        "Hora Premmia",
+                    "PORTAL - LINHA":
+                        resultado.linhaPortal || "",
 
-        "Data Interno",
+                    "SISTEMA - DATA":
+                        window.formatarData
+                            ? window.formatarData(
+                                interno.data
+                            )
+                            : interno.data || "",
 
-        "Hora Interno",
+                    "SISTEMA - HORÁRIO":
+                        interno.hora || "",
 
-        "Diferença Horário",
+                    "SISTEMA - VALOR":
+                        interno.valor || 0,
 
-        "Cliente",
+                    "SISTEMA - TIPO CARTÃO":
+                        interno.tipoCartao || "",
 
-        "Autorização Premmia",
+                    "SISTEMA - TRANSAÇÃO":
+                        interno.codigoTransacao || "",
 
-        "Autorização Interno",
+                    "SISTEMA - AUTORIZAÇÃO":
+                        interno.autorizacao || "",
 
-        "Valor Premmia",
+                    "SISTEMA - NSU":
+                        interno.nsu || "",
 
-        "Valor Interno",
+                    "SISTEMA - LINHA":
+                        resultado.linhaInterno || "",
 
-        "Diferença",
+                    "DIFERENÇA VALOR":
+                        resultado.diferencaValor || 0,
 
-        "Operador",
+                    "DIFERENÇA HORÁRIO":
+                        resultado.diferencaHorario !== null &&
+                        resultado.diferencaHorario !== undefined
+                            ? `${Math.floor(
+                                resultado.diferencaHorario / 60
+                            )} min`
+                            : ""
 
-        "Pagamento",
+                };
 
-        "Tipo",
-
-        "Observação"
-
-    ]);
-
-
-    // ======================================
-    // RESULTADOS
-    // ======================================
-
-    resultados.forEach(
-        resultado => {
-
-            dadosExcel.push([
-
-                traduzirStatus(
-                    resultado.status
-                ),
-
-                resultado.dataPremmia ||
-                    "",
-
-                resultado.horaPremmia ||
-                    "",
-
-                resultado.dataInterno ||
-                    "",
-
-                resultado.horaInterno ||
-                    "",
-
-                resultado.diferencaHorario !== null &&
-                resultado.diferencaHorario !== undefined
-                    ? Number(
-                        resultado.diferencaHorario
-                    )
-                    : "",
-
-                resultado.cliente ||
-                    "",
-
-                resultado.autorizacaoPremmia ||
-                    "",
-
-                resultado.autorizacaoInterno ||
-                    "",
-
-                resultado.valorPremmia !== null &&
-                resultado.valorPremmia !== undefined
-                    ? Number(
-                        resultado.valorPremmia
-                    )
-                    : "",
-
-                resultado.valorInterno !== null &&
-                resultado.valorInterno !== undefined
-                    ? Number(
-                        resultado.valorInterno
-                    )
-                    : "",
-
-                resultado.diferenca !== null &&
-                resultado.diferenca !== undefined
-                    ? Number(
-                        resultado.diferenca
-                    )
-                    : "",
-
-                resultado.operador ||
-                    "",
-
-                resultado.pagamento ||
-                    "",
-
-                resultado.tipo ||
-                    "",
-
-                resultado.observacao ||
-                    ""
-
-            ]);
-
-        }
-    );
-
-
-    // ======================================
-    // CRIAR PLANILHA
-    // ======================================
-
-    const planilha =
-        XLSX.utils.aoa_to_sheet(
-            dadosExcel
+            }
         );
 
 
-    // ======================================
-    // LARGURA DAS COLUNAS
-    // ======================================
+    const worksheet =
+        XLSX.utils.json_to_sheet(
+            dados
+        );
 
-    planilha["!cols"] = [
 
-        {
-            wch: 25
-        },
+    worksheet["!cols"] = [
 
-        {
-            wch: 14
-        },
-
-        {
-            wch: 12
-        },
-
-        {
-            wch: 14
-        },
-
-        {
-            wch: 12
-        },
-
-        {
-            wch: 18
-        },
-
-        {
-            wch: 30
-        },
-
-        {
-            wch: 40
-        },
-
-        {
-            wch: 40
-        },
-
-        {
-            wch: 16
-        },
-
-        {
-            wch: 16
-        },
-
-        {
-            wch: 16
-        },
-
-        {
-            wch: 25
-        },
-
-        {
-            wch: 20
-        },
-
-        {
-            wch: 25
-        },
-
-        {
-            wch: 60
-        }
+        { wch: 28 },
+        { wch: 14 },
+        { wch: 12 },
+        { wch: 15 },
+        { wch: 25 },
+        { wch: 25 },
+        { wch: 12 },
+        { wch: 14 },
+        { wch: 12 },
+        { wch: 15 },
+        { wch: 22 },
+        { wch: 22 },
+        { wch: 25 },
+        { wch: 18 },
+        { wch: 12 },
+        { wch: 18 },
+        { wch: 20 }
 
     ];
 
-
-    // ======================================
-    // FORMATAR VALORES COMO MOEDA
-    // ======================================
-
-    aplicarFormatoMoeda(
-        planilha,
-        dadosExcel
-    );
-
-
-    // ======================================
-    // CRIAR WORKBOOK
-    // ======================================
 
     const workbook =
         XLSX.utils.book_new();
 
 
-    // ======================================
-    // ADICIONAR PLANILHA
-    // ======================================
-
     XLSX.utils.book_append_sheet(
         workbook,
-        planilha,
-        "Conferência"
+        worksheet,
+        "Conciliação"
     );
 
 
-    // ======================================
-    // CRIAR NOME DO ARQUIVO
-    // ======================================
+    // ========================================================
+    // RESUMO
+    // ========================================================
 
-    const agora =
-        new Date();
-
-
-    const dia =
-        String(
-            agora.getDate()
-        ).padStart(
-            2,
-            "0"
-        );
+    const resumo =
+        window.resumoConferencia || {};
 
 
-    const mes =
-        String(
-            agora.getMonth() + 1
-        ).padStart(
-            2,
-            "0"
-        );
+    const dadosResumo = [
 
+        ["RESUMO DA CONCILIAÇÃO", ""],
 
-    const ano =
-        agora.getFullYear();
+        [
+            "Conferidas",
+            resumo.conferidas || 0
+        ],
 
+        [
+            "Não lançadas",
+            resumo.naoLancadas || 0
+        ],
 
-    const hora =
-        String(
-            agora.getHours()
-        ).padStart(
-            2,
-            "0"
-        );
+        [
+            "Lançadas a mais",
+            resumo.lancadasAMais || 0
+        ],
 
+        [
+            "Valor divergente",
+            resumo.valorDivergente || 0
+        ],
 
-    const minuto =
-        String(
-            agora.getMinutes()
-        ).padStart(
-            2,
-            "0"
-        );
+        [
+            "Data divergente",
+            resumo.dataDivergente || 0
+        ],
 
+        [
+            "Tipo de pagamento divergente",
+            resumo.cartaoDivergente || 0
+        ],
 
-    const nomeArquivo =
-        `Conferencia_Premmia_${dia}-${mes}-${ano}_${hora}-${minuto}.xlsx`;
+        [
+            "Total Portal",
+            resumo.valorPortal || 0
+        ],
 
+        [
+            "Total Sistema",
+            resumo.valorSistema || 0
+        ],
 
-    // ======================================
-    // DOWNLOAD
-    // ======================================
+        [
+            "Diferença total",
+            resumo.diferencaValor || 0
+        ]
 
-    XLSX.writeFile(
-        workbook,
-        nomeArquivo
-    );
-
-
-    // ======================================
-    // MENSAGEM
-    // ======================================
-
-    console.log(
-        "Arquivo exportado:",
-        nomeArquivo
-    );
-
-}
-
-
-// ==========================================
-// TRADUZIR STATUS
-// ==========================================
-
-function traduzirStatus(
-    status
-) {
-
-    const nomes = {
-
-        CORRETA:
-            "CONFERIDA",
-
-        CORRESPONDENCIA_DATA_HORA:
-            "DATA/HORA",
-
-        NAO_LANCADA:
-            "NÃO LANÇADA",
-
-        LANCADA_A_MAIS:
-            "LANÇADA A MAIS",
-
-        VALOR_DIVERGENTE:
-            "VALOR DIVERGENTE"
-
-    };
-
-
-    return (
-        nomes[status] ||
-        status ||
-        ""
-    );
-
-}
-
-
-// ==========================================
-// FORMATO DE MOEDA
-// ==========================================
-
-function aplicarFormatoMoeda(
-    planilha,
-    dados
-) {
-
-    // ======================================
-    // COLUNAS
-    //
-    // J = Valor Premmia
-    // K = Valor Interno
-    // L = Diferença
-    // ======================================
-
-    const colunasMoeda = [
-        9,
-        10,
-        11
     ];
 
 
-    // ======================================
-    // PERCORRER LINHAS
-    // ======================================
-
-    for (
-        let linha = 1;
-        linha < dados.length;
-        linha++
-    ) {
-
-        colunasMoeda.forEach(
-            coluna => {
-
-                const celula =
-                    XLSX.utils.encode_cell({
-
-                        r:
-                            linha,
-
-                        c:
-                            coluna
-
-                    });
-
-
-                if (
-                    planilha[celula]
-                ) {
-
-                    planilha[celula].z =
-                        'R$ #,##0.00';
-
-                }
-
-            }
+    const worksheetResumo =
+        XLSX.utils.aoa_to_sheet(
+            dadosResumo
         );
 
-    }
+
+    worksheetResumo["!cols"] = [
+
+        { wch: 35 },
+        { wch: 20 }
+
+    ];
+
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        worksheetResumo,
+        "Resumo"
+    );
+
+
+    XLSX.writeFile(
+        workbook,
+        "conciliacao_premmia.xlsx"
+    );
 
 }
 
 
-// ==========================================
-// DISPONIBILIZAR GLOBALMENTE
-// ==========================================
-
-window.exportarExcel =
-    exportarExcel;
+window.exportarConferenciaExcel =
+    exportarConferenciaExcel;
 
 
-console.log(
-    "================================="
-);
-
-console.log(
-    "exportar.js iniciado"
-);
-
-console.log(
-    "Botão de exportação preparado"
-);
-
-console.log(
-    "================================="
-);
+console.log("================================");
+console.log("exportar.js carregado");
+console.log("================================");
