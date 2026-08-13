@@ -4,24 +4,27 @@
 //
 // RESPONSABILIDADE:
 //
-// 1. Ler Premmia
-// 2. Ler Sistema Interno
+// 1. Ler planilha Premmia
+// 2. Ler planilha Sistema Interno
 // 3. Normalizar valores
-// 4. Normalizar data
-// 5. Normalizar hora
-// 6. Preparar os registros para o
-//    conferencia.js
+// 4. Normalizar datas
+// 5. Normalizar horários
+// 6. Entregar os dados para conferencia.js
 //
-// A CONFERÊNCIA É FEITA PELO
-// conferencia.js:
+// A conferência NÃO depende da autorização.
+// A comparação será feita por:
 //
 // VALOR
-// +
-// MESMA DATA
-// +
-// HORÁRIO APROXIMADO
+// + DATA
+// + HORÁRIO APROXIMADO
+//
+// A tolerância é controlada pelo conferencia.js.
 // ==========================================
 
+
+// ==========================================
+// DADOS GLOBAIS
+// ==========================================
 
 let dadosPremmia = [];
 let dadosInterno = [];
@@ -64,9 +67,11 @@ if (arquivoPremmia) {
             const file =
                 this.files[0];
 
+
             if (!file) {
                 return;
             }
+
 
             if (nomePremmia) {
 
@@ -74,6 +79,7 @@ if (arquivoPremmia) {
                     file.name;
 
             }
+
 
             lerPremmia(file);
 
@@ -96,9 +102,11 @@ if (arquivoInterno) {
             const file =
                 this.files[0];
 
+
             if (!file) {
                 return;
             }
+
 
             if (nomeInterno) {
 
@@ -106,6 +114,7 @@ if (arquivoInterno) {
                     file.name;
 
             }
+
 
             lerInterno(file);
 
@@ -144,19 +153,7 @@ function abrirExcel(
                         dados,
                         {
                             type: "array",
-
-                            // IMPORTANTE
-                            // Faz o XLSX tentar
-                            // converter datas para Date.
-                            cellDates: true,
-
-                            // Mantém fórmulas como valores
-                            cellFormula: false,
-
-                            // Trata células vazias
-                            cellNF: false,
-
-                            cellText: true
+                            cellDates: true
                         }
                     );
 
@@ -187,19 +184,6 @@ function abrirExcel(
                     ];
 
 
-                if (!planilha) {
-
-                    console.error(
-                        "Planilha não encontrada."
-                    );
-
-                    callback([]);
-
-                    return;
-
-                }
-
-
                 const linhas =
                     XLSX.utils.sheet_to_json(
                         planilha,
@@ -211,32 +195,19 @@ function abrirExcel(
                     );
 
 
-                console.log(
-                    "Planilha carregada:",
-                    primeira
-                );
-
-
-                console.log(
-                    "Total de linhas:",
-                    linhas.length
-                );
-
-
                 callback(linhas);
 
             }
             catch (erro) {
 
                 console.error(
-                    "Erro ao ler planilha:",
+                    "Erro ao ler arquivo:",
                     erro
                 );
 
 
                 alert(
-                    "Não foi possível ler a planilha.\n\n" +
-                    erro.message
+                    "Não foi possível ler a planilha."
                 );
 
 
@@ -276,11 +247,6 @@ function abrirExcel(
 
 function lerPremmia(file) {
 
-    atualizarStatus(
-        "Lendo planilha do Premmia..."
-    );
-
-
     abrirExcel(
         file,
         function (linhas) {
@@ -299,26 +265,18 @@ function lerPremmia(file) {
                 "================================="
             );
 
-
             console.log(
                 "PREMMIA CARREGADO"
             );
 
-
             console.log(
-                "Registros:",
+                "Total:",
                 dadosPremmia.length
             );
 
-
             console.log(
-                "Primeiros registros:",
-                dadosPremmia.slice(
-                    0,
-                    5
-                )
+                dadosPremmia
             );
-
 
             console.log(
                 "================================="
@@ -339,11 +297,6 @@ function lerPremmia(file) {
 
 function lerInterno(file) {
 
-    atualizarStatus(
-        "Lendo planilha do sistema interno..."
-    );
-
-
     abrirExcel(
         file,
         function (linhas) {
@@ -362,26 +315,18 @@ function lerInterno(file) {
                 "================================="
             );
 
-
             console.log(
                 "INTERNO CARREGADO"
             );
 
-
             console.log(
-                "Registros:",
+                "Total:",
                 dadosInterno.length
             );
 
-
             console.log(
-                "Primeiros registros:",
-                dadosInterno.slice(
-                    0,
-                    5
-                )
+                dadosInterno
             );
-
 
             console.log(
                 "================================="
@@ -430,16 +375,12 @@ function transformarPremmia(
     linhas.forEach(
         (linha, index) => {
 
-            // --------------------------------
-            // PULAR CABEÇALHO
-            // --------------------------------
+            // ----------------------------------
+            // PULA CABEÇALHO
+            // ----------------------------------
 
-            if (
-                index === 0
-            ) {
-
+            if (index === 0) {
                 return;
-
             }
 
 
@@ -461,35 +402,29 @@ function transformarPremmia(
             }
 
 
-            // --------------------------------
-            // CAMPOS ORIGINAIS
-            // --------------------------------
+            // ----------------------------------
+            // DATA/HORA ORIGINAL
+            // ----------------------------------
 
-            const valorBruto =
-                linha[3];
-
-
-            const dataHoraBruta =
+            const dataHoraOriginal =
                 linha[4];
 
 
-            const autorizacaoBruta =
-                linha[5];
-
-
-            // --------------------------------
-            // CONVERTER DATA/HORA
-            // --------------------------------
-
-            const dataHora =
-                normalizarDataHoraPremmia(
-                    dataHoraBruta
+            const data =
+                extrairData(
+                    dataHoraOriginal
                 );
 
 
-            // --------------------------------
+            const hora =
+                extrairHora(
+                    dataHoraOriginal
+                );
+
+
+            // ----------------------------------
             // REGISTRO
-            // --------------------------------
+            // ----------------------------------
 
             const registro = {
 
@@ -517,32 +452,23 @@ function transformarPremmia(
 
                 valor:
                     converterValor(
-                        valorBruto
+                        linha[3]
                     ),
 
 
-                // --------------------------------
-                // DATA/HORA ORIGINAL
-                // --------------------------------
+                // Mantém o valor original
+                // para facilitar diagnóstico
 
                 dataHora:
-                    dataHora.dataHoraTexto,
+                    dataHoraOriginal,
 
-
-                // --------------------------------
-                // DATA NORMALIZADA
-                // --------------------------------
 
                 data:
-                    dataHora.data,
+                    data,
 
-
-                // --------------------------------
-                // HORA NORMALIZADA
-                // --------------------------------
 
                 hora:
-                    dataHora.hora,
+                    hora,
 
 
                 // --------------------------------
@@ -551,7 +477,7 @@ function transformarPremmia(
 
                 autorizacao:
                     normalizarAutorizacao(
-                        autorizacaoBruta
+                        linha[5]
                     ),
 
 
@@ -569,9 +495,9 @@ function transformarPremmia(
             };
 
 
-            // --------------------------------
-            // VALIDAR
-            // --------------------------------
+            // ----------------------------------
+            // VALIDAÇÃO
+            // ----------------------------------
 
             if (
                 registro.autorizacao &&
@@ -613,16 +539,13 @@ function transformarInterno(
     }
 
 
-    let indiceCabecalho =
-        -1;
+    let cabecalho = null;
 
-
-    let cabecalho =
-        null;
+    let indiceCabecalho = -1;
 
 
     // ======================================
-    // LOCALIZAR CABEÇALHO
+    // ENCONTRAR CABEÇALHO
     // ======================================
 
     for (
@@ -631,12 +554,8 @@ function transformarInterno(
         i++
     ) {
 
-        const linha =
-            linhas[i];
-
-
         if (
-            !Array.isArray(linha)
+            !Array.isArray(linhas[i])
         ) {
 
             continue;
@@ -645,42 +564,29 @@ function transformarInterno(
 
 
         const texto =
-            linha
+            linhas[i]
                 .map(
                     x =>
-                        normalizarNomeColuna(
+                        normalizarTexto(
                             x
                         )
                 )
                 .join(" ");
 
 
-        // ----------------------------------
-        // Procura pelo cabeçalho do
-        // sistema interno.
-        // ----------------------------------
+        // Procuramos termos que identificam
+        // o cabeçalho do sistema interno.
 
         if (
-
+            texto.includes("administradora") &&
             (
-                texto.includes(
-                    "administradora"
-                ) ||
-                texto.includes(
-                    "administrador"
-                )
+                texto.includes("autorizacao") ||
+                texto.includes("autorização")
             )
-
-            &&
-
-            texto.includes(
-                "autorizacao"
-            )
-
         ) {
 
             cabecalho =
-                linha;
+                linhas[i];
 
 
             indiceCabecalho =
@@ -703,26 +609,13 @@ function transformarInterno(
     ) {
 
         console.error(
-            "================================="
-        );
-
-
-        console.error(
             "Cabeçalho interno não encontrado."
         );
 
 
-        console.error(
-            "Linhas analisadas:",
-            linhas.slice(
-                0,
-                10
-            )
-        );
-
-
-        console.error(
-            "================================="
+        console.log(
+            "Linhas recebidas:",
+            linhas
         );
 
 
@@ -739,23 +632,21 @@ function transformarInterno(
 
 
     cabecalho.forEach(
-        (
-            nome,
-            index
-        ) => {
+        (nome, index) => {
 
-            const chave =
-                normalizarNomeColuna(
+            const nomeNormalizado =
+                normalizarTexto(
                     nome
                 );
 
 
             if (
-                chave
+                nomeNormalizado
             ) {
 
-                coluna[chave] =
-                    index;
+                coluna[
+                    nomeNormalizado
+                ] = index;
 
             }
 
@@ -764,7 +655,7 @@ function transformarInterno(
 
 
     console.log(
-        "COLUNAS INTERNAS:",
+        "Colunas encontradas:",
         coluna
     );
 
@@ -774,16 +665,16 @@ function transformarInterno(
     // ======================================
 
     function encontrarColuna(
-        alternativas
+        nomes
     ) {
 
         for (
-            const alternativa of alternativas
+            const nome of nomes
         ) {
 
             const chave =
-                normalizarNomeColuna(
-                    alternativa
+                normalizarTexto(
+                    nome
                 );
 
 
@@ -802,7 +693,7 @@ function transformarInterno(
         }
 
 
-        return undefined;
+        return -1;
 
     }
 
@@ -812,161 +703,89 @@ function transformarInterno(
     // ======================================
 
     const colunaValor =
-        encontrarColuna(
-            [
-                "valor"
-            ]
-        );
+        encontrarColuna([
+            "valor"
+        ]);
 
 
     const colunaHorario =
-        encontrarColuna(
-            [
-                "horario",
-                "hora",
-                "hora lancamento",
-                "horario lancamento"
-            ]
-        );
+        encontrarColuna([
+            "horário",
+            "horario",
+            "hora"
+        ]);
 
 
     const colunaData =
-        encontrarColuna(
-            [
-                "data fiscal",
-                "data",
-                "data venda",
-                "data lancamento"
-            ]
-        );
+        encontrarColuna([
+            "data fiscal",
+            "data"
+        ]);
 
 
     const colunaCliente =
-        encontrarColuna(
-            [
-                "cliente"
-            ]
-        );
+        encontrarColuna([
+            "cliente"
+        ]);
 
 
     const colunaFilial =
-        encontrarColuna(
-            [
-                "filial"
-            ]
-        );
+        encontrarColuna([
+            "filial"
+        ]);
 
 
     const colunaFuncionario =
-        encontrarColuna(
-            [
-                "funcionario",
-                "funcionario responsavel"
-            ]
-        );
+        encontrarColuna([
+            "funcionário",
+            "funcionario",
+            "operador"
+        ]);
 
 
     const colunaTipo =
-        encontrarColuna(
-            [
-                "tipo inclusao",
-                "tipo inclusão",
-                "tipo"
-            ]
-        );
+        encontrarColuna([
+            "tipo inclusão",
+            "tipo inclusao",
+            "tipo"
+        ]);
 
 
     const colunaAutorizacao =
-        encontrarColuna(
-            [
-                "autorizacao",
-                "autorização",
-                "codigo autorizacao",
-                "codigo autorização"
-            ]
-        );
+        encontrarColuna([
+            "autorização",
+            "autorizacao"
+        ]);
 
 
     console.log(
-        "ÍNDICES DAS COLUNAS:"
+        "Mapeamento das colunas:"
     );
-
 
     console.log(
-        {
-            valor:
-                colunaValor,
-
-            horario:
-                colunaHorario,
-
-            data:
-                colunaData,
-
-            cliente:
-                colunaCliente,
-
-            filial:
-                colunaFilial,
-
-            funcionario:
-                colunaFuncionario,
-
-            tipo:
-                colunaTipo,
-
-            autorizacao:
-                colunaAutorizacao
-        }
+        "Valor:",
+        colunaValor
     );
 
+    console.log(
+        "Horário:",
+        colunaHorario
+    );
 
-    // ======================================
-    // VERIFICAR COLUNAS ESSENCIAIS
-    // ======================================
+    console.log(
+        "Data:",
+        colunaData
+    );
 
-    if (
-        colunaValor === undefined
-    ) {
+    console.log(
+        "Cliente:",
+        colunaCliente
+    );
 
-        console.error(
-            "Coluna VALOR não encontrada."
-        );
-
-    }
-
-
-    if (
-        colunaData === undefined
-    ) {
-
-        console.error(
-            "Coluna DATA não encontrada."
-        );
-
-    }
-
-
-    if (
-        colunaHorario === undefined
-    ) {
-
-        console.error(
-            "Coluna HORÁRIO não encontrada."
-        );
-
-    }
-
-
-    if (
-        colunaAutorizacao === undefined
-    ) {
-
-        console.error(
-            "Coluna AUTORIZAÇÃO não encontrada."
-        );
-
-    }
+    console.log(
+        "Autorização:",
+        colunaAutorizacao
+    );
 
 
     // ======================================
@@ -993,85 +812,48 @@ function transformarInterno(
 
 
         // ----------------------------------
-        // IGNORAR LINHA TOTALMENTE VAZIA
+        // PEGAR DATA
         // ----------------------------------
 
-        if (
-            linha.every(
-                valor =>
-                    valor === "" ||
-                    valor === null ||
-                    valor === undefined
-            )
-        ) {
-
-            continue;
-
-        }
+        const valorData =
+            colunaData >= 0
+                ? linha[colunaData]
+                : "";
 
 
-        // ==================================
-        // VALOR
-        // ==================================
+        // ----------------------------------
+        // PEGAR HORA
+        // ----------------------------------
 
-        const valor =
-            converterValor(
-                obterValorColuna(
-                    linha,
-                    colunaValor
-                )
+        const valorHora =
+            colunaHorario >= 0
+                ? linha[colunaHorario]
+                : "";
+
+
+        // ----------------------------------
+        // NORMALIZAR DATA
+        // ----------------------------------
+
+        const data =
+            extrairData(
+                valorData
             );
 
 
-        // ==================================
-        // DATA
-        // ==================================
+        // ----------------------------------
+        // NORMALIZAR HORA
+        // ----------------------------------
 
-        const dataBruta =
-            obterValorColuna(
-                linha,
-                colunaData
+        const hora =
+            extrairHora(
+                valorHora
             );
 
 
-        // ==================================
-        // HORA
-        // ==================================
-
-        const horaBruta =
-            obterValorColuna(
-                linha,
-                colunaHorario
-            );
-
-
-        // ==================================
-        // NORMALIZAR DATA + HORA
-        // ==================================
-
-        const dataHora =
-            normalizarDataHoraInterno(
-                dataBruta,
-                horaBruta
-            );
-
-
-        // ==================================
-        // AUTORIZAÇÃO
-        // ==================================
-
-        const autorizacao =
-            normalizarAutorizacao(
-                obterValorColuna(
-                    linha,
-                    colunaAutorizacao
-                )
-            );
-
-
-        // ==================================
+        // ----------------------------------
         // REGISTRO
-        // ==================================
+        // ----------------------------------
 
         const registro = {
 
@@ -1080,90 +862,76 @@ function transformarInterno(
 
 
             valor:
-                valor,
-
-
-            // --------------------------------
-            // DATA/HORA
-            // --------------------------------
-
-            dataHora:
-                dataHora.dataHoraTexto,
+                converterValor(
+                    colunaValor >= 0
+                        ? linha[colunaValor]
+                        : null
+                ),
 
 
             data:
-                dataHora.data,
+                data,
 
 
             hora:
-                dataHora.hora,
+                hora,
 
 
-            // --------------------------------
-            // CLIENTE
-            // --------------------------------
+            // Guarda também a combinação
+            // original para diagnóstico
+
+            dataHora:
+                combinarDataHora(
+                    data,
+                    hora
+                ),
+
 
             cliente:
                 limparTexto(
-                    obterValorColuna(
-                        linha,
-                        colunaCliente
-                    )
+                    colunaCliente >= 0
+                        ? linha[colunaCliente]
+                        : ""
                 ),
 
-
-            // --------------------------------
-            // FILIAL
-            // --------------------------------
 
             filial:
                 limparTexto(
-                    obterValorColuna(
-                        linha,
-                        colunaFilial
-                    )
+                    colunaFilial >= 0
+                        ? linha[colunaFilial]
+                        : ""
                 ),
 
-
-            // --------------------------------
-            // FUNCIONÁRIO
-            // --------------------------------
 
             operador:
                 limparTexto(
-                    obterValorColuna(
-                        linha,
-                        colunaFuncionario
-                    )
+                    colunaFuncionario >= 0
+                        ? linha[colunaFuncionario]
+                        : ""
                 ),
 
-
-            // --------------------------------
-            // TIPO
-            // --------------------------------
 
             tipo:
                 limparTexto(
-                    obterValorColuna(
-                        linha,
-                        colunaTipo
-                    )
+                    colunaTipo >= 0
+                        ? linha[colunaTipo]
+                        : ""
                 ),
 
 
-            // --------------------------------
-            // AUTORIZAÇÃO
-            // --------------------------------
-
             autorizacao:
-                autorizacao
+                normalizarAutorizacao(
+                    colunaAutorizacao >= 0
+                        ? linha[colunaAutorizacao]
+                        : ""
+                )
 
         };
 
 
-        // ==================================
-        // VALIDAR REGISTRO
-        // ==================================
+        // ----------------------------------
+        // IGNORAR LINHAS INVÁLIDAS
+        // ----------------------------------
 
         if (
             registro.autorizacao &&
@@ -1174,39 +942,15 @@ function transformarInterno(
                 registro
             );
 
+
+            console.log(
+                "INTERNO CORRETO:",
+                registro
+            );
+
         }
 
     }
-
-
-    console.log(
-        "================================="
-    );
-
-
-    console.log(
-        "TRANSFORMAÇÃO INTERNO FINALIZADA"
-    );
-
-
-    console.log(
-        "Registros válidos:",
-        registros.length
-    );
-
-
-    console.log(
-        "Primeiros registros:",
-        registros.slice(
-            0,
-            5
-        )
-    );
-
-
-    console.log(
-        "================================="
-    );
 
 
     return registros;
@@ -1215,17 +959,17 @@ function transformarInterno(
 
 
 // ==========================================
-// OBTER VALOR DE UMA COLUNA
+// COMBINAR DATA + HORA
 // ==========================================
 
-function obterValorColuna(
-    linha,
-    indice
+function combinarDataHora(
+    data,
+    hora
 ) {
 
     if (
-        indice === undefined ||
-        indice === null
+        !data &&
+        !hora
     ) {
 
         return "";
@@ -1233,46 +977,17 @@ function obterValorColuna(
     }
 
 
-    return linha[indice];
-
-}
-
-
-// ==========================================
-// NORMALIZAR NOME DE COLUNA
-// ==========================================
-
-function normalizarNomeColuna(
-    valor
-) {
-
     if (
-        valor === null ||
-        valor === undefined
+        data &&
+        hora
     ) {
 
-        return "";
+        return `${data} ${hora}`;
 
     }
 
 
-    return String(valor)
-
-        .trim()
-
-        .toLowerCase()
-
-        .normalize("NFD")
-
-        .replace(
-            /[\u0300-\u036f]/g,
-            ""
-        )
-
-        .replace(
-            /\s+/g,
-            " "
-        );
+    return data || hora || "";
 
 }
 
@@ -1295,35 +1010,10 @@ function normalizarAutorizacao(
     }
 
 
-    let texto =
-        String(valor)
-            .trim();
-
-
-    // --------------------------------------
-    // Remover .0 de números vindos do Excel
-    // --------------------------------------
-
-    if (
-        texto.endsWith(".0")
-    ) {
-
-        texto =
-            texto.substring(
-                0,
-                texto.length - 2
-            );
-
-    }
-
-
-    return texto
-
-        .replace(
-            /\s/g,
-            ""
-        )
-
+    return String(valor)
+        .trim()
+        .replace(/\s/g, "")
+        .replace(/\.0$/, "")
         .toUpperCase();
 
 }
@@ -1349,21 +1039,12 @@ function converterValor(
 
 
     // --------------------------------------
-    // NUMBER
+    // NÚMERO
     // --------------------------------------
 
     if (
         typeof valor === "number"
     ) {
-
-        if (
-            !isFinite(valor)
-        ) {
-
-            return null;
-
-        }
-
 
         return Number(
             valor.toFixed(2)
@@ -1372,39 +1053,23 @@ function converterValor(
     }
 
 
-    // --------------------------------------
-    // STRING
-    // --------------------------------------
-
     let texto =
         String(valor)
             .trim();
 
 
-    if (
-        !texto
-    ) {
-
-        return null;
-
-    }
-
-
     // --------------------------------------
-    // REMOVER R$
+    // REMOVE R$
     // --------------------------------------
 
     texto =
-        texto.replace(
-            /R\$/gi,
-            ""
-        )
-        .trim();
+        texto
+            .replace(/R\$/gi, "")
+            .trim();
 
 
     // --------------------------------------
-    // FORMATO BRASILEIRO
-    //
+    // BRASILEIRO
     // 1.234,56
     // --------------------------------------
 
@@ -1414,27 +1079,10 @@ function converterValor(
 
         texto =
             texto
-                .replace(
-                    /\./g,
-                    ""
-                )
-                .replace(
-                    ",",
-                    "."
-                );
+                .replace(/\./g, "")
+                .replace(",", ".");
 
     }
-
-
-    // --------------------------------------
-    // REMOVER CARACTERES EXTRAS
-    // --------------------------------------
-
-    texto =
-        texto.replace(
-            /[^0-9.-]/g,
-            ""
-        );
 
 
     const numero =
@@ -1477,33 +1125,103 @@ function limparTexto(
     }
 
 
-    return String(
-        valor
-    )
+    return String(valor)
         .trim();
 
 }
 
 
 // ==========================================
-// NORMALIZAR DATA/HORA DO PREMMIA
+// NORMALIZAR TEXTO
 // ==========================================
 
-function normalizarDataHoraPremmia(
+function normalizarTexto(
     valor
 ) {
 
+    if (
+        valor === null ||
+        valor === undefined
+    ) {
+
+        return "";
+
+    }
+
+
+    return String(valor)
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(
+            /[\u0300-\u036f]/g,
+            ""
+        );
+
+}
+
+
+// ==========================================
+// DATA
+// ==========================================
+
+function extrairData(
+    valor
+) {
+
+    if (
+        valor === null ||
+        valor === undefined ||
+        valor === ""
+    ) {
+
+        return "";
+
+    }
+
+
     // --------------------------------------
-    // DATE
+    // DATE DO EXCEL
     // --------------------------------------
 
     if (
         valor instanceof Date
     ) {
 
-        return criarDataHoraNormalizada(
-            valor
-        );
+        if (
+            isNaN(
+                valor.getTime()
+            )
+        ) {
+
+            return "";
+
+        }
+
+
+        const dia =
+            String(
+                valor.getDate()
+            ).padStart(
+                2,
+                "0"
+            );
+
+
+        const mes =
+            String(
+                valor.getMonth() + 1
+            ).padStart(
+                2,
+                "0"
+            );
+
+
+        const ano =
+            valor.getFullYear();
+
+
+        return `${dia}/${mes}/${ano}`;
 
     }
 
@@ -1517,654 +1235,53 @@ function normalizarDataHoraPremmia(
     ) {
 
         const data =
-            converterNumeroExcelParaDate(
+            XLSX.SSF.parse_date_code(
                 valor
             );
 
 
         if (
-            data
+            data &&
+            data.y
         ) {
 
-            return criarDataHoraNormalizada(
-                data
-            );
+            const dia =
+                String(
+                    data.d
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+
+            const mes =
+                String(
+                    data.m
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+
+            return `${dia}/${mes}/${data.y}`;
 
         }
-
-    }
-
-
-    // --------------------------------------
-    // TEXTO
-    // --------------------------------------
-
-    if (
-        valor !== null &&
-        valor !== undefined
-    ) {
-
-        const convertido =
-            converterTextoParaDate(
-                String(valor)
-            );
-
-
-        if (
-            convertido
-        ) {
-
-            return criarDataHoraNormalizada(
-                convertido
-            );
-
-        }
-
-    }
-
-
-    return {
-
-        data:
-            "",
-
-        hora:
-            "",
-
-        dataHoraTexto:
-            ""
-
-    };
-
-}
-
-
-// ==========================================
-// NORMALIZAR DATA/HORA INTERNO
-// ==========================================
-
-function normalizarDataHoraInterno(
-    dataValor,
-    horaValor
-) {
-
-    let data = null;
-
-
-    let hora = null;
-
-
-    // ======================================
-    // DATA
-    // ======================================
-
-    if (
-        dataValor instanceof Date
-    ) {
-
-        data =
-            new Date(
-                dataValor.getTime()
-            );
-
-    }
-
-    else if (
-        typeof dataValor === "number"
-    ) {
-
-        data =
-            converterNumeroExcelParaDate(
-                dataValor
-            );
-
-    }
-
-    else if (
-        dataValor !== null &&
-        dataValor !== undefined &&
-        String(dataValor).trim() !== ""
-    ) {
-
-        data =
-            converterTextoParaDate(
-                String(dataValor)
-            );
-
-    }
-
-
-    // ======================================
-    // HORA
-    // ======================================
-
-    let horaData = null;
-
-
-    if (
-        horaValor instanceof Date
-    ) {
-
-        horaData =
-            horaValor;
-
-    }
-
-    else if (
-        typeof horaValor === "number"
-    ) {
-
-        horaData =
-            converterNumeroExcelParaHora(
-                horaValor
-            );
-
-    }
-
-    else if (
-        horaValor !== null &&
-        horaValor !== undefined
-    ) {
-
-        horaData =
-            converterTextoParaHora(
-                String(horaValor)
-            );
-
-    }
-
-
-    // ======================================
-    // COMBINAR DATA + HORA
-    // ======================================
-
-    if (
-        data
-    ) {
-
-        const resultado =
-            new Date(
-                data.getTime()
-            );
-
-
-        if (
-            horaData
-        ) {
-
-            resultado.setHours(
-                horaData.getHours()
-            );
-
-
-            resultado.setMinutes(
-                horaData.getMinutes()
-            );
-
-
-            resultado.setSeconds(
-                horaData.getSeconds()
-            );
-
-
-            resultado.setMilliseconds(
-                0
-            );
-
-        }
-        else {
-
-            resultado.setHours(
-                0
-            );
-
-
-            resultado.setMinutes(
-                0
-            );
-
-
-            resultado.setSeconds(
-                0
-            );
-
-
-            resultado.setMilliseconds(
-                0
-            );
-
-        }
-
-
-        return criarDataHoraNormalizada(
-            resultado
-        );
-
-    }
-
-
-    // ======================================
-    // SE NÃO ACHOU DATA, TENTA USAR
-    // A HORA COMO DATE
-    // ======================================
-
-    if (
-        horaData
-    ) {
-
-        return {
-
-            data:
-                "",
-
-            hora:
-                formatarHora(
-                    horaData
-                ),
-
-            dataHoraTexto:
-                formatarHora(
-                    horaData
-                )
-
-        };
-
-    }
-
-
-    return {
-
-        data:
-            "",
-
-        hora:
-            "",
-
-        dataHoraTexto:
-            ""
-
-    };
-
-}
-
-
-// ==========================================
-// CRIAR DATA/HORA NORMALIZADA
-// ==========================================
-
-function criarDataHoraNormalizada(
-    data
-) {
-
-    if (
-        !data ||
-        isNaN(
-            data.getTime()
-        )
-    ) {
-
-        return {
-
-            data:
-                "",
-
-            hora:
-                "",
-
-            dataHoraTexto:
-                ""
-
-        };
-
-    }
-
-
-    return {
-
-        data:
-            formatarData(
-                data
-            ),
-
-        hora:
-            formatarHora(
-                data
-            ),
-
-        dataHoraTexto:
-            `${formatarData(data)} ${formatarHora(data)}`
-
-    };
-
-}
-
-
-// ==========================================
-// FORMATAR DATA
-// ==========================================
-
-function formatarData(
-    data
-) {
-
-    if (
-        !data ||
-        isNaN(
-            data.getTime()
-        )
-    ) {
-
-        return "";
-
-    }
-
-
-    const dia =
-        String(
-            data.getDate()
-        )
-        .padStart(
-            2,
-            "0"
-        );
-
-
-    const mes =
-        String(
-            data.getMonth() + 1
-        )
-        .padStart(
-            2,
-            "0"
-        );
-
-
-    const ano =
-        data.getFullYear();
-
-
-    return `${dia}/${mes}/${ano}`;
-
-}
-
-
-// ==========================================
-// FORMATAR HORA
-// ==========================================
-
-function formatarHora(
-    data
-) {
-
-    if (
-        !data ||
-        isNaN(
-            data.getTime()
-        )
-    ) {
-
-        return "";
-
-    }
-
-
-    const hora =
-        String(
-            data.getHours()
-        )
-        .padStart(
-            2,
-            "0"
-        );
-
-
-    const minuto =
-        String(
-            data.getMinutes()
-        )
-        .padStart(
-            2,
-            "0"
-        );
-
-
-    const segundo =
-        String(
-            data.getSeconds()
-        )
-        .padStart(
-            2,
-            "0"
-        );
-
-
-    return `${hora}:${minuto}:${segundo}`;
-
-}
-
-
-// ==========================================
-// CONVERTER NÚMERO DO EXCEL PARA DATE
-// ==========================================
-//
-// Excel normalmente armazena:
-// 46000 = data
-// 0.5 = 12:00
-//
-// ==========================================
-
-function converterNumeroExcelParaDate(
-    numero
-) {
-
-    if (
-        typeof numero !== "number" ||
-        !isFinite(numero)
-    ) {
-
-        return null;
-
-    }
-
-
-    // Sistema de datas do Excel
-    const dataBase =
-        new Date(
-            Date.UTC(
-                1899,
-                11,
-                30
-            )
-        );
-
-
-    const inteiro =
-        Math.floor(
-            numero
-        );
-
-
-    const milissegundos =
-        inteiro *
-        86400000;
-
-
-    const data =
-        new Date(
-            dataBase.getTime() +
-            milissegundos
-        );
-
-
-    // --------------------------------------
-    // Ajustar para horário local
-    // --------------------------------------
-
-    const fracao =
-        numero -
-        inteiro;
-
-
-    const totalSegundos =
-        Math.round(
-            fracao *
-            86400
-        );
-
-
-    data.setHours(
-        Math.floor(
-            totalSegundos / 3600
-        )
-    );
-
-
-    data.setMinutes(
-        Math.floor(
-            (
-                totalSegundos % 3600
-            ) / 60
-        )
-    );
-
-
-    data.setSeconds(
-        totalSegundos % 60
-    );
-
-
-    data.setMilliseconds(
-        0
-    );
-
-
-    return data;
-
-}
-
-
-// ==========================================
-// CONVERTER NÚMERO DO EXCEL PARA HORA
-// ==========================================
-
-function converterNumeroExcelParaHora(
-    numero
-) {
-
-    if (
-        typeof numero !== "number" ||
-        !isFinite(numero)
-    ) {
-
-        return null;
-
-    }
-
-
-    // Se vier como 0.5 = 12:00
-    let fracao =
-        numero;
-
-
-    // Se vier como número inteiro,
-    // pode representar segundos.
-    if (
-        fracao >= 1
-    ) {
-
-        fracao =
-            fracao -
-            Math.floor(fracao);
-
-    }
-
-
-    const totalSegundos =
-        Math.round(
-            fracao *
-            86400
-        );
-
-
-    const hora =
-        Math.floor(
-            totalSegundos /
-            3600
-        );
-
-
-    const minuto =
-        Math.floor(
-            (
-                totalSegundos %
-                3600
-            ) /
-            60
-        );
-
-
-    const segundo =
-        totalSegundos %
-        60;
-
-
-    const data =
-        new Date(
-            2000,
-            0,
-            1,
-            hora,
-            minuto,
-            segundo,
-            0
-        );
-
-
-    return data;
-
-}
-
-
-// ==========================================
-// CONVERTER TEXTO PARA DATE
-// ==========================================
-
-function converterTextoParaDate(
-    valor
-) {
-
-    if (
-        !valor
-    ) {
-
-        return null;
 
     }
 
 
     const texto =
-        String(
-            valor
-        )
-        .trim();
+        String(valor)
+            .trim();
 
 
-    if (
-        !texto
-    ) {
-
-        return null;
-
-    }
-
-
-    // ======================================
-    // DD/MM/YYYY HH:MM[:SS]
-    // ======================================
+    // --------------------------------------
+    // DD/MM/YYYY
+    // --------------------------------------
 
     let match =
         texto.match(
-            /(\d{1,2})\/(\d{1,2})\/(\d{2,4}).*?(\d{1,2}):(\d{2})(?::(\d{2}))?/
+            /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/
         );
 
 
@@ -2187,127 +1304,26 @@ function converterTextoParaDate(
         }
 
 
-        const data =
-            new Date(
-                ano,
-                Number(match[2]) - 1,
-                Number(match[1]),
-                Number(match[4]),
-                Number(match[5]),
-                Number(match[6] || 0),
-                0
-            );
-
-
-        if (
-            !isNaN(
-                data.getTime()
-            )
-        ) {
-
-            return data;
-
-        }
-
-    }
-
-
-    // ======================================
-    // DD/MM/YYYY
-    // ======================================
-
-    match =
-        texto.match(
-            /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/
+        return (
+            String(
+                Number(match[1])
+            ).padStart(2, "0")
+            +
+            "/" +
+            String(
+                Number(match[2])
+            ).padStart(2, "0")
+            +
+            "/" +
+            ano
         );
 
-
-    if (
-        match
-    ) {
-
-        let ano =
-            Number(
-                match[3]
-            );
-
-
-        if (
-            ano < 100
-        ) {
-
-            ano += 2000;
-
-        }
-
-
-        const data =
-            new Date(
-                ano,
-                Number(match[2]) - 1,
-                Number(match[1]),
-                0,
-                0,
-                0,
-                0
-            );
-
-
-        if (
-            !isNaN(
-                data.getTime()
-            )
-        ) {
-
-            return data;
-
-        }
-
     }
 
 
-    // ======================================
-    // YYYY-MM-DD HH:MM
-    // ======================================
-
-    match =
-        texto.match(
-            /(\d{4})-(\d{1,2})-(\d{1,2}).*?(\d{1,2}):(\d{2})(?::(\d{2}))?/
-        );
-
-
-    if (
-        match
-    ) {
-
-        const data =
-            new Date(
-                Number(match[1]),
-                Number(match[2]) - 1,
-                Number(match[3]),
-                Number(match[4]),
-                Number(match[5]),
-                Number(match[6] || 0),
-                0
-            );
-
-
-        if (
-            !isNaN(
-                data.getTime()
-            )
-        ) {
-
-            return data;
-
-        }
-
-    }
-
-
-    // ======================================
-    // TENTATIVA NATIVA
-    // ======================================
+    // --------------------------------------
+    // DATA ISO
+    // --------------------------------------
 
     const data =
         new Date(
@@ -2321,45 +1337,174 @@ function converterTextoParaDate(
         )
     ) {
 
-        return data;
+        const dia =
+            String(
+                data.getDate()
+            ).padStart(
+                2,
+                "0"
+            );
+
+
+        const mes =
+            String(
+                data.getMonth() + 1
+            ).padStart(
+                2,
+                "0"
+            );
+
+
+        const ano =
+            data.getFullYear();
+
+
+        return `${dia}/${mes}/${ano}`;
 
     }
 
 
-    return null;
+    return "";
 
 }
 
 
 // ==========================================
-// CONVERTER TEXTO PARA HORA
+// HORA
 // ==========================================
 
-function converterTextoParaHora(
+function extrairHora(
     valor
 ) {
 
     if (
-        !valor
+        valor === null ||
+        valor === undefined ||
+        valor === ""
     ) {
 
-        return null;
+        return "";
+
+    }
+
+
+    // --------------------------------------
+    // DATE DO EXCEL
+    // --------------------------------------
+
+    if (
+        valor instanceof Date
+    ) {
+
+        if (
+            isNaN(
+                valor.getTime()
+            )
+        ) {
+
+            return "";
+
+        }
+
+
+        const hora =
+            String(
+                valor.getHours()
+            ).padStart(
+                2,
+                "0"
+            );
+
+
+        const minuto =
+            String(
+                valor.getMinutes()
+            ).padStart(
+                2,
+                "0"
+            );
+
+
+        const segundo =
+            String(
+                valor.getSeconds()
+            ).padStart(
+                2,
+                "0"
+            );
+
+
+        return `${hora}:${minuto}:${segundo}`;
+
+    }
+
+
+    // --------------------------------------
+    // NÚMERO DO EXCEL
+    //
+    // Exemplo:
+    // 0.5 = 12:00
+    // --------------------------------------
+
+    if (
+        typeof valor === "number" &&
+        valor >= 0 &&
+        valor < 1
+    ) {
+
+        const totalSegundos =
+            Math.round(
+                valor * 24 * 60 * 60
+            );
+
+
+        const horas =
+            Math.floor(
+                totalSegundos / 3600
+            );
+
+
+        const minutos =
+            Math.floor(
+                (
+                    totalSegundos % 3600
+                ) / 60
+            );
+
+
+        const segundos =
+            totalSegundos % 60;
+
+
+        return (
+            String(
+                horas
+            ).padStart(2, "0")
+            +
+            ":" +
+            String(
+                minutos
+            ).padStart(2, "0")
+            +
+            ":" +
+            String(
+                segundos
+            ).padStart(2, "0")
+        );
 
     }
 
 
     const texto =
-        String(
-            valor
-        )
-        .trim();
+        String(valor)
+            .trim();
 
 
     // --------------------------------------
     // HH:MM:SS
     // --------------------------------------
 
-    let match =
+    const match =
         texto.match(
             /(\d{1,2}):(\d{2})(?::(\d{2}))?/
         );
@@ -2369,118 +1514,41 @@ function converterTextoParaHora(
         match
     ) {
 
-        return new Date(
-            2000,
-            0,
-            1,
-            Number(match[1]),
-            Number(match[2]),
-            Number(match[3] || 0),
-            0
-        );
-
-    }
-
-
-    return null;
-
-}
-
-
-// ==========================================
-// COMPATIBILIDADE
-// ==========================================
-
-function extrairData(
-    valor
-) {
-
-    if (
-        valor instanceof Date
-    ) {
-
-        return formatarData(
-            valor
-        );
-
-    }
-
-
-    if (
-        typeof valor === "number"
-    ) {
-
-        const data =
-            converterNumeroExcelParaDate(
-                valor
-            );
-
-
-        return data
-            ? formatarData(data)
-            : "";
-
-    }
-
-
-    const data =
-        converterTextoParaDate(
-            valor
-        );
-
-
-    return data
-        ? formatarData(data)
-        : "";
-
-}
-
-
-// ==========================================
-// COMPATIBILIDADE
-// ==========================================
-
-function extrairHora(
-    valor
-) {
-
-    if (
-        valor instanceof Date
-    ) {
-
-        return formatarHora(
-            valor
-        );
-
-    }
-
-
-    if (
-        typeof valor === "number"
-    ) {
-
         const hora =
-            converterNumeroExcelParaHora(
-                valor
+            String(
+                Number(match[1])
+            ).padStart(
+                2,
+                "0"
             );
 
 
-        return hora
-            ? formatarHora(hora)
-            : "";
+        const minuto =
+            String(
+                Number(match[2])
+            ).padStart(
+                2,
+                "0"
+            );
+
+
+        const segundo =
+            String(
+                Number(
+                    match[3] || 0
+                )
+            ).padStart(
+                2,
+                "0"
+            );
+
+
+        return `${hora}:${minuto}:${segundo}`;
 
     }
 
 
-    const hora =
-        converterTextoParaHora(
-            valor
-        );
-
-
-    return hora
-        ? formatarHora(hora)
-        : "";
+    return "";
 
 }
 
@@ -2498,9 +1566,7 @@ function atualizarContador() {
 
 
     if (!contador) {
-
         return;
-
     }
 
 
@@ -2539,9 +1605,7 @@ function atualizarStatus(
         );
 
 
-    if (
-        status
-    ) {
+    if (status) {
 
         status.textContent =
             texto;
@@ -2560,16 +1624,9 @@ function atualizarTela() {
     atualizarContador();
 
 
-    // ======================================
-    // DUAS PLANILHAS CARREGADAS
-    // ======================================
-
     if (
-
         dadosPremmia.length > 0 &&
-
         dadosInterno.length > 0
-
     ) {
 
         atualizarStatus(
@@ -2577,70 +1634,27 @@ function atualizarTela() {
         );
 
 
-        if (
-            btnConferir
-        ) {
+        if (btnConferir) {
 
             btnConferir.disabled =
                 false;
 
         }
 
-
-        return;
-
     }
-
-
-    // ======================================
-    // SOMENTE PREMMIA
-    // ======================================
-
-    if (
-        dadosPremmia.length > 0
-    ) {
-
-        atualizarStatus(
-            "Planilha Premmia carregada. Aguardando planilha interna."
-        );
-
-    }
-
-
-    // ======================================
-    // SOMENTE INTERNO
-    // ======================================
-
-    else if (
-        dadosInterno.length > 0
-    ) {
-
-        atualizarStatus(
-            "Planilha interna carregada. Aguardando planilha Premmia."
-        );
-
-    }
-
-
-    // ======================================
-    // NENHUMA
-    // ======================================
-
     else {
 
         atualizarStatus(
             "Aguardando carregamento das planilhas."
         );
 
-    }
 
+        if (btnConferir) {
 
-    if (
-        btnConferir
-    ) {
+            btnConferir.disabled =
+                true;
 
-        btnConferir.disabled =
-            true;
+        }
 
     }
 
@@ -2659,71 +1673,33 @@ window.dadosInterno =
     dadosInterno;
 
 
-window.extrairData =
-    extrairData;
+window.lerPremmia =
+    lerPremmia;
 
 
-window.extrairHora =
-    extrairHora;
+window.lerInterno =
+    lerInterno;
 
 
-window.converterValor =
-    converterValor;
+window.transformarPremmia =
+    transformarPremmia;
 
 
-window.normalizarAutorizacao =
-    normalizarAutorizacao;
+window.transformarInterno =
+    transformarInterno;
 
-
-window.normalizarDataHoraPremmia =
-    normalizarDataHoraPremmia;
-
-
-window.normalizarDataHoraInterno =
-    normalizarDataHoraInterno;
-
-
-window.atualizarTela =
-    atualizarTela;
-
-
-window.atualizarStatus =
-    atualizarStatus;
-
-
-// ==========================================
-// LOG FINAL
-// ==========================================
 
 console.log(
     "================================="
 );
 
-
 console.log(
     "leituraExcel.js iniciado"
 );
 
-
 console.log(
-    "Leitura por data + hora preparada."
+    "Leitura por DATA + HORA preparada."
 );
-
-
-console.log(
-    "Datas Excel: suportadas"
-);
-
-
-console.log(
-    "Horas Excel: suportadas"
-);
-
-
-console.log(
-    "Tolerância é definida no conferencia.js"
-);
-
 
 console.log(
     "================================="
