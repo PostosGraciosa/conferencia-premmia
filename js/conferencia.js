@@ -21,7 +21,7 @@
 // CONFIGURAÇÕES
 // ==========================================
 
-const TOLERANCIA_MINUTOS = 5;
+const TOLERANCIA_MINUTOS = 10;
 
 const TOLERANCIA_MS =
     TOLERANCIA_MINUTOS * 60 * 1000;
