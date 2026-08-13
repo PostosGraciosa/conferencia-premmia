@@ -5,270 +5,360 @@
 // RESPONSABILIDADE:
 //
 // 1. Exportar os resultados da conferência
-// 2. Exportar para Excel (.xlsx)
-// 3. Exportar para CSV
-// 4. Respeitar os filtros atuais
-// 5. Mostrar informações completas
+// 2. Gerar arquivo Excel (.xlsx)
+// 3. Exportar todos os resultados
+// 4. Respeitar os dados produzidos pelo
+//    conferencia.js
 //
-// REGRA:
-//
-// A conferência é feita por:
-//
-// VALOR
-// +
-// DATA
-// +
-// HORÁRIO
-//
-// A autorização é apenas informativa.
-// O operador é apenas informativo.
+// NÃO faz nova conferência.
+// NÃO altera os resultados.
 // ==========================================
 
 
 // ==========================================
-// VERIFICAR XLSX
+// BOTÃO EXPORTAR
 // ==========================================
 
-function verificarBibliotecaXLSX() {
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const btnExportar =
+            document.getElementById(
+                "btnExportar"
+            );
+
+
+        if (!btnExportar) {
+
+            console.warn(
+                "Botão btnExportar não encontrado."
+            );
+
+            return;
+
+        }
+
+
+        btnExportar.addEventListener(
+            "click",
+            exportarExcel
+        );
+
+    }
+);
+
+
+// ==========================================
+// EXPORTAR EXCEL
+// ==========================================
+
+function exportarExcel() {
+
+    // ======================================
+    // VERIFICAR BIBLIOTECA XLSX
+    // ======================================
 
     if (
         typeof XLSX === "undefined"
     ) {
 
         alert(
-            "A biblioteca XLSX não foi carregada.\n\n" +
-            "Verifique se o SheetJS está incluído no index.html."
+            "A biblioteca Excel não foi carregada."
         );
 
-        return false;
+        return;
 
     }
 
-    return true;
 
-}
+    // ======================================
+    // VERIFICAR RESULTADOS
+    // ======================================
 
+    const resultados =
+        window.resultadosConferencia;
 
-// ==========================================
-// OBTER RESULTADOS
-// ==========================================
-
-function obterResultadosParaExportacao() {
 
     if (
-        !Array.isArray(
-            window.resultadosConferencia
-        )
+        !Array.isArray(resultados) ||
+        resultados.length === 0
     ) {
 
-        return [];
+        alert(
+            "Não existem resultados para exportar."
+        );
+
+        return;
 
     }
 
-    return window.resultadosConferencia;
 
-}
+    // ======================================
+    // CONFIRMAÇÃO
+    // ======================================
+
+    console.log(
+        "================================="
+    );
+
+    console.log(
+        "EXPORTAÇÃO EXCEL"
+    );
+
+    console.log(
+        "Resultados:",
+        resultados.length
+    );
+
+    console.log(
+        "================================="
+    );
 
 
-// ==========================================
-// TRANSFORMAR RESULTADOS
-// ==========================================
+    // ======================================
+    // PREPARAR DADOS
+    // ======================================
 
-function prepararDadosExportacao(
-    resultados
-) {
+    const dadosExcel = [];
 
-    return resultados.map(
+
+    // ======================================
+    // CABEÇALHO
+    // ======================================
+
+    dadosExcel.push([
+
+        "Status",
+
+        "Data Premmia",
+
+        "Hora Premmia",
+
+        "Data Interno",
+
+        "Hora Interno",
+
+        "Diferença Horário",
+
+        "Cliente",
+
+        "Autorização Premmia",
+
+        "Autorização Interno",
+
+        "Valor Premmia",
+
+        "Valor Interno",
+
+        "Diferença",
+
+        "Operador",
+
+        "Pagamento",
+
+        "Tipo",
+
+        "Observação"
+
+    ]);
+
+
+    // ======================================
+    // RESULTADOS
+    // ======================================
+
+    resultados.forEach(
         resultado => {
 
-            return {
+            dadosExcel.push([
 
-                "Status":
-                    nomeStatusExportacao(
-                        resultado.status
-                    ),
+                traduzirStatus(
+                    resultado.status
+                ),
 
-                "Data Premmia":
-                    resultado.dataPremmia || "",
+                resultado.dataPremmia ||
+                    "",
 
-                "Hora Premmia":
-                    resultado.horaPremmia || "",
+                resultado.horaPremmia ||
+                    "",
 
-                "Data Interno":
-                    resultado.dataInterno || "",
+                resultado.dataInterno ||
+                    "",
 
-                "Hora Interno":
-                    resultado.horaInterno || "",
+                resultado.horaInterno ||
+                    "",
 
-                "Diferença Horário":
-                    resultado.diferencaHorario !== null &&
-                    resultado.diferencaHorario !== undefined
-                        ? formatarHorarioExportacao(
-                            resultado.diferencaHorario
-                        )
-                        : "",
+                resultado.diferencaHorario !== null &&
+                resultado.diferencaHorario !== undefined
+                    ? Number(
+                        resultado.diferencaHorario
+                    )
+                    : "",
 
-                "Cliente":
-                    resultado.cliente || "",
+                resultado.cliente ||
+                    "",
 
-                "Valor Premmia":
-                    resultado.valorPremmia !== null &&
-                    resultado.valorPremmia !== undefined
-                        ? Number(
-                            resultado.valorPremmia
-                        )
-                        : "",
+                resultado.autorizacaoPremmia ||
+                    "",
 
-                "Valor Interno":
-                    resultado.valorInterno !== null &&
-                    resultado.valorInterno !== undefined
-                        ? Number(
-                            resultado.valorInterno
-                        )
-                        : "",
+                resultado.autorizacaoInterno ||
+                    "",
 
-                "Diferença":
-                    resultado.diferenca !== null &&
-                    resultado.diferenca !== undefined
-                        ? Number(
-                            resultado.diferenca
-                        )
-                        : "",
+                resultado.valorPremmia !== null &&
+                resultado.valorPremmia !== undefined
+                    ? Number(
+                        resultado.valorPremmia
+                    )
+                    : "",
 
-                "Autorização Premmia":
-                    resultado.autorizacaoPremmia || "",
+                resultado.valorInterno !== null &&
+                resultado.valorInterno !== undefined
+                    ? Number(
+                        resultado.valorInterno
+                    )
+                    : "",
 
-                "Autorização Interno":
-                    resultado.autorizacaoInterno || "",
+                resultado.diferenca !== null &&
+                resultado.diferenca !== undefined
+                    ? Number(
+                        resultado.diferenca
+                    )
+                    : "",
 
-                "Operador":
-                    resultado.operador || "",
+                resultado.operador ||
+                    "",
 
-                "Forma de Pagamento":
-                    resultado.pagamento || "",
+                resultado.pagamento ||
+                    "",
 
-                "Tipo":
-                    resultado.tipo || "",
+                resultado.tipo ||
+                    "",
 
-                "Observação":
-                    resultado.observacao || ""
+                resultado.observacao ||
+                    ""
 
-            };
+            ]);
 
         }
     );
 
-}
 
+    // ======================================
+    // CRIAR PLANILHA
+    // ======================================
 
-// ==========================================
-// NOME DO STATUS
-// ==========================================
-
-function nomeStatusExportacao(
-    status
-) {
-
-    const nomes = {
-
-        CORRETA:
-            "CONFERIDA",
-
-        CORRESPONDENCIA_DATA_HORA:
-            "CORRESPONDÊNCIA DATA/HORA",
-
-        NAO_LANCADA:
-            "NÃO LANÇADA",
-
-        LANCADA_A_MAIS:
-            "LANÇADA A MAIS",
-
-        VALOR_DIVERGENTE:
-            "VALOR DIVERGENTE"
-
-    };
-
-    return (
-        nomes[status] ||
-        status ||
-        ""
-    );
-
-}
-
-
-// ==========================================
-// FORMATAR HORÁRIO PARA EXCEL
-// ==========================================
-
-function formatarHorarioExportacao(
-    minutos
-) {
-
-    if (
-        minutos === null ||
-        minutos === undefined
-    ) {
-
-        return "";
-
-    }
-
-    const valor =
-        Number(
-            minutos
+    const planilha =
+        XLSX.utils.aoa_to_sheet(
+            dadosExcel
         );
 
 
-    if (
-        isNaN(valor)
-    ) {
+    // ======================================
+    // LARGURA DAS COLUNAS
+    // ======================================
 
-        return "";
+    planilha["!cols"] = [
 
-    }
+        {
+            wch: 25
+        },
+
+        {
+            wch: 14
+        },
+
+        {
+            wch: 12
+        },
+
+        {
+            wch: 14
+        },
+
+        {
+            wch: 12
+        },
+
+        {
+            wch: 18
+        },
+
+        {
+            wch: 30
+        },
+
+        {
+            wch: 40
+        },
+
+        {
+            wch: 40
+        },
+
+        {
+            wch: 16
+        },
+
+        {
+            wch: 16
+        },
+
+        {
+            wch: 16
+        },
+
+        {
+            wch: 25
+        },
+
+        {
+            wch: 20
+        },
+
+        {
+            wch: 25
+        },
+
+        {
+            wch: 60
+        }
+
+    ];
 
 
-    if (
-        Math.abs(valor) < 0.01
-    ) {
+    // ======================================
+    // FORMATAR VALORES COMO MOEDA
+    // ======================================
 
-        return "0 min";
-
-    }
-
-
-    if (
-        valor < 1
-    ) {
-
-        return (
-            Math.round(
-                valor * 60
-            )
-            +
-            " seg"
-        );
-
-    }
-
-
-    return (
-        valor.toFixed(1)
-        +
-        " min"
+    aplicarFormatoMoeda(
+        planilha,
+        dadosExcel
     );
 
-}
+
+    // ======================================
+    // CRIAR WORKBOOK
+    // ======================================
+
+    const workbook =
+        XLSX.utils.book_new();
 
 
-// ==========================================
-// GERAR NOME DO ARQUIVO
-// ==========================================
+    // ======================================
+    // ADICIONAR PLANILHA
+    // ======================================
 
-function gerarNomeArquivo(
-    extensao
-) {
+    XLSX.utils.book_append_sheet(
+        workbook,
+        planilha,
+        "Conferência"
+    );
+
+
+    // ======================================
+    // CRIAR NOME DO ARQUIVO
+    // ======================================
 
     const agora =
         new Date();
@@ -314,979 +404,133 @@ function gerarNomeArquivo(
         );
 
 
-    return (
-        "Conferencia_Premmia_"
-        +
-        dia
-        +
-        "-"
-        +
-        mes
-        +
-        "-"
-        +
-        ano
-        +
-        "_"
-        +
-        hora
-        +
-        "-"
-        +
-        minuto
-        +
-        "."
-        +
-        extensao
-    );
-
-}
-
-
-// ==========================================
-// EXPORTAR EXCEL
-// ==========================================
-
-function exportarExcel() {
-
-    // ======================================
-    // VERIFICAR BIBLIOTECA
-    // ======================================
-
-    if (
-        !verificarBibliotecaXLSX()
-    ) {
-
-        return;
-
-    }
-
-
-    // ======================================
-    // OBTER RESULTADOS
-    // ======================================
-
-    const resultados =
-        obterResultadosParaExportacao();
-
-
-    if (
-        resultados.length === 0
-    ) {
-
-        alert(
-            "Não existem resultados para exportar."
-        );
-
-        return;
-
-    }
-
-
-    // ======================================
-    // PREPARAR DADOS
-    // ======================================
-
-    const dados =
-        prepararDadosExportacao(
-            resultados
-        );
-
-
-    // ======================================
-    // CRIAR PLANILHA
-    // ======================================
-
-    const planilha =
-        XLSX.utils.json_to_sheet(
-            dados
-        );
-
-
-    // ======================================
-    // LARGURA DAS COLUNAS
-    // ======================================
-
-    planilha["!cols"] = [
-
-        {
-            wch: 25
-        },
-
-        {
-            wch: 14
-        },
-
-        {
-            wch: 12
-        },
-
-        {
-            wch: 14
-        },
-
-        {
-            wch: 12
-        },
-
-        {
-            wch: 18
-        },
-
-        {
-            wch: 30
-        },
-
-        {
-            wch: 16
-        },
-
-        {
-            wch: 16
-        },
-
-        {
-            wch: 14
-        },
-
-        {
-            wch: 38
-        },
-
-        {
-            wch: 38
-        },
-
-        {
-            wch: 22
-        },
-
-        {
-            wch: 22
-        },
-
-        {
-            wch: 25
-        },
-
-        {
-            wch: 70
-        }
-
-    ];
-
-
-    // ======================================
-    // CRIAR ARQUIVO
-    // ======================================
-
-    const workbook =
-        XLSX.utils.book_new();
-
-
-    XLSX.utils.book_append_sheet(
-        workbook,
-        planilha,
-        "Conferência"
-    );
-
-
-    // ======================================
-    // EXPORTAR
-    // ======================================
-
-    XLSX.writeFile(
-        workbook,
-        gerarNomeArquivo(
-            "xlsx"
-        )
-    );
-
-}
-
-
-// ==========================================
-// EXPORTAR CSV
-// ==========================================
-
-function exportarCSV() {
-
-    // ======================================
-    // VERIFICAR BIBLIOTECA
-    // ======================================
-
-    if (
-        !verificarBibliotecaXLSX()
-    ) {
-
-        return;
-
-    }
-
-
-    // ======================================
-    // OBTER RESULTADOS
-    // ======================================
-
-    const resultados =
-        obterResultadosParaExportacao();
-
-
-    if (
-        resultados.length === 0
-    ) {
-
-        alert(
-            "Não existem resultados para exportar."
-        );
-
-        return;
-
-    }
-
-
-    // ======================================
-    // PREPARAR DADOS
-    // ======================================
-
-    const dados =
-        prepararDadosExportacao(
-            resultados
-        );
-
-
-    // ======================================
-    // CRIAR PLANILHA
-    // ======================================
-
-    const planilha =
-        XLSX.utils.json_to_sheet(
-            dados
-        );
-
-
-    // ======================================
-    // GERAR CSV
-    // ======================================
-
-    const csv =
-        XLSX.utils.sheet_to_csv(
-            planilha,
-            {
-                FS: ";"
-            }
-        );
-
-
-    // ======================================
-    // BOM UTF-8
-    //
-    // Importante para abrir corretamente
-    // caracteres como:
-    //
-    // NÃO
-    // LANÇADA
-    // DIFERENÇA
-    // AUTORIZAÇÃO
-    // ======================================
-
-    const blob =
-        new Blob(
-            [
-                "\uFEFF",
-                csv
-            ],
-            {
-                type:
-                    "text/csv;charset=utf-8;"
-            }
-        );
+    const nomeArquivo =
+        `Conferencia_Premmia_${dia}-${mes}-${ano}_${hora}-${minuto}.xlsx`;
 
 
     // ======================================
     // DOWNLOAD
     // ======================================
 
-    const url =
-        URL.createObjectURL(
-            blob
-        );
-
-
-    const link =
-        document.createElement(
-            "a"
-        );
-
-
-    link.href =
-        url;
-
-
-    link.download =
-        gerarNomeArquivo(
-            "csv"
-        );
-
-
-    document.body.appendChild(
-        link
-    );
-
-
-    link.click();
-
-
-    document.body.removeChild(
-        link
-    );
-
-
-    URL.revokeObjectURL(
-        url
-    );
-
-}
-
-
-// ==========================================
-// EXPORTAR RESULTADOS FILTRADOS
-// ==========================================
-//
-// Caso a tela esteja mostrando somente
-// determinado status, esta função pode
-// receber os resultados filtrados.
-//
-// Exemplo:
-//
-// exportarResultados(
-//     resultadosFiltrados
-// );
-//
-// ==========================================
-
-function exportarResultados(
-    resultados
-) {
-
-    if (
-        !verificarBibliotecaXLSX()
-    ) {
-
-        return;
-
-    }
-
-
-    if (
-        !Array.isArray(
-            resultados
-        ) ||
-        resultados.length === 0
-    ) {
-
-        alert(
-            "Não existem resultados para exportar."
-        );
-
-        return;
-
-    }
-
-
-    const dados =
-        prepararDadosExportacao(
-            resultados
-        );
-
-
-    const planilha =
-        XLSX.utils.json_to_sheet(
-            dados
-        );
-
-
-    const workbook =
-        XLSX.utils.book_new();
-
-
-    XLSX.utils.book_append_sheet(
-        workbook,
-        planilha,
-        "Conferência"
-    );
-
-
     XLSX.writeFile(
         workbook,
-        gerarNomeArquivo(
-            "xlsx"
-        )
+        nomeArquivo
+    );
+
+
+    // ======================================
+    // MENSAGEM
+    // ======================================
+
+    console.log(
+        "Arquivo exportado:",
+        nomeArquivo
     );
 
 }
 
 
 // ==========================================
-// EXPORTAR APENAS UM STATUS
+// TRADUZIR STATUS
 // ==========================================
 
-function exportarStatus(
+function traduzirStatus(
     status
 ) {
 
-    const resultados =
-        obterResultadosParaExportacao();
+    const nomes = {
+
+        CORRETA:
+            "CONFERIDA",
+
+        CORRESPONDENCIA_DATA_HORA:
+            "DATA/HORA",
+
+        NAO_LANCADA:
+            "NÃO LANÇADA",
+
+        LANCADA_A_MAIS:
+            "LANÇADA A MAIS",
+
+        VALOR_DIVERGENTE:
+            "VALOR DIVERGENTE"
+
+    };
 
 
-    const filtrados =
-        resultados.filter(
-            resultado =>
-                resultado.status ===
-                status
-        );
-
-
-    exportarResultados(
-        filtrados
+    return (
+        nomes[status] ||
+        status ||
+        ""
     );
 
 }
 
 
 // ==========================================
-// EXPORTAR RELATÓRIO COMPLETO
-// ==========================================
-//
-// Esta versão gera uma planilha com:
-//
-// 1. Resumo
-// 2. Resultados
-//
+// FORMATO DE MOEDA
 // ==========================================
 
-function exportarRelatorioCompleto() {
+function aplicarFormatoMoeda(
+    planilha,
+    dados
+) {
 
-    if (
-        !verificarBibliotecaXLSX()
+    // ======================================
+    // COLUNAS
+    //
+    // J = Valor Premmia
+    // K = Valor Interno
+    // L = Diferença
+    // ======================================
+
+    const colunasMoeda = [
+        9,
+        10,
+        11
+    ];
+
+
+    // ======================================
+    // PERCORRER LINHAS
+    // ======================================
+
+    for (
+        let linha = 1;
+        linha < dados.length;
+        linha++
     ) {
 
-        return;
+        colunasMoeda.forEach(
+            coluna => {
 
-    }
+                const celula =
+                    XLSX.utils.encode_cell({
 
+                        r:
+                            linha,
 
-    const resultados =
-        obterResultadosParaExportacao();
+                        c:
+                            coluna
 
+                    });
 
-    if (
-        resultados.length === 0
-    ) {
 
-        alert(
-            "Não existem resultados para exportar."
-        );
+                if (
+                    planilha[celula]
+                ) {
 
-        return;
+                    planilha[celula].z =
+                        'R$ #,##0.00';
 
-    }
-
-
-    // ======================================
-    // RESUMO
-    // ======================================
-
-    const resumo = [
-
-        {
-            "Indicador":
-                "Total Portal Premmia",
-
-            "Quantidade":
-                window.dadosPremmia
-                    ? window.dadosPremmia.length
-                    : 0,
-
-            "Valor":
-                calcularTotalExportacao(
-                    window.dadosPremmia
-                )
-
-        },
-
-        {
-            "Indicador":
-                "Total Sistema Interno",
-
-            "Quantidade":
-                window.dadosInterno
-                    ? window.dadosInterno.length
-                    : 0,
-
-            "Valor":
-                calcularTotalExportacao(
-                    window.dadosInterno
-                )
-
-        },
-
-        {
-            "Indicador":
-                "Diferença dos Totais",
-
-            "Quantidade":
-                "",
-
-            "Valor":
-                calcularTotalExportacao(
-                    window.dadosInterno
-                )
-                -
-                calcularTotalExportacao(
-                    window.dadosPremmia
-                )
-
-        },
-
-        {
-            "Indicador":
-                "Conferidas",
-
-            "Quantidade":
-                contarStatus(
-                    "CORRETA"
-                ),
-
-            "Valor":
-                calcularValorStatus(
-                    "CORRETA"
-                )
-
-        },
-
-        {
-            "Indicador":
-                "Correspondência Data/Hora",
-
-            "Quantidade":
-                contarStatus(
-                    "CORRESPONDENCIA_DATA_HORA"
-                ),
-
-            "Valor":
-                calcularValorStatus(
-                    "CORRESPONDENCIA_DATA_HORA"
-                )
-
-        },
-
-        {
-            "Indicador":
-                "Não Lançadas",
-
-            "Quantidade":
-                contarStatus(
-                    "NAO_LANCADA"
-                ),
-
-            "Valor":
-                calcularValorStatus(
-                    "NAO_LANCADA"
-                )
-
-        },
-
-        {
-            "Indicador":
-                "Lançadas a Mais",
-
-            "Quantidade":
-                contarStatus(
-                    "LANCADA_A_MAIS"
-                ),
-
-            "Valor":
-                calcularValorStatus(
-                    "LANCADA_A_MAIS"
-                )
-
-        },
-
-        {
-            "Indicador":
-                "Valor Divergente",
-
-            "Quantidade":
-                contarStatus(
-                    "VALOR_DIVERGENTE"
-                ),
-
-            "Valor":
-                calcularValorStatus(
-                    "VALOR_DIVERGENTE"
-                )
-
-        }
-
-    ];
-
-
-    // ======================================
-    // PLANILHAS
-    // ======================================
-
-    const planilhaResumo =
-        XLSX.utils.json_to_sheet(
-            resumo
-        );
-
-
-    const planilhaResultados =
-        XLSX.utils.json_to_sheet(
-            prepararDadosExportacao(
-                resultados
-            )
-        );
-
-
-    // ======================================
-    // LARGURA RESUMO
-    // ======================================
-
-    planilhaResumo["!cols"] = [
-
-        {
-            wch: 32
-        },
-
-        {
-            wch: 15
-        },
-
-        {
-            wch: 18
-        }
-
-    ];
-
-
-    // ======================================
-    // LARGURA RESULTADOS
-    // ======================================
-
-    planilhaResultados["!cols"] = [
-
-        {
-            wch: 25
-        },
-
-        {
-            wch: 14
-        },
-
-        {
-            wch: 12
-        },
-
-        {
-            wch: 14
-        },
-
-        {
-            wch: 12
-        },
-
-        {
-            wch: 18
-        },
-
-        {
-            wch: 30
-        },
-
-        {
-            wch: 16
-        },
-
-        {
-            wch: 16
-        },
-
-        {
-            wch: 14
-        },
-
-        {
-            wch: 38
-        },
-
-        {
-            wch: 38
-        },
-
-        {
-            wch: 22
-        },
-
-        {
-            wch: 22
-        },
-
-        {
-            wch: 25
-        },
-
-        {
-            wch: 70
-        }
-
-    ];
-
-
-    // ======================================
-    // CRIAR WORKBOOK
-    // ======================================
-
-    const workbook =
-        XLSX.utils.book_new();
-
-
-    // ======================================
-    // ADICIONAR RESUMO
-    // ======================================
-
-    XLSX.utils.book_append_sheet(
-        workbook,
-        planilhaResumo,
-        "Resumo"
-    );
-
-
-    // ======================================
-    // ADICIONAR RESULTADOS
-    // ======================================
-
-    XLSX.utils.book_append_sheet(
-        workbook,
-        planilhaResultados,
-        "Resultados"
-    );
-
-
-    // ======================================
-    // EXPORTAR
-    // ======================================
-
-    XLSX.writeFile(
-        workbook,
-        gerarNomeArquivo(
-            "xlsx"
-        )
-    );
-
-}
-
-
-// ==========================================
-// CONTAR STATUS
-// ==========================================
-
-function contarStatus(
-    status
-) {
-
-    const resultados =
-        obterResultadosParaExportacao();
-
-
-    return resultados.filter(
-        resultado =>
-            resultado.status ===
-            status
-    ).length;
-
-}
-
-
-// ==========================================
-// CALCULAR VALOR POR STATUS
-// ==========================================
-
-function calcularValorStatus(
-    status
-) {
-
-    const resultados =
-        obterResultadosParaExportacao();
-
-
-    let total =
-        0;
-
-
-    resultados.forEach(
-        resultado => {
-
-            if (
-                resultado.status !==
-                status
-            ) {
-
-                return;
+                }
 
             }
-
-
-            let valor =
-                resultado.valorPremmia;
-
-
-            if (
-                valor === null ||
-                valor === undefined
-            ) {
-
-                valor =
-                    resultado.valorInterno;
-
-            }
-
-
-            total +=
-                Number(
-                    valor || 0
-                );
-
-        }
-    );
-
-
-    return Number(
-        total.toFixed(2)
-    );
-
-}
-
-
-// ==========================================
-// CALCULAR TOTAL DE UMA PLANILHA
-// ==========================================
-
-function calcularTotalExportacao(
-    registros
-) {
-
-    if (
-        !Array.isArray(
-            registros
-        )
-    ) {
-
-        return 0;
+        );
 
     }
 
-
-    let total =
-        0;
-
-
-    registros.forEach(
-        registro => {
-
-            total +=
-                Number(
-                    registro?.valor || 0
-                );
-
-        }
-    );
-
-
-    return Number(
-        total.toFixed(2)
-    );
-
 }
-
-
-// ==========================================
-// BOTÕES DA TELA
-// ==========================================
-
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
-
-
-        // ==================================
-        // BOTÃO EXCEL
-        // ==================================
-
-        const btnExcel =
-            document.getElementById(
-                "btnExportarExcel"
-            );
-
-
-        if (
-            btnExcel
-        ) {
-
-            btnExcel.addEventListener(
-                "click",
-                exportarExcel
-            );
-
-        }
-
-
-        // ==================================
-        // BOTÃO CSV
-        // ==================================
-
-        const btnCSV =
-            document.getElementById(
-                "btnExportarCSV"
-            );
-
-
-        if (
-            btnCSV
-        ) {
-
-            btnCSV.addEventListener(
-                "click",
-                exportarCSV
-            );
-
-        }
-
-
-        // ==================================
-        // BOTÃO RELATÓRIO COMPLETO
-        // ==================================
-
-        const btnRelatorio =
-            document.getElementById(
-                "btnExportarRelatorio"
-            );
-
-
-        if (
-            btnRelatorio
-        ) {
-
-            btnRelatorio.addEventListener(
-                "click",
-                exportarRelatorioCompleto
-            );
-
-        }
-
-    }
-);
 
 
 // ==========================================
@@ -1295,26 +539,6 @@ document.addEventListener(
 
 window.exportarExcel =
     exportarExcel;
-
-
-window.exportarCSV =
-    exportarCSV;
-
-
-window.exportarResultados =
-    exportarResultados;
-
-
-window.exportarStatus =
-    exportarStatus;
-
-
-window.exportarRelatorioCompleto =
-    exportarRelatorioCompleto;
-
-
-window.prepararDadosExportacao =
-    prepararDadosExportacao;
 
 
 console.log(
@@ -1326,7 +550,7 @@ console.log(
 );
 
 console.log(
-    "Exportação Excel / CSV disponível"
+    "Botão de exportação preparado"
 );
 
 console.log(
