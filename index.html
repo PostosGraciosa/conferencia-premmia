@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -22,23 +22,28 @@
 
 <body>
 
+
 <div class="container">
 
 
-    <!-- ======================================
+    <!-- =====================================================
          CABEÇALHO
-    ======================================= -->
+    ====================================================== -->
 
-    <header class="header">
+    <header class="topo">
 
-        <div class="logo-area">
+        <div>
+
+            <span class="sistema-label">
+                CONCILIAÇÃO
+            </span>
 
             <h1>
-                CONFERÊNCIA PREMMIA
+                Conferência Premmia
             </h1>
 
             <p>
-                Conferência de vendas e lançamentos
+                Compare os lançamentos do Portal com o Sistema.
             </p>
 
         </div>
@@ -47,532 +52,468 @@
 
 
 
-    <!-- ======================================
-         IMPORTAÇÃO
-    ======================================= -->
+    <!-- =====================================================
+         ARQUIVOS
+    ====================================================== -->
 
     <section class="card">
 
-        <h2>
-            📂 Importar arquivos
-        </h2>
-
-
-        <p class="descricao">
-
-            Selecione a planilha do Portal Premmia
-            e a planilha de lançamentos do sistema interno.
-
-        </p>
-
-
-
-        <!-- ==================================
-             PORTAL PREMMIA
-        =================================== -->
-
-        <div class="arquivo">
-
-            <label for="arquivoPremmia">
-
-                Planilha do Portal Premmia
-
-            </label>
-
-
-            <input
-                type="file"
-                id="arquivoPremmia"
-                accept=".xlsx,.xls,.csv"
-            >
-
-
-            <span id="nomePremmia">
-
-                Nenhum arquivo selecionado
-
-            </span>
-
-        </div>
-
-
-
-        <!-- ==================================
-             SISTEMA INTERNO
-        =================================== -->
-
-        <div class="arquivo">
-
-            <label for="arquivoInterno">
-
-                Planilha do Sistema Interno
-
-            </label>
-
-
-            <input
-                type="file"
-                id="arquivoInterno"
-                accept=".xlsx,.xls,.csv"
-            >
-
-
-            <span id="nomeInterno">
-
-                Nenhum arquivo selecionado
-
-            </span>
-
-        </div>
-
-
-
-        <!-- ==================================
-             CONTADOR
-        =================================== -->
-
-        <div
-            id="contadorDados"
-            class="contador-dados"
-        >
-
-            Premmia:
-            <strong id="contadorPremmia">0</strong>
-            registros
-
-            &nbsp; | &nbsp;
-
-            Interno:
-            <strong id="contadorInterno">0</strong>
-            registros
-
-        </div>
-
-
-
-        <!-- ==================================
-             STATUS
-        =================================== -->
-
-        <div
-            id="statusSistema"
-            class="status-sistema"
-        >
-
-            Aguardando carregamento das planilhas.
-
-        </div>
-
-
-
-        <!-- ==================================
-             BOTÃO CONFERIR
-        =================================== -->
-
-        <button
-            type="button"
-            id="btnConferir"
-            disabled
-        >
-
-            🔍 CONFERIR VENDAS
-
-        </button>
-
-    </section>
-
-
-
-
-    <!-- ======================================
-         RESULTADO
-    ======================================= -->
-
-    <section
-        class="card resultado"
-        id="resultado"
-        style="display:none;"
-    >
-
-
-        <h2>
-
-            📊 Resultado da Conferência
-
-        </h2>
-
-
-
-        <!-- ==================================
-             RESUMO
-        =================================== -->
-
-        <div class="resumo-grid">
-
-
-            <!-- =================================
-                 TOTAL PORTAL
-            ================================== -->
-
-            <div class="resumo-item">
-
-                <span>
-                    💰 Total Portal Premmia
-                </span>
-
-
-                <strong id="totalPortalPremmia">
-
-                    R$ 0,00
-
-                </strong>
-
-
-                <small>
-
-                    Valor total importado
-
-                </small>
-
-            </div>
-
-
-
-
-            <!-- =================================
-                 TOTAL SISTEMA
-            ================================== -->
-
-            <div class="resumo-item">
-
-                <span>
-                    💰 Total Sistema Interno
-                </span>
-
-
-                <strong id="totalSistemaInterno">
-
-                    R$ 0,00
-
-                </strong>
-
-
-                <small>
-
-                    Valor total importado
-
-                </small>
-
-            </div>
-
-
-
-
-            <!-- =================================
-                 DIFERENÇA TOTAL
-            ================================== -->
-
-            <div class="resumo-item">
-
-                <span>
-                    📊 Diferença Total
-                </span>
-
-
-                <strong id="diferencaTotais">
-
-                    R$ 0,00
-
-                </strong>
-
-
-                <small>
-
-                    Sistema − Portal
-
-                </small>
-
-            </div>
-
-
-
-
-            <!-- =================================
-                 CORRETAS
-            ================================== -->
-
-            <div class="resumo-item correto">
-
-                <span>
-                    Corretas
-                </span>
-
-
-                <strong id="totalCorretas">
-
-                    0
-
-                </strong>
-
-
-                <small id="valorCorretas">
-
-                    R$ 0,00
-
-                </small>
-
-            </div>
-
-
-
-
-            <!-- =================================
-                 CORRESPONDÊNCIA DATA/HORA
-            ================================== -->
-
-            <div class="resumo-item">
-
-                <span>
-                    Data/Hora
-                </span>
-
-
-                <strong id="totalCorrespondencias">
-
-                    0
-
-                </strong>
-
-
-                <small id="valorCorrespondencias">
-
-                    R$ 0,00
-
-                </small>
-
-            </div>
-
-
-
-
-            <!-- =================================
-                 NÃO LANÇADAS
-            ================================== -->
-
-            <div class="resumo-item nao-lancada">
-
-                <span>
-                    Não lançadas
-                </span>
-
-
-                <strong id="totalNaoLancadas">
-
-                    0
-
-                </strong>
-
-
-                <small id="valorNaoLancadas">
-
-                    R$ 0,00
-
-                </small>
-
-            </div>
-
-
-
-
-            <!-- =================================
-                 LANÇADAS A MAIS
-            ================================== -->
-
-            <div class="resumo-item lancada-mais">
-
-                <span>
-                    Lançadas a mais
-                </span>
-
-
-                <strong id="totalLancadasMais">
-
-                    0
-
-                </strong>
-
-
-                <small id="valorLancadasMais">
-
-                    R$ 0,00
-
-                </small>
-
-            </div>
-
-
-
-
-            <!-- =================================
-                 VALOR DIVERGENTE
-            ================================== -->
-
-            <div class="resumo-item valor-errado">
-
-                <span>
-                    Valor divergente
-                </span>
-
-
-                <strong id="totalValorErrado">
-
-                    0
-
-                </strong>
-
-
-                <small id="valorValorErrado">
-
-                    R$ 0,00
-
-                </small>
-
-            </div>
-
-
-        </div>
-
-    </section>
-
-
-
-
-    <!-- ======================================
-         TABELA
-    ======================================= -->
-
-    <section
-        class="card tabela-card"
-        id="tabelaResultado"
-        style="display:none;"
-    >
-
-
-        <!-- ==================================
-             TOPO DA TABELA
-        =================================== -->
-
-        <div class="tabela-topo">
+        <div class="card-titulo">
 
             <h2>
-                📋 Detalhamento
+                Arquivos
             </h2>
 
+            <span>
+                01
+            </span>
 
-            <button
-                type="button"
-                id="btnExportar"
-            >
+        </div>
 
-                ⬇ Exportar Excel
 
-            </button>
+        <div class="arquivos">
+
+
+            <div class="arquivo-box">
+
+                <div class="arquivo-icone">
+                    📄
+                </div>
+
+                <div class="arquivo-conteudo">
+
+                    <strong>
+                        Portal Premmia
+                    </strong>
+
+                    <span id="nomePremmia">
+                        Nenhum arquivo selecionado
+                    </span>
+
+                    <input
+                        type="file"
+                        id="arquivoPremmia"
+                        accept=".xlsx,.xls,.csv"
+                    >
+
+                </div>
+
+            </div>
+
+
+
+            <div class="arquivo-box">
+
+                <div class="arquivo-icone">
+                    📊
+                </div>
+
+                <div class="arquivo-conteudo">
+
+                    <strong>
+                        Sistema
+                    </strong>
+
+                    <span id="nomeInterno">
+                        Nenhum arquivo selecionado
+                    </span>
+
+                    <input
+                        type="file"
+                        id="arquivoInterno"
+                        accept=".xlsx,.xls,.csv"
+                    >
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         CRITÉRIOS
+    ====================================================== -->
+
+    <section class="card">
+
+        <div class="card-titulo">
+
+            <div>
+
+                <h2>
+                    Critérios de conciliação
+                </h2>
+
+                <p>
+                    Escolha quais campos serão utilizados
+                    para localizar as correspondências.
+                </p>
+
+            </div>
+
+            <span>
+                02
+            </span>
+
+        </div>
+
+
+        <div class="criterios">
+
+
+            <label class="criterio">
+
+                <input
+                    type="checkbox"
+                    id="criterioValor"
+                    checked
+                    disabled
+                >
+
+                <span>
+                    Valor líquido
+                </span>
+
+            </label>
+
+
+
+            <label class="criterio">
+
+                <input
+                    type="checkbox"
+                    id="criterioData"
+                    checked
+                >
+
+                <span>
+                    Data
+                </span>
+
+            </label>
+
+
+
+            <label class="criterio">
+
+                <input
+                    type="checkbox"
+                    id="criterioCodigo"
+                >
+
+                <span>
+                    Código Transação
+                </span>
+
+            </label>
+
+
+
+            <label class="criterio">
+
+                <input
+                    type="checkbox"
+                    id="criterioPagamento"
+                    checked
+                >
+
+                <span>
+                    Forma de Pagamento
+                </span>
+
+            </label>
+
 
         </div>
 
 
 
-
-        <!-- ==================================
-             FILTROS
-        =================================== -->
-
-        <div class="filtros">
+        <div class="horario-config">
 
 
-            <button
-                type="button"
-                class="filtro ativo"
-                data-filtro="TODOS"
-            >
+            <label class="criterio horario">
 
-                Todos
+                <input
+                    type="checkbox"
+                    id="criterioHorario"
+                    checked
+                >
 
-            </button>
+                <span>
+                    Horário aproximado
+                </span>
 
-
-
-            <button
-                type="button"
-                class="filtro"
-                data-filtro="CORRETA"
-            >
-
-                Corretas
-
-            </button>
+            </label>
 
 
+            <div class="tolerancia">
 
-            <button
-                type="button"
-                class="filtro"
-                data-filtro="CORRESPONDENCIA_DATA_HORA"
-            >
+                <span>
+                    Tolerância:
+                </span>
 
-                Data/Hora
+                <strong>
+                    10 minutos
+                </strong>
 
-            </button>
+            </div>
+
+
+        </div>
+
+
+        <div class="observacao">
+
+            <strong>
+                ℹ Como funciona
+            </strong>
+
+            <p>
+                O horário será utilizado com tolerância máxima
+                de 10 minutos. Cada lançamento poderá ser
+                associado apenas uma vez.
+            </p>
+
+        </div>
+
+
+        <button
+            id="btnConferir"
+            class="btn-principal"
+        >
+            🔎 Realizar Conciliação
+        </button>
+
+
+    </section>
 
 
 
-            <button
-                type="button"
-                class="filtro"
-                data-filtro="NAO_LANCADA"
-            >
+    <!-- =====================================================
+         RESUMO
+    ====================================================== -->
 
+    <section
+        class="resumo"
+        id="resumo"
+    >
+
+
+        <div class="indicador">
+
+            <span>
+                Portal
+            </span>
+
+            <strong id="totalPortal">
+                R$ 0,00
+            </strong>
+
+            <small id="qtdPortal">
+                0 lançamentos
+            </small>
+
+        </div>
+
+
+
+        <div class="indicador">
+
+            <span>
+                Sistema
+            </span>
+
+            <strong id="totalSistema">
+                R$ 0,00
+            </strong>
+
+            <small id="qtdSistema">
+                0 lançamentos
+            </small>
+
+        </div>
+
+
+
+        <div class="indicador sucesso">
+
+            <span>
+                Conferidas
+            </span>
+
+            <strong id="qtdConferidas">
+                0
+            </strong>
+
+        </div>
+
+
+
+        <div class="indicador erro">
+
+            <span>
                 Não lançadas
+            </span>
 
-            </button>
+            <strong id="qtdNaoLancadas">
+                0
+            </strong>
+
+        </div>
 
 
 
-            <button
-                type="button"
-                class="filtro"
-                data-filtro="LANCADA_A_MAIS"
-            >
+        <div class="indicador alerta">
 
+            <span>
                 Lançadas a mais
+            </span>
 
-            </button>
+            <strong id="qtdLancadasAMais">
+                0
+            </strong>
+
+        </div>
 
 
+    </section>
+
+
+
+    <!-- =====================================================
+         COMPARAÇÃO TOTAL
+    ====================================================== -->
+
+    <section
+        class="card comparacao-total"
+        id="comparacaoTotal"
+    >
+
+        <div>
+
+            <span>
+                Diferença total
+            </span>
+
+            <strong id="diferencaTotal">
+                R$ 0,00
+            </strong>
+
+        </div>
+
+        <div>
+
+            <span>
+                Valor Portal
+            </span>
+
+            <strong id="valorComparacaoPortal">
+                R$ 0,00
+            </strong>
+
+        </div>
+
+        <div>
+
+            <span>
+                Valor Sistema
+            </span>
+
+            <strong id="valorComparacaoSistema">
+                R$ 0,00
+            </strong>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         RESULTADOS
+    ====================================================== -->
+
+    <section class="card resultados-card">
+
+
+        <div class="card-titulo">
+
+            <div>
+
+                <h2>
+                    Resultado da conciliação
+                </h2>
+
+                <p>
+                    Confira cada lançamento encontrado.
+                </p>
+
+            </div>
 
             <button
-                type="button"
-                class="filtro"
-                data-filtro="VALOR_DIVERGENTE"
+                id="btnExportar"
+                class="btn-exportar"
             >
-
-                Valor divergente
-
+                📥 Exportar Excel
             </button>
 
         </div>
 
 
 
+        <div class="filtros-resultados">
 
-        <!-- ==================================
-             TABELA
-        =================================== -->
+            <select id="filtroStatus">
+
+                <option value="">
+                    Todos os status
+                </option>
+
+                <option value="CONFERIDA">
+                    Conferidas
+                </option>
+
+                <option value="NÃO LANÇADA">
+                    Não lançadas
+                </option>
+
+                <option value="LANÇADA A MAIS">
+                    Lançadas a mais
+                </option>
+
+                <option value="VALOR DIVERGENTE">
+                    Valor divergente
+                </option>
+
+                <option value="DATA DIVERGENTE">
+                    Data divergente
+                </option>
+
+                <option value="TIPO DE PAGAMENTO DIVERGENTE">
+                    Tipo de pagamento divergente
+                </option>
+
+            </select>
+
+
+            <input
+                type="text"
+                id="filtroBusca"
+                placeholder="Pesquisar..."
+            >
+
+        </div>
+
+
 
         <div class="tabela-container">
 
-            <table id="tabela">
-
+            <table>
 
                 <thead>
 
@@ -582,64 +523,36 @@
                             Status
                         </th>
 
-
                         <th>
-                            Data Premmia
+                            Data Portal
                         </th>
 
-
                         <th>
-                            Hora Premmia
+                            Valor Portal
                         </th>
 
-
                         <th>
-                            Data Interno
+                            Cartão Portal
                         </th>
 
-
                         <th>
-                            Hora Interno
+                            Hora Portal
                         </th>
 
-
                         <th>
-                            Dif. Horário
+                            Data Sistema
                         </th>
 
-
                         <th>
-                            Cliente
+                            Valor Sistema
                         </th>
 
-
                         <th>
-                            Autorização Premmia
+                            Cartão Sistema
                         </th>
 
-
                         <th>
-                            Autorização Interno
-                        </th>
-
-
-                        <th>
-                            Valor Premmia
-                        </th>
-
-
-                        <th>
-                            Valor Interno
-                        </th>
-
-
-                        <th>
-                            Diferença
-                        </th>
-
-
-                        <th>
-                            Operador
+                            Hora Sistema
                         </th>
 
                     </tr>
@@ -647,78 +560,679 @@
                 </thead>
 
 
+                <tbody id="tabelaResultados">
 
-                <tbody id="corpoTabela">
+                    <tr>
+
+                        <td
+                            colspan="9"
+                            class="sem-resultados"
+                        >
+                            Carregue os arquivos e realize
+                            a conciliação.
+
+                        </td>
+
+                    </tr>
 
                 </tbody>
-
 
             </table>
 
         </div>
 
+
     </section>
 
-
-
-
-    <!-- ======================================
-         RODAPÉ
-    ======================================= -->
-
-    <footer>
-
-    <strong>Conferência Premmia</strong>
-
-    <br>
-
-    Desenvolvido por <strong>LINKA Systems</strong>
-
-    <br>
-
-    <small>
-        © 2026 — Todos os direitos reservados
-    </small>
-
-</footer>
 
 </div>
 
 
 
-
-<!-- ==========================================
-     BIBLIOTECA XLSX
-=========================================== -->
+<!-- =====================================================
+     XLSX
+====================================================== -->
 
 <script
-    src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"
+    src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
 ></script>
 
 
-
-<!-- ==========================================
-     JAVASCRIPT
-=========================================== -->
+<!-- =====================================================
+     JS DO SISTEMA
+====================================================== -->
 
 <script
     src="js/leituraExcel.js"
 ></script>
 
-
 <script
     src="js/conferencia.js"
 ></script>
-
 
 <script
     src="js/exportar.js"
 ></script>
 
 
-<script
-    src="js/app.js"
-></script>
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+
+        const arquivoPremmia =
+            document.getElementById(
+                "arquivoPremmia"
+            );
+
+
+        const arquivoInterno =
+            document.getElementById(
+                "arquivoInterno"
+            );
+
+
+        const btnConferir =
+            document.getElementById(
+                "btnConferir"
+            );
+
+
+        const btnExportar =
+            document.getElementById(
+                "btnExportar"
+            );
+
+
+        const filtroStatus =
+            document.getElementById(
+                "filtroStatus"
+            );
+
+
+        const filtroBusca =
+            document.getElementById(
+                "filtroBusca"
+            );
+
+
+
+        // =================================================
+        // PORTAL
+        // =================================================
+
+        arquivoPremmia.addEventListener(
+            "change",
+            async evento => {
+
+                const arquivo =
+                    evento.target.files[0];
+
+                if (!arquivo) {
+                    return;
+                }
+
+                document.getElementById(
+                    "nomePremmia"
+                ).textContent =
+                    arquivo.name;
+
+
+                try {
+
+                    await lerArquivoExcel(
+                        arquivo,
+                        "premmia"
+                    );
+
+                    atualizarResumoArquivos();
+
+                }
+                catch (erro) {
+
+                    console.error(erro);
+
+                    alert(
+                        erro
+                    );
+
+                }
+
+            }
+        );
+
+
+
+        // =================================================
+        // SISTEMA
+        // =================================================
+
+        arquivoInterno.addEventListener(
+            "change",
+            async evento => {
+
+                const arquivo =
+                    evento.target.files[0];
+
+                if (!arquivo) {
+                    return;
+                }
+
+                document.getElementById(
+                    "nomeInterno"
+                ).textContent =
+                    arquivo.name;
+
+
+                try {
+
+                    await lerArquivoExcel(
+                        arquivo,
+                        "interno"
+                    );
+
+                    atualizarResumoArquivos();
+
+                }
+                catch (erro) {
+
+                    console.error(erro);
+
+                    alert(
+                        erro
+                    );
+
+                }
+
+            }
+        );
+
+
+
+        // =================================================
+        // CONCILIAR
+        // =================================================
+
+        btnConferir.addEventListener(
+            "click",
+            () => {
+
+
+                const config = {
+
+                    valor: true,
+
+                    data:
+                        document.getElementById(
+                            "criterioData"
+                        ).checked,
+
+                    codigoTransacao:
+                        document.getElementById(
+                            "criterioCodigo"
+                        ).checked,
+
+                    formaPagamento:
+                        document.getElementById(
+                            "criterioPagamento"
+                        ).checked,
+
+                    horarioAproximado:
+                        document.getElementById(
+                            "criterioHorario"
+                        ).checked,
+
+                    toleranciaMinutos:
+                        10
+
+                };
+
+
+                const resultados =
+                    executarConferencia(
+                        config
+                    );
+
+
+                mostrarResultados(
+                    resultados
+                );
+
+                atualizarResumoConferencia();
+
+            }
+        );
+
+
+
+        // =================================================
+        // EXPORTAR
+        // =================================================
+
+        btnExportar.addEventListener(
+            "click",
+            () => {
+
+                exportarConferenciaExcel();
+
+            }
+        );
+
+
+
+        // =================================================
+        // FILTROS
+        // =================================================
+
+        filtroStatus.addEventListener(
+            "change",
+            aplicarFiltros
+        );
+
+
+        filtroBusca.addEventListener(
+            "input",
+            aplicarFiltros
+        );
+
+
+
+    }
+);
+
+
+// =========================================================
+// RESUMO DOS ARQUIVOS
+// =========================================================
+
+function atualizarResumoArquivos() {
+
+    const portal =
+        window.resumoPremmia || {};
+
+    const interno =
+        window.resumoInterno || {};
+
+
+    document.getElementById(
+        "totalPortal"
+    ).textContent =
+        formatarMoeda(
+            portal.total || 0
+        );
+
+
+    document.getElementById(
+        "qtdPortal"
+    ).textContent =
+        `${portal.quantidade || 0} lançamentos`;
+
+
+    const totalSistema =
+        interno.totalInformado !== null &&
+        interno.totalInformado !== undefined
+            ? interno.totalInformado
+            : interno.totalCalculado || 0;
+
+
+    document.getElementById(
+        "totalSistema"
+    ).textContent =
+        formatarMoeda(
+            totalSistema
+        );
+
+
+    document.getElementById(
+        "qtdSistema"
+    ).textContent =
+        `${interno.quantidade || 0} lançamentos`;
+
+}
+
+
+// =========================================================
+// RESUMO DA CONCILIAÇÃO
+// =========================================================
+
+function atualizarResumoConferencia() {
+
+    const resumo =
+        window.resumoConferencia || {};
+
+
+    document.getElementById(
+        "qtdConferidas"
+    ).textContent =
+        resumo.conferidas || 0;
+
+
+    document.getElementById(
+        "qtdNaoLancadas"
+    ).textContent =
+        resumo.naoLancadas || 0;
+
+
+    document.getElementById(
+        "qtdLancadasAMais"
+    ).textContent =
+        resumo.lancadasAMais || 0;
+
+
+    document.getElementById(
+        "valorComparacaoPortal"
+    ).textContent =
+        formatarMoeda(
+            resumo.valorPortal || 0
+        );
+
+
+    document.getElementById(
+        "valorComparacaoSistema"
+    ).textContent =
+        formatarMoeda(
+            resumo.valorSistema || 0
+        );
+
+
+    document.getElementById(
+        "diferencaTotal"
+    ).textContent =
+        formatarMoeda(
+            resumo.diferencaValor || 0
+        );
+
+}
+
+
+// =========================================================
+// MOSTRAR RESULTADOS
+// =========================================================
+
+function mostrarResultados(
+    resultados
+) {
+
+    const tabela =
+        document.getElementById(
+            "tabelaResultados"
+        );
+
+
+    if (!resultados || !resultados.length) {
+
+        tabela.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="9"
+                    class="sem-resultados"
+                >
+                    Nenhum resultado encontrado.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    tabela.innerHTML =
+        resultados.map(
+            resultado => {
+
+                const portal =
+                    resultado.portal || {};
+
+                const interno =
+                    resultado.interno || {};
+
+
+                return `
+
+                    <tr
+                        data-status="${escapeHtml(
+                            resultado.status
+                        )}"
+                    >
+
+                        <td>
+
+                            <span
+                                class="status status-${classeStatus(
+                                    resultado.status
+                                )}"
+                            >
+                                ${escapeHtml(
+                                    resultado.status
+                                )}
+                            </span>
+
+                        </td>
+
+
+                        <td>
+                            ${formatarDataSegura(
+                                portal.data
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${formatarMoeda(
+                                portal.valor
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${escapeHtml(
+                                portal.formaPagamento || "—"
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${escapeHtml(
+                                portal.hora || "—"
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${formatarDataSegura(
+                                interno.data
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${interno.valor !== undefined
+                                ? formatarMoeda(
+                                    interno.valor
+                                )
+                                : "—"
+                            }
+                        </td>
+
+
+                        <td>
+                            ${escapeHtml(
+                                interno.tipoCartao || "—"
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${escapeHtml(
+                                interno.hora || "—"
+                            )}
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+        )
+        .join("");
+
+}
+
+
+// =========================================================
+// FILTROS
+// =========================================================
+
+function aplicarFiltros() {
+
+    const status =
+        document.getElementById(
+            "filtroStatus"
+        ).value;
+
+
+    const busca =
+        document.getElementById(
+            "filtroBusca"
+        ).value
+        .toUpperCase()
+        .trim();
+
+
+    const linhas =
+        document.querySelectorAll(
+            "#tabelaResultados tr[data-status]"
+        );
+
+
+    linhas.forEach(
+        linha => {
+
+            const statusLinha =
+                linha.dataset.status
+                    .toUpperCase();
+
+
+            const texto =
+                linha.textContent
+                    .toUpperCase();
+
+
+            const passaStatus =
+                !status ||
+                statusLinha ===
+                status.toUpperCase();
+
+
+            const passaBusca =
+                !busca ||
+                texto.includes(busca);
+
+
+            linha.style.display =
+                passaStatus &&
+                passaBusca
+                    ? ""
+                    : "none";
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// AUXILIARES
+// =========================================================
+
+function formatarMoeda(valor) {
+
+    return Number(valor || 0)
+        .toLocaleString(
+            "pt-BR",
+            {
+                style: "currency",
+                currency: "BRL"
+            }
+        );
+
+}
+
+
+function formatarDataSegura(data) {
+
+    if (!data) {
+        return "—";
+    }
+
+    if (
+        typeof window.formatarData ===
+        "function"
+    ) {
+
+        return (
+            window.formatarData(data) ||
+            "—"
+        );
+
+    }
+
+    return data;
+
+}
+
+
+function classeStatus(status) {
+
+    switch (status) {
+
+        case "CONFERIDA":
+            return "conferida";
+
+        case "NÃO LANÇADA":
+            return "nao-lancada";
+
+        case "LANÇADA A MAIS":
+            return "lancada-mais";
+
+        case "VALOR DIVERGENTE":
+            return "valor-divergente";
+
+        case "DATA DIVERGENTE":
+            return "data-divergente";
+
+        case "TIPO DE PAGAMENTO DIVERGENTE":
+            return "cartao-divergente";
+
+        default:
+            return "divergente";
+
+    }
+
+}
+
+
+function escapeHtml(valor) {
+
+    return String(valor || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+</script>
 
 
 </body>
