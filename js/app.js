@@ -4,15 +4,11 @@
 //
 // CONTROLE GERAL DA APLICAÇÃO
 //
-// Responsabilidades:
-// - Inicializar sistema
-// - Atualizar status
-// - Atualizar contador
-// - Limpar sistema
-// - Controlar botão Conferir
-//
-// A CONFERÊNCIA DOS DADOS É FEITA PELO
-// conferencia.js
+// IMPORTANTE:
+// - Não faz a conferência
+// - Não duplica renderização da tabela
+// - Não altera a regra dos 10 minutos
+// - conferencia.js é responsável pelos resultados
 // ==========================================
 
 
@@ -57,13 +53,12 @@ function inicializarSistema() {
     atualizarContadorArquivos();
 
 
-    configurarBotaoLimpar();
-
-
-    configurarBotaoConferir();
-
-
     esconderResultado();
+
+
+    console.log(
+        "Sistema pronto."
+    );
 
 }
 
@@ -98,40 +93,195 @@ function atualizarStatusSistema(
 
 
 // ==========================================
-// BOTÃO CONFERIR
+// ESCONDER RESULTADOS
 // ==========================================
 
-function configurarBotaoConferir() {
+function esconderResultado() {
 
-    const btnConferir =
+    const resultado =
         document.getElementById(
-            "btnConferir"
+            "resultado"
         );
 
 
-    if (!btnConferir) {
+    if (resultado) {
 
-        console.warn(
-            "Botão #btnConferir não encontrado."
-        );
-
-        return;
+        resultado.style.display =
+            "none";
 
     }
 
 
-    // O conferencia.js também possui
-    // o controle do botão.
-    //
-    // Portanto não adicionamos outro
-    // evento aqui para evitar execução
-    // duplicada.
+    const tabela =
+        document.getElementById(
+            "tabelaResultado"
+        );
+
+
+    if (tabela) {
+
+        tabela.style.display =
+            "none";
+
+    }
+
+}
+
+
+// ==========================================
+// MOSTRAR RESULTADOS
+//
+// Compatibilidade com outros arquivos.
+// A renderização real é feita pelo
+// conferencia.js.
+// ==========================================
+
+function mostrarResultadosTela(
+    lista
+) {
+
+    const resultados =
+        Array.isArray(lista)
+            ? lista
+            : (
+                window.resultadosConferencia ||
+                []
+            );
+
+
+    const resultado =
+        document.getElementById(
+            "resultado"
+        );
+
+
+    const tabela =
+        document.getElementById(
+            "tabelaResultado"
+        );
+
+
+    if (resultado) {
+
+        resultado.style.display =
+            "block";
+
+    }
+
+
+    if (tabela) {
+
+        tabela.style.display =
+            "block";
+
+    }
+
+
+    // Atualiza resumo usando
+    // conferencia.js
+
+    if (
+        typeof window.atualizarResumo ===
+        "function"
+    ) {
+
+        window.atualizarResumo();
+
+    }
+
+
+    // Renderiza usando
+    // conferencia.js
+
+    if (
+        typeof window.renderizarTabela ===
+        "function"
+    ) {
+
+        window.renderizarTabela(
+            resultados
+        );
+
+    }
+
+
+    atualizarStatusSistema(
+        "Conferência finalizada."
+    );
+
+
+    console.log(
+        "Resultados exibidos:",
+        resultados.length
+    );
+
+}
+
+
+// ==========================================
+// ATUALIZAR CONTADOR
+// ==========================================
+
+function atualizarContadorArquivos() {
+
+    const quantidadePremmia =
+        Array.isArray(
+            window.dadosPremmia
+        )
+            ? window.dadosPremmia.length
+            : 0;
+
+
+    const quantidadeInterno =
+        Array.isArray(
+            window.dadosInterno
+        )
+            ? window.dadosInterno.length
+            : 0;
+
+
+    const contador =
+        document.getElementById(
+            "contadorDados"
+        );
+
+
+    if (contador) {
+
+        contador.innerHTML =
+
+            "Premmia: <strong>" +
+            quantidadePremmia +
+            "</strong> registros" +
+
+            " &nbsp; | &nbsp; " +
+
+            "Interno: <strong>" +
+            quantidadeInterno +
+            "</strong> registros";
+
+    }
+
+
+    console.log(
+        "Contador atualizado:",
+        {
+            premmia:
+                quantidadePremmia,
+
+            interno:
+                quantidadeInterno
+        }
+    );
 
 }
 
 
 // ==========================================
 // ATUALIZAR BOTÃO CONFERIR
+//
+// Só libera quando as duas planilhas
+// possuem registros.
 // ==========================================
 
 function atualizarBotaoConferir() {
@@ -149,14 +299,14 @@ function atualizarBotaoConferir() {
     }
 
 
-    const temPremmia =
+    const possuiPremmia =
         Array.isArray(
             window.dadosPremmia
         ) &&
         window.dadosPremmia.length > 0;
 
 
-    const temInterno =
+    const possuiInterno =
         Array.isArray(
             window.dadosInterno
         ) &&
@@ -165,78 +315,16 @@ function atualizarBotaoConferir() {
 
     btnConferir.disabled =
         !(
-            temPremmia &&
-            temInterno
+            possuiPremmia &&
+            possuiInterno
         );
 
 
-    if (
-        temPremmia &&
-        temInterno
-    ) {
-
-        atualizarStatusSistema(
-            "As duas planilhas foram carregadas. Pronto para conferir."
-        );
-
-    }
-    else if (
-        temPremmia
-    ) {
-
-        atualizarStatusSistema(
-            "Planilha Premmia carregada. Aguardando planilha do sistema interno."
-        );
-
-    }
-    else if (
-        temInterno
-    ) {
-
-        atualizarStatusSistema(
-            "Planilha interna carregada. Aguardando planilha Premmia."
-        );
-
-    }
-    else {
-
-        atualizarStatusSistema(
-            "Aguardando carregamento das planilhas."
-        );
-
-    }
-
-}
-
-
-// ==========================================
-// BOTÃO LIMPAR
-// ==========================================
-
-function configurarBotaoLimpar() {
-
-    const btnLimpar =
-        document.getElementById(
-            "btnLimpar"
-        );
-
-
-    // Atualmente o index.html não possui
-    // botão Limpar.
-    //
-    // Se futuramente adicionar o botão,
-    // esta função já estará preparada.
-
-    if (!btnLimpar) {
-
-        return;
-
-    }
-
-
-    btnLimpar.addEventListener(
-        "click",
-        limparSistema
+    console.log(
+        "Botão Conferir:",
+        btnConferir.disabled
+            ? "DESABILITADO"
+            : "HABILITADO"
     );
 
 }
@@ -262,18 +350,12 @@ function limparSistema() {
 
 
     // ======================================
-    // LIMPAR ARQUIVOS
+    // LIMPAR ARQUIVO PREMMIA
     // ======================================
 
     const arquivoPremmia =
         document.getElementById(
             "arquivoPremmia"
-        );
-
-
-    const arquivoInterno =
-        document.getElementById(
-            "arquivoInterno"
         );
 
 
@@ -283,6 +365,16 @@ function limparSistema() {
             "";
 
     }
+
+
+    // ======================================
+    // LIMPAR ARQUIVO INTERNO
+    // ======================================
+
+    const arquivoInterno =
+        document.getElementById(
+            "arquivoInterno"
+        );
 
 
     if (arquivoInterno) {
@@ -303,18 +395,18 @@ function limparSistema() {
         );
 
 
-    const nomeInterno =
-        document.getElementById(
-            "nomeInterno"
-        );
-
-
     if (nomePremmia) {
 
         nomePremmia.textContent =
             "Nenhum arquivo selecionado";
 
     }
+
+
+    const nomeInterno =
+        document.getElementById(
+            "nomeInterno"
+        );
 
 
     if (nomeInterno) {
@@ -334,7 +426,7 @@ function limparSistema() {
 
 
     // ======================================
-    // LIMPAR DADOS INTERNO
+    // LIMPAR DADOS INTERNOS
     // ======================================
 
     window.dadosInterno =
@@ -375,25 +467,92 @@ function limparSistema() {
 
 
     // ======================================
-    // RESETAR BOTÃO
+    // RESETAR RESUMO
     // ======================================
 
-    const btnConferir =
-        document.getElementById(
-            "btnConferir"
-        );
+    const camposResumo = [
+
+        "totalPortalPremmia",
+        "totalSistemaInterno",
+        "diferencaTotais",
+        "totalCorretas",
+        "valorCorretas",
+        "totalCorrespondencias",
+        "valorCorrespondencias",
+        "totalNaoLancadas",
+        "valorNaoLancadas",
+        "totalLancadasMais",
+        "valorLancadasMais",
+        "totalValorErrado",
+        "valorValorErrado",
+        "totalAutorizacao",
+        "valorAutorizacao"
+
+    ];
 
 
-    if (btnConferir) {
+    camposResumo.forEach(
+        function (id) {
 
-        btnConferir.disabled =
-            true;
+            const elemento =
+                document.getElementById(
+                    id
+                );
 
-    }
+
+            if (!elemento) {
+
+                return;
+
+            }
+
+
+            if (
+                id ===
+                "totalPortalPremmia" ||
+
+                id ===
+                "totalSistemaInterno" ||
+
+                id ===
+                "diferencaTotais" ||
+
+                id ===
+                "valorCorretas" ||
+
+                id ===
+                "valorCorrespondencias" ||
+
+                id ===
+                "valorNaoLancadas" ||
+
+                id ===
+                "valorLancadasMais" ||
+
+                id ===
+                "valorValorErrado" ||
+
+                id ===
+                "valorAutorizacao"
+            ) {
+
+                elemento.textContent =
+                    "R$ 0,00";
+
+            }
+            else {
+
+                elemento.textContent =
+                    "0";
+
+            }
+
+        }
+    );
 
 
     // ======================================
-    // RESETAR FILTROS
+    // RESETAR FILTRO
     // ======================================
 
     document
@@ -411,15 +570,15 @@ function limparSistema() {
         );
 
 
-    const primeiroFiltro =
+    const filtroTodos =
         document.querySelector(
             '.filtro[data-filtro="TODOS"]'
         );
 
 
-    if (primeiroFiltro) {
+    if (filtroTodos) {
 
-        primeiroFiltro.classList.add(
+        filtroTodos.classList.add(
             "ativo"
         );
 
@@ -427,7 +586,14 @@ function limparSistema() {
 
 
     // ======================================
-    // ATUALIZAR CONTADOR
+    // BOTÃO CONFERIR
+    // ======================================
+
+    atualizarBotaoConferir();
+
+
+    // ======================================
+    // CONTADOR
     // ======================================
 
     atualizarContadorArquivos();
@@ -450,249 +616,36 @@ function limparSistema() {
 
 
 // ==========================================
-// ESCONDER RESULTADOS
+// COMPATIBILIDADE
+//
+// Permite que outros arquivos chamem
+// atualizarResumo().
 // ==========================================
 
-function esconderResultado() {
-
-    const resultado =
-        document.getElementById(
-            "resultado"
-        );
-
-
-    const tabela =
-        document.getElementById(
-            "tabelaResultado"
-        );
-
-
-    if (resultado) {
-
-        resultado.style.display =
-            "none";
-
-    }
-
-
-    if (tabela) {
-
-        tabela.style.display =
-            "none";
-
-    }
-
-}
-
-
-// ==========================================
-// ATUALIZAR CONTADOR
-// ==========================================
-
-function atualizarContadorArquivos() {
-
-    const quantidadePremmia =
-        Array.isArray(
-            window.dadosPremmia
-        )
-            ? window.dadosPremmia.length
-            : 0;
-
-
-    const quantidadeInterno =
-        Array.isArray(
-            window.dadosInterno
-        )
-            ? window.dadosInterno.length
-            : 0;
-
-
-    // ======================================
-    // NOVOS CAMPOS DO INDEX
-    // ======================================
-
-    const contadorPremmia =
-        document.getElementById(
-            "contadorPremmia"
-        );
-
-
-    const contadorInterno =
-        document.getElementById(
-            "contadorInterno"
-        );
-
-
-    if (contadorPremmia) {
-
-        contadorPremmia.textContent =
-            quantidadePremmia;
-
-    }
-
-
-    if (contadorInterno) {
-
-        contadorInterno.textContent =
-            quantidadeInterno;
-
-    }
-
-
-    // ======================================
-    // COMPATIBILIDADE COM HTML ANTIGO
-    // ======================================
-
-    const contador =
-        document.getElementById(
-            "contadorDados"
-        );
-
+window.atualizarResumo =
+function () {
 
     if (
-        contador &&
-        !contadorPremmia &&
-        !contadorInterno
+        typeof window.atualizarResumoConferencia ===
+        "function"
     ) {
 
-        contador.innerHTML =
-            `
-                Premmia:
-                <strong>
-                    ${quantidadePremmia}
-                </strong>
-                registros
+        window.atualizarResumoConferencia();
 
-                &nbsp; | &nbsp;
-
-                Interno:
-                <strong>
-                    ${quantidadeInterno}
-                </strong>
-                registros
-            `;
+        return;
 
     }
-
-
-    // ======================================
-    // ATUALIZA BOTÃO
-    // ======================================
-
-    atualizarBotaoConferir();
 
 
     console.log(
-        "Contador atualizado:",
-        {
-            Premmia:
-                quantidadePremmia,
-
-            Interno:
-                quantidadeInterno
-        }
+        "Resumo será atualizado pelo conferencia.js."
     );
 
-}
+};
 
 
 // ==========================================
-// FUNÇÃO AUXILIAR
-//
-// Pode ser chamada pelo leituraExcel.js
-// depois que uma planilha for carregada.
-// ==========================================
-
-function atualizarInterfaceArquivos() {
-
-    atualizarContadorArquivos();
-
-}
-
-
-// ==========================================
-// MOSTRAR RESULTADOS
-//
-// Esta função é apenas uma ponte.
-// A renderização real fica no
-// conferencia.js.
-// ==========================================
-
-function mostrarResultadosTela(
-    lista
-) {
-
-    if (
-        !Array.isArray(lista)
-    ) {
-
-        lista =
-            window.resultadosConferencia ||
-            [];
-
-    }
-
-
-    const resultado =
-        document.getElementById(
-            "resultado"
-        );
-
-
-    const tabela =
-        document.getElementById(
-            "tabelaResultado"
-        );
-
-
-    if (resultado) {
-
-        resultado.style.display =
-            "block";
-
-    }
-
-
-    if (tabela) {
-
-        tabela.style.display =
-            "block";
-
-    }
-
-
-    // Usa as funções do conferencia.js
-    if (
-        typeof window.atualizarResumo ===
-        "function"
-    ) {
-
-        window.atualizarResumo();
-
-    }
-
-
-    if (
-        typeof window.renderizarTabela ===
-        "function"
-    ) {
-
-        window.renderizarTabela(
-            lista
-        );
-
-    }
-
-
-    atualizarStatusSistema(
-        "Conferência finalizada."
-    );
-
-}
-
-
-// ==========================================
-// DISPONIBILIZAR FUNÇÕES GLOBALMENTE
+// FUNÇÕES GLOBAIS
 // ==========================================
 
 window.atualizarStatusSistema =
@@ -701,10 +654,6 @@ window.atualizarStatusSistema =
 
 window.atualizarContadorArquivos =
     atualizarContadorArquivos;
-
-
-window.atualizarInterfaceArquivos =
-    atualizarInterfaceArquivos;
 
 
 window.atualizarBotaoConferir =
@@ -721,6 +670,15 @@ window.mostrarResultadosTela =
 
 window.esconderResultado =
     esconderResultado;
+
+
+// ==========================================
+// NÃO USAR:
+//
+// window.validarArquivos = validarArquivos;
+//
+// Essa função não existe mais aqui.
+// ==========================================
 
 
 console.log(
