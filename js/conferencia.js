@@ -7,18 +7,26 @@
 // 1. Mesmo valor
 // 2. Mesma data
 // 3. Horário aproximado
-// 4. Escolhe o lançamento interno
-//    mais próximo
+// 4. Tolerância de 10 minutos
+// 5. Escolhe o lançamento interno mais próximo
 //
-// A AUTORIZAÇÃO NÃO É USADA COMO
-// CHAVE PRINCIPAL DE CONFERÊNCIA.
+// A AUTORIZAÇÃO NÃO É USADA COMO CHAVE.
 //
-// Tolerância padrão: +/- 10 minutos
+// O operador também NÃO participa
+// da conferência.
+//
+// STATUS:
+//
+// CORRETA
+// CORRESPONDENCIA_DATA_HORA
+// NAO_LANCADA
+// LANCADA_A_MAIS
+// VALOR_DIVERGENTE
 // ==========================================
 
 
 // ==========================================
-// CONFIGURAÇÕES
+// CONFIGURAÇÃO
 // ==========================================
 
 const TOLERANCIA_MINUTOS = 10;
@@ -43,7 +51,10 @@ document.addEventListener(
     () => {
 
         const btnConferir =
-            document.getElementById("btnConferir");
+            document.getElementById(
+                "btnConferir"
+            );
+
 
         if (btnConferir) {
 
@@ -64,9 +75,9 @@ document.addEventListener(
 
 function iniciarConferencia() {
 
-    // --------------------------------------
+    // ======================================
     // VERIFICAR PLANILHAS
-    // --------------------------------------
+    // ======================================
 
     if (
         !Array.isArray(window.dadosPremmia) ||
@@ -78,6 +89,7 @@ function iniciarConferencia() {
         );
 
         return;
+
     }
 
 
@@ -90,6 +102,7 @@ function iniciarConferencia() {
         );
 
         return;
+
     }
 
 
@@ -102,22 +115,23 @@ function iniciarConferencia() {
         );
 
         return;
+
     }
 
 
-    // --------------------------------------
+    // ======================================
     // LIMPAR RESULTADOS
-    // --------------------------------------
+    // ======================================
 
     resultadosConferencia = [];
 
 
-    // --------------------------------------
+    // ======================================
     // CONTROLE DOS LANÇAMENTOS INTERNOS
     //
-    // Cada lançamento interno só pode ser
-    // usado uma única vez.
-    // --------------------------------------
+    // Cada lançamento interno só pode
+    // ser utilizado uma vez.
+    // ======================================
 
     const internosUtilizados =
         new Set();
@@ -131,15 +145,14 @@ function iniciarConferencia() {
 
     window.dadosPremmia.forEach(
         (
-            premmia,
-            indicePremmia
+            premmia
         ) => {
 
-            // --------------------------------
+            // ==================================
             // PROCURAR MESMO VALOR
             // + MESMA DATA
-            // + HORÁRIO MAIS PRÓXIMO
-            // --------------------------------
+            // + HORÁRIO PRÓXIMO
+            // ==================================
 
             const melhorCorrespondencia =
                 encontrarMelhorCorrespondencia(
@@ -149,16 +162,18 @@ function iniciarConferencia() {
                 );
 
 
-            // =================================
+            // ==================================
             // NÃO ENCONTROU MESMO VALOR
-            // =================================
+            // ==================================
 
-            if (!melhorCorrespondencia) {
+            if (
+                !melhorCorrespondencia
+            ) {
 
-                // --------------------------------
-                // PROCURAR MESMO DIA/HORÁRIO
-                // COM VALOR DIFERENTE
-                // --------------------------------
+                // ==================================
+                // PROCURAR VALOR DIFERENTE
+                // NO MESMO DIA E HORÁRIO PRÓXIMO
+                // ==================================
 
                 const candidatoValorDiferente =
                     encontrarCandidatoValorDiferente(
@@ -168,7 +183,13 @@ function iniciarConferencia() {
                     );
 
 
-                if (candidatoValorDiferente) {
+                // ==================================
+                // ENCONTROU VALOR DIFERENTE
+                // ==================================
+
+                if (
+                    candidatoValorDiferente
+                ) {
 
                     internosUtilizados.add(
                         candidatoValorDiferente.indice
@@ -198,19 +219,21 @@ function iniciarConferencia() {
                                 candidatoValorDiferente.diferencaMinutos,
 
                             observacao:
-                                "Existe lançamento próximo no horário, porém com valor diferente."
+                                "Existe lançamento no sistema interno no mesmo dia e dentro da tolerância de horário, porém com valor diferente."
 
                         })
 
                     );
 
+
                     return;
+
                 }
 
 
-                // =================================
+                // ==================================
                 // NÃO LANÇADA
-                // =================================
+                // ==================================
 
                 resultadosConferencia.push(
 
@@ -234,40 +257,42 @@ function iniciarConferencia() {
                             null,
 
                         observacao:
-                            "Venda do Premmia não encontrada no sistema interno dentro da tolerância de data e horário."
+                            "Venda do Premmia não encontrada no sistema interno dentro da tolerância de 10 minutos."
 
                     })
 
                 );
 
+
                 return;
+
             }
 
 
-            // =================================
+            // ==================================
             // MARCAR INTERNO COMO UTILIZADO
-            // =================================
+            // ==================================
 
             internosUtilizados.add(
                 melhorCorrespondencia.indice
             );
 
 
-            // =================================
-            // DETERMINAR STATUS
-            // =================================
+            // ==================================
+            // DEFINIR STATUS
+            // ==================================
 
             let status =
                 "CORRETA";
 
+
             let observacao =
-                "Venda conferida.";
+                "Venda conferida corretamente.";
 
 
-            // --------------------------------
-            // MESMO VALOR E MESMA DATA,
-            // MAS HORÁRIO DIFERENTE
-            // --------------------------------
+            // ==================================
+            // DIFERENÇA DE HORÁRIO
+            // ==================================
 
             if (
                 melhorCorrespondencia.diferencaMinutos >
@@ -277,15 +302,16 @@ function iniciarConferencia() {
                 status =
                     "CORRESPONDENCIA_DATA_HORA";
 
+
                 observacao =
-                    "Venda conferida por valor e data, com horário aproximado dentro da tolerância.";
+                    "Venda conferida por valor, data e horário aproximado.";
 
             }
 
 
-            // =================================
-            // RESULTADO
-            // =================================
+            // ==================================
+            // SALVAR RESULTADO
+            // ==================================
 
             resultadosConferencia.push(
 
@@ -323,7 +349,7 @@ function iniciarConferencia() {
     // ======================================
     // SEGUNDA ETAPA
     //
-    // LANÇAMENTOS INTERNOS QUE SOBRARAM
+    // LANÇAMENTOS INTERNOS SOBRANDO
     // ======================================
 
     window.dadosInterno.forEach(
@@ -339,6 +365,7 @@ function iniciarConferencia() {
             ) {
 
                 return;
+
             }
 
 
@@ -375,8 +402,7 @@ function iniciarConferencia() {
 
 
     // ======================================
-    // ORDENAR RESULTADOS
-    // MAIS RECENTES PRIMEIRO
+    // ORDENAR
     // ======================================
 
     resultadosConferencia.sort(
@@ -390,6 +416,13 @@ function iniciarConferencia() {
 
     window.resultadosConferencia =
         resultadosConferencia;
+
+
+    // ======================================
+    // ATUALIZAR RESUMO
+    // ======================================
+
+    atualizarResumo();
 
 
     // ======================================
@@ -455,7 +488,7 @@ function iniciarConferencia() {
 // +
 // HORÁRIO MAIS PRÓXIMO
 // +
-// DENTRO DA TOLERÂNCIA
+// ATÉ 10 MINUTOS
 //
 // ==========================================
 
@@ -467,7 +500,7 @@ function encontrarMelhorCorrespondencia(
 
     const valorPremmia =
         normalizarValor(
-            premmia?.valor
+            premmia.valor
         );
 
 
@@ -482,6 +515,7 @@ function encontrarMelhorCorrespondencia(
     ) {
 
         return null;
+
     }
 
 
@@ -495,9 +529,9 @@ function encontrarMelhorCorrespondencia(
             indice
         ) => {
 
-            // --------------------------------
+            // ==================================
             // JÁ UTILIZADO
-            // --------------------------------
+            // ==================================
 
             if (
                 internosUtilizados.has(
@@ -506,16 +540,17 @@ function encontrarMelhorCorrespondencia(
             ) {
 
                 return;
+
             }
 
 
-            // --------------------------------
-            // MESMO VALOR
-            // --------------------------------
+            // ==================================
+            // VALOR
+            // ==================================
 
             const valorInterno =
                 normalizarValor(
-                    interno?.valor
+                    interno.valor
                 );
 
 
@@ -527,12 +562,13 @@ function encontrarMelhorCorrespondencia(
             ) {
 
                 return;
+
             }
 
 
-            // --------------------------------
+            // ==================================
             // DATA + HORA
-            // --------------------------------
+            // ==================================
 
             const tempoInterno =
                 obterDataHora(
@@ -545,12 +581,13 @@ function encontrarMelhorCorrespondencia(
             ) {
 
                 return;
+
             }
 
 
-            // --------------------------------
+            // ==================================
             // MESMA DATA
-            // --------------------------------
+            // ==================================
 
             if (
                 !mesmaData(
@@ -560,12 +597,13 @@ function encontrarMelhorCorrespondencia(
             ) {
 
                 return;
+
             }
 
 
-            // --------------------------------
-            // DIFERENÇA DE HORÁRIO
-            // --------------------------------
+            // ==================================
+            // DIFERENÇA
+            // ==================================
 
             const diferencaMs =
                 Math.abs(
@@ -574,9 +612,9 @@ function encontrarMelhorCorrespondencia(
                 );
 
 
-            // --------------------------------
+            // ==================================
             // FORA DA TOLERÂNCIA
-            // --------------------------------
+            // ==================================
 
             if (
                 diferencaMs >
@@ -584,16 +622,18 @@ function encontrarMelhorCorrespondencia(
             ) {
 
                 return;
+
             }
 
 
             const diferencaMinutos =
-                diferencaMs / 60000;
+                diferencaMs /
+                60000;
 
 
-            // --------------------------------
+            // ==================================
             // PRIMEIRO CANDIDATO
-            // --------------------------------
+            // ==================================
 
             if (
                 !melhor
@@ -612,13 +652,15 @@ function encontrarMelhorCorrespondencia(
 
                 };
 
+
                 return;
+
             }
 
 
-            // --------------------------------
-            // ESCOLHER MAIS PRÓXIMO
-            // --------------------------------
+            // ==================================
+            // ESCOLHER O MAIS PRÓXIMO
+            // ==================================
 
             if (
                 diferencaMinutos <
@@ -645,11 +687,22 @@ function encontrarMelhorCorrespondencia(
 
 
     return melhor;
+
 }
 
 
 // ==========================================
-// ENCONTRAR CANDIDATO COM VALOR DIFERENTE
+// ENCONTRAR VALOR DIFERENTE
+// ==========================================
+//
+// Procura:
+//
+// MESMA DATA
+// +
+// HORÁRIO ATÉ 10 MINUTOS
+// +
+// VALOR DIFERENTE
+//
 // ==========================================
 
 function encontrarCandidatoValorDiferente(
@@ -669,12 +722,13 @@ function encontrarCandidatoValorDiferente(
     ) {
 
         return null;
+
     }
 
 
     const valorPremmia =
         normalizarValor(
-            premmia?.valor
+            premmia.valor
         );
 
 
@@ -688,9 +742,9 @@ function encontrarCandidatoValorDiferente(
             indice
         ) => {
 
-            // --------------------------------
+            // ==================================
             // JÁ UTILIZADO
-            // --------------------------------
+            // ==================================
 
             if (
                 internosUtilizados.has(
@@ -699,12 +753,9 @@ function encontrarCandidatoValorDiferente(
             ) {
 
                 return;
+
             }
 
-
-            // --------------------------------
-            // DATA + HORA
-            // --------------------------------
 
             const tempoInterno =
                 obterDataHora(
@@ -717,12 +768,13 @@ function encontrarCandidatoValorDiferente(
             ) {
 
                 return;
+
             }
 
 
-            // --------------------------------
+            // ==================================
             // MESMA DATA
-            // --------------------------------
+            // ==================================
 
             if (
                 !mesmaData(
@@ -732,12 +784,13 @@ function encontrarCandidatoValorDiferente(
             ) {
 
                 return;
+
             }
 
 
-            // --------------------------------
+            // ==================================
             // DIFERENÇA DE HORÁRIO
-            // --------------------------------
+            // ==================================
 
             const diferencaMs =
                 Math.abs(
@@ -752,25 +805,28 @@ function encontrarCandidatoValorDiferente(
             ) {
 
                 return;
+
             }
 
 
             const diferencaMinutos =
-                diferencaMs / 60000;
+                diferencaMs /
+                60000;
 
 
-            // --------------------------------
+            // ==================================
             // VALOR
-            // --------------------------------
+            // ==================================
 
             const valorInterno =
                 normalizarValor(
-                    interno?.valor
+                    interno.valor
                 );
 
 
-            // Se valor igual, a função
-            // principal deveria encontrar.
+            // Se for igual,
+            // a primeira função deveria
+            // ter encontrado.
 
             if (
                 Math.abs(
@@ -780,12 +836,13 @@ function encontrarCandidatoValorDiferente(
             ) {
 
                 return;
+
             }
 
 
-            // --------------------------------
+            // ==================================
             // ESCOLHER MAIS PRÓXIMO
-            // --------------------------------
+            // ==================================
 
             if (
                 !melhor ||
@@ -813,6 +870,7 @@ function encontrarCandidatoValorDiferente(
 
 
     return melhor;
+
 }
 
 
@@ -829,12 +887,9 @@ function obterDataHora(
     ) {
 
         return null;
+
     }
 
-
-    // --------------------------------------
-    // CAMPOS NORMALIZADOS
-    // --------------------------------------
 
     let data =
         registro.data ||
@@ -850,9 +905,9 @@ function obterDataHora(
         "";
 
 
-    // --------------------------------------
+    // ======================================
     // DATA JÁ COM HORA
-    // --------------------------------------
+    // ======================================
 
     if (
         data &&
@@ -870,14 +925,15 @@ function obterDataHora(
         ) {
 
             return convertido;
+
         }
 
     }
 
 
-    // --------------------------------------
-    // DATA + HORA SEPARADAS
-    // --------------------------------------
+    // ======================================
+    // DATA + HORA
+    // ======================================
 
     if (
         data &&
@@ -895,14 +951,15 @@ function obterDataHora(
         ) {
 
             return convertido;
+
         }
 
     }
 
 
-    // --------------------------------------
-    // PROCURAR NOS DEMAIS CAMPOS
-    // --------------------------------------
+    // ======================================
+    // PROCURAR EM QUALQUER CAMPO
+    // ======================================
 
     const campos =
         Object.keys(
@@ -924,6 +981,7 @@ function obterDataHora(
         ) {
 
             continue;
+
         }
 
 
@@ -951,6 +1009,7 @@ function obterDataHora(
             ) {
 
                 return convertido;
+
             }
 
         }
@@ -959,6 +1018,7 @@ function obterDataHora(
 
 
     return null;
+
 }
 
 
@@ -977,24 +1037,30 @@ function converterDataHora(
     ) {
 
         return null;
+
     }
 
 
-    // --------------------------------------
-    // JÁ É DATE
-    // --------------------------------------
+    // ======================================
+    // DATE
+    // ======================================
 
     if (
         valor instanceof Date
     ) {
 
-        const tempo =
-            valor.getTime();
+        if (
+            !isNaN(
+                valor.getTime()
+            )
+        ) {
+
+            return valor.getTime();
+
+        }
 
 
-        return isNaN(tempo)
-            ? null
-            : tempo;
+        return null;
 
     }
 
@@ -1004,9 +1070,9 @@ function converterDataHora(
             .trim();
 
 
-    // --------------------------------------
+    // ======================================
     // DD/MM/YYYY HH:MM:SS
-    // --------------------------------------
+    // ======================================
 
     let match =
         texto.match(
@@ -1019,22 +1085,39 @@ function converterDataHora(
     ) {
 
         let dia =
-            Number(match[1]);
+            Number(
+                match[1]
+            );
+
 
         let mes =
-            Number(match[2]) - 1;
+            Number(
+                match[2]
+            ) - 1;
+
 
         let ano =
-            Number(match[3]);
+            Number(
+                match[3]
+            );
 
-        const hora =
-            Number(match[4]);
 
-        const minuto =
-            Number(match[5]);
+        let hora =
+            Number(
+                match[4]
+            );
 
-        const segundo =
-            Number(match[6] || 0);
+
+        let minuto =
+            Number(
+                match[5]
+            );
+
+
+        let segundo =
+            Number(
+                match[6] || 0
+            );
 
 
         if (
@@ -1042,6 +1125,7 @@ function converterDataHora(
         ) {
 
             ano += 2000;
+
         }
 
 
@@ -1057,27 +1141,22 @@ function converterDataHora(
             );
 
 
-        // --------------------------------
-        // VALIDAR DATA
-        // --------------------------------
-
         if (
-            data.getFullYear() !== ano ||
-            data.getMonth() !== mes ||
-            data.getDate() !== dia
+            !isNaN(
+                data.getTime()
+            )
         ) {
 
-            return null;
+            return data.getTime();
+
         }
 
-
-        return data.getTime();
     }
 
 
-    // --------------------------------------
+    // ======================================
     // DD/MM/YYYY
-    // --------------------------------------
+    // ======================================
 
     match =
         texto.match(
@@ -1090,13 +1169,21 @@ function converterDataHora(
     ) {
 
         const dia =
-            Number(match[1]);
+            Number(
+                match[1]
+            );
+
 
         const mes =
-            Number(match[2]) - 1;
+            Number(
+                match[2]
+            ) - 1;
+
 
         let ano =
-            Number(match[3]);
+            Number(
+                match[3]
+            );
 
 
         if (
@@ -1104,6 +1191,7 @@ function converterDataHora(
         ) {
 
             ano += 2000;
+
         }
 
 
@@ -1120,22 +1208,21 @@ function converterDataHora(
 
 
         if (
-            data.getFullYear() !== ano ||
-            data.getMonth() !== mes ||
-            data.getDate() !== dia
+            !isNaN(
+                data.getTime()
+            )
         ) {
 
-            return null;
+            return data.getTime();
+
         }
 
-
-        return data.getTime();
     }
 
 
-    // --------------------------------------
-    // ISO / DATE NATIVO
-    // --------------------------------------
+    // ======================================
+    // DATE NATIVO
+    // ======================================
 
     const data =
         new Date(
@@ -1150,10 +1237,12 @@ function converterDataHora(
     ) {
 
         return data.getTime();
+
     }
 
 
     return null;
+
 }
 
 
@@ -1167,25 +1256,28 @@ function mesmaData(
 ) {
 
     const primeiro =
-        new Date(data1);
+        new Date(
+            data1
+        );
 
 
     const segundo =
-        new Date(data2);
+        new Date(
+            data2
+        );
 
 
     return (
         primeiro.getFullYear() ===
         segundo.getFullYear()
-    ) &&
-    (
+    ) && (
         primeiro.getMonth() ===
         segundo.getMonth()
-    ) &&
-    (
+    ) && (
         primeiro.getDate() ===
         segundo.getDate()
     );
+
 }
 
 
@@ -1204,12 +1296,9 @@ function normalizarValor(
     ) {
 
         return 0;
+
     }
 
-
-    // --------------------------------------
-    // NUMBER
-    // --------------------------------------
 
     if (
         typeof valor === "number"
@@ -1218,6 +1307,7 @@ function normalizarValor(
         return arredondar(
             valor
         );
+
     }
 
 
@@ -1225,10 +1315,6 @@ function normalizarValor(
         String(valor)
             .trim();
 
-
-    // --------------------------------------
-    // R$
-    // --------------------------------------
 
     texto =
         texto
@@ -1239,11 +1325,10 @@ function normalizarValor(
             .trim();
 
 
-    // --------------------------------------
-    // FORMATO BRASILEIRO
-    //
+    // ======================================
+    // BRASILEIRO
     // 1.234,56
-    // --------------------------------------
+    // ======================================
 
     if (
         texto.includes(",")
@@ -1263,12 +1348,6 @@ function normalizarValor(
     }
 
 
-    // --------------------------------------
-    // FORMATO NORMAL
-    //
-    // 1234.56
-    // --------------------------------------
-
     const numero =
         Number(
             texto
@@ -1280,12 +1359,14 @@ function normalizarValor(
     ) {
 
         return 0;
+
     }
 
 
     return arredondar(
         numero
     );
+
 }
 
 
@@ -1314,6 +1395,7 @@ function calcularDiferenca(
         valor1 -
         valor2
     );
+
 }
 
 
@@ -1330,6 +1412,7 @@ function arredondar(
             valor || 0
         ).toFixed(2)
     );
+
 }
 
 
@@ -1358,9 +1441,9 @@ function criarResultado({
             interno,
 
 
-        // ----------------------------------
+        // ==================================
         // PREMMIA
-        // ----------------------------------
+        // ==================================
 
         dataPremmia:
             obterDataRegistro(
@@ -1373,9 +1456,9 @@ function criarResultado({
             ),
 
 
-        // ----------------------------------
+        // ==================================
         // INTERNO
-        // ----------------------------------
+        // ==================================
 
         dataInterno:
             obterDataRegistro(
@@ -1388,22 +1471,21 @@ function criarResultado({
             ),
 
 
-        // ----------------------------------
+        // ==================================
         // CLIENTE
-        // ----------------------------------
+        // ==================================
 
         cliente:
             premmia?.cliente ||
-            interno?.cliente ||
             "",
 
 
-        // ----------------------------------
+        // ==================================
         // AUTORIZAÇÕES
         //
-        // Apenas para EXIBIÇÃO.
-        // Não participam da conferência.
-        // ----------------------------------
+        // Apenas informação.
+        // NÃO são usadas na conferência.
+        // ==================================
 
         autorizacaoPremmia:
             premmia?.autorizacao ||
@@ -1414,9 +1496,9 @@ function criarResultado({
             "",
 
 
-        // ----------------------------------
+        // ==================================
         // VALORES
-        // ----------------------------------
+        // ==================================
 
         valorPremmia:
             premmia
@@ -1424,6 +1506,7 @@ function criarResultado({
                     premmia.valor
                 )
                 : null,
+
 
         valorInterno:
             interno
@@ -1433,19 +1516,15 @@ function criarResultado({
                 : null,
 
 
-        // ----------------------------------
+        // ==================================
         // DIFERENÇA
-        // ----------------------------------
+        // ==================================
 
         diferenca:
             arredondar(
                 diferenca
             ),
 
-
-        // ----------------------------------
-        // DIFERENÇA DE HORÁRIO
-        // ----------------------------------
 
         diferencaHorario:
             diferencaHorario !== null
@@ -1455,30 +1534,30 @@ function criarResultado({
                 : null,
 
 
-        // ----------------------------------
+        // ==================================
         // OPERADOR
         //
         // Apenas informação.
-        // Não participa da conferência.
-        // ----------------------------------
+        // NÃO participa da conferência.
+        // ==================================
 
         operador:
             interno?.operador ||
             "",
 
 
-        // ----------------------------------
+        // ==================================
         // PAGAMENTO
-        // ----------------------------------
+        // ==================================
 
         pagamento:
             premmia?.pagamento ||
             "",
 
 
-        // ----------------------------------
+        // ==================================
         // TIPO
-        // ----------------------------------
+        // ==================================
 
         tipo:
             premmia?.operacao ||
@@ -1486,14 +1565,15 @@ function criarResultado({
             "",
 
 
-        // ----------------------------------
+        // ==================================
         // OBSERVAÇÃO
-        // ----------------------------------
+        // ==================================
 
         observacao:
             observacao
 
     };
+
 }
 
 
@@ -1510,34 +1590,18 @@ function obterDataRegistro(
     ) {
 
         return "";
+
     }
 
 
-    const campos = [
-
-        registro.data,
-        registro.dataVenda,
-        registro.dataLancamento
-
-    ];
-
-
-    for (
-        const valor of campos
+    if (
+        registro.data
     ) {
 
-        if (
-            valor === null ||
-            valor === undefined ||
-            valor === ""
-        ) {
-
-            continue;
-        }
-
-
         const texto =
-            String(valor);
+            String(
+                registro.data
+            );
 
 
         const match =
@@ -1551,12 +1615,14 @@ function obterDataRegistro(
         ) {
 
             return match[1];
+
         }
 
     }
 
 
     return "";
+
 }
 
 
@@ -1573,37 +1639,18 @@ function obterHoraRegistro(
     ) {
 
         return "";
+
     }
 
 
-    const campos = [
-
-        registro.hora,
-        registro.horario,
-        registro.horaVenda,
-        registro.data,
-        registro.dataVenda,
-        registro.dataLancamento
-
-    ];
-
-
-    for (
-        const valor of campos
+    if (
+        registro.hora
     ) {
 
-        if (
-            valor === null ||
-            valor === undefined ||
-            valor === ""
-        ) {
-
-            continue;
-        }
-
-
         const texto =
-            String(valor);
+            String(
+                registro.hora
+            );
 
 
         const match =
@@ -1617,12 +1664,41 @@ function obterHoraRegistro(
         ) {
 
             return match[1];
+
+        }
+
+    }
+
+
+    if (
+        registro.data
+    ) {
+
+        const texto =
+            String(
+                registro.data
+            );
+
+
+        const match =
+            texto.match(
+                /(\d{1,2}:\d{2}(?::\d{2})?)/
+            );
+
+
+        if (
+            match
+        ) {
+
+            return match[1];
+
         }
 
     }
 
 
     return "";
+
 }
 
 
@@ -1655,6 +1731,7 @@ function ordenarResultados(
     ) {
 
         return 0;
+
     }
 
 
@@ -1663,6 +1740,7 @@ function ordenarResultados(
     ) {
 
         return 1;
+
     }
 
 
@@ -1671,10 +1749,12 @@ function ordenarResultados(
     ) {
 
         return -1;
+
     }
 
 
-    return dataB - dataA;
+    return dataA - dataB;
+
 }
 
 
@@ -1702,6 +1782,7 @@ function mostrarResultados() {
 
         resultado.style.display =
             "block";
+
     }
 
 
@@ -1711,6 +1792,7 @@ function mostrarResultados() {
 
         tabelaResultado.style.display =
             "block";
+
     }
 
 
@@ -1737,6 +1819,7 @@ function mostrarResultados() {
         });
 
     }
+
 }
 
 
@@ -1776,6 +1859,10 @@ function atualizarResumo() {
     };
 
 
+    // ======================================
+    // CONTAR RESULTADOS
+    // ======================================
+
     resultadosConferencia.forEach(
         resultado => {
 
@@ -1786,6 +1873,7 @@ function atualizarResumo() {
             ) {
 
                 return;
+
             }
 
 
@@ -1805,6 +1893,7 @@ function atualizarResumo() {
 
                 valor =
                     resultado.valorInterno;
+
             }
 
 
@@ -1816,7 +1905,9 @@ function atualizarResumo() {
                 resumo[
                     resultado.status
                 ].valor +=
-                    Number(valor);
+                    Number(
+                        valor
+                    );
 
             }
 
@@ -1825,7 +1916,120 @@ function atualizarResumo() {
 
 
     // ======================================
-    // CONFERIDAS
+    // TOTAIS DAS PLANILHAS
+    // ======================================
+
+    let totalPremmia =
+        0;
+
+
+    let totalInterno =
+        0;
+
+
+    window.dadosPremmia.forEach(
+        registro => {
+
+            totalPremmia +=
+                normalizarValor(
+                    registro.valor
+                );
+
+        }
+    );
+
+
+    window.dadosInterno.forEach(
+        registro => {
+
+            totalInterno +=
+                normalizarValor(
+                    registro.valor
+                );
+
+        }
+    );
+
+
+    totalPremmia =
+        arredondar(
+            totalPremmia
+        );
+
+
+    totalInterno =
+        arredondar(
+            totalInterno
+        );
+
+
+    const diferencaTotais =
+        arredondar(
+            totalInterno -
+            totalPremmia
+        );
+
+
+    // ======================================
+    // EXIBIR TOTAIS
+    // ======================================
+
+    const totalPortal =
+        document.getElementById(
+            "totalPortalPremmia"
+        );
+
+
+    const totalSistema =
+        document.getElementById(
+            "totalSistemaInterno"
+        );
+
+
+    const diferencaTotal =
+        document.getElementById(
+            "diferencaTotais"
+        );
+
+
+    if (
+        totalPortal
+    ) {
+
+        totalPortal.textContent =
+            formatarMoeda(
+                totalPremmia
+            );
+
+    }
+
+
+    if (
+        totalSistema
+    ) {
+
+        totalSistema.textContent =
+            formatarMoeda(
+                totalInterno
+            );
+
+    }
+
+
+    if (
+        diferencaTotal
+    ) {
+
+        diferencaTotal.textContent =
+            formatarMoeda(
+                diferencaTotais
+            );
+
+    }
+
+
+    // ======================================
+    // RESUMOS
     // ======================================
 
     preencherResumo(
@@ -1835,20 +2039,12 @@ function atualizarResumo() {
     );
 
 
-    // ======================================
-    // CORRESPONDÊNCIA DATA/HORA
-    // ======================================
-
     preencherResumo(
         "totalCorrespondencias",
         "valorCorrespondencias",
         resumo.CORRESPONDENCIA_DATA_HORA
     );
 
-
-    // ======================================
-    // NÃO LANÇADAS
-    // ======================================
 
     preencherResumo(
         "totalNaoLancadas",
@@ -1857,20 +2053,12 @@ function atualizarResumo() {
     );
 
 
-    // ======================================
-    // LANÇADAS A MAIS
-    // ======================================
-
     preencherResumo(
         "totalLancadasMais",
         "valorLancadasMais",
         resumo.LANCADA_A_MAIS
     );
 
-
-    // ======================================
-    // VALOR DIVERGENTE
-    // ======================================
 
     preencherResumo(
         "totalValorErrado",
@@ -1879,9 +2067,11 @@ function atualizarResumo() {
     );
 
 
-    // --------------------------------------
-    // COMPATIBILIDADE ANTIGA
-    // --------------------------------------
+    // ======================================
+    // COMPATIBILIDADE
+    //
+    // Autorização não é mais conferida.
+    // ======================================
 
     const totalAutorizacao =
         document.getElementById(
@@ -1901,6 +2091,7 @@ function atualizarResumo() {
 
         totalAutorizacao.textContent =
             "0";
+
     }
 
 
@@ -1910,7 +2101,9 @@ function atualizarResumo() {
 
         valorAutorizacao.textContent =
             "R$ 0,00";
+
     }
+
 }
 
 
@@ -1942,6 +2135,7 @@ function preencherResumo(
 
         quantidade.textContent =
             dados.quantidade;
+
     }
 
 
@@ -1953,7 +2147,9 @@ function preencherResumo(
             formatarMoeda(
                 dados.valor
             );
+
     }
+
 }
 
 
@@ -1976,6 +2172,7 @@ function renderizarTabela(
     ) {
 
         return;
+
     }
 
 
@@ -2009,6 +2206,7 @@ function renderizarTabela(
         `;
 
         return;
+
     }
 
 
@@ -2037,12 +2235,14 @@ function renderizarTabela(
                     )}
                 </td>
 
+
                 <td>
                     ${escaparHTML(
                         resultado.dataPremmia ||
                         "—"
                     )}
                 </td>
+
 
                 <td>
                     ${escaparHTML(
@@ -2051,12 +2251,14 @@ function renderizarTabela(
                     )}
                 </td>
 
+
                 <td>
                     ${escaparHTML(
                         resultado.dataInterno ||
                         "—"
                     )}
                 </td>
+
 
                 <td>
                     ${escaparHTML(
@@ -2065,9 +2267,11 @@ function renderizarTabela(
                     )}
                 </td>
 
+
                 <td>
                     ${diferencaHorario}
                 </td>
+
 
                 <td>
                     ${escaparHTML(
@@ -2076,6 +2280,7 @@ function renderizarTabela(
                     )}
                 </td>
 
+
                 <td>
                     ${escaparHTML(
                         resultado.autorizacaoPremmia ||
@@ -2083,12 +2288,14 @@ function renderizarTabela(
                     )}
                 </td>
 
+
                 <td>
                     ${escaparHTML(
                         resultado.autorizacaoInterno ||
                         "—"
                     )}
                 </td>
+
 
                 <td class="valor">
 
@@ -2102,6 +2309,7 @@ function renderizarTabela(
 
                 </td>
 
+
                 <td class="valor">
 
                     ${
@@ -2114,6 +2322,7 @@ function renderizarTabela(
 
                 </td>
 
+
                 <td>
 
                     ${formatarDiferenca(
@@ -2121,6 +2330,7 @@ function renderizarTabela(
                     )}
 
                 </td>
+
 
                 <td>
 
@@ -2140,6 +2350,7 @@ function renderizarTabela(
 
         }
     );
+
 }
 
 
@@ -2207,6 +2418,7 @@ function criarBadgeStatus(
         </span>
 
     `;
+
 }
 
 
@@ -2224,11 +2436,14 @@ function formatarDiferencaHorario(
     ) {
 
         return "—";
+
     }
 
 
     const valor =
-        Number(minutos);
+        Number(
+            minutos
+        );
 
 
     if (
@@ -2236,6 +2451,7 @@ function formatarDiferencaHorario(
     ) {
 
         return "0 min";
+
     }
 
 
@@ -2246,10 +2462,12 @@ function formatarDiferencaHorario(
         return `${Math.round(
             valor * 60
         )} seg`;
+
     }
 
 
     return `${valor.toFixed(1)} min`;
+
 }
 
 
@@ -2274,10 +2492,13 @@ function formatarDiferenca(
         return `
 
             <span class="diferenca-zero">
+
                 R$ 0,00
+
             </span>
 
         `;
+
     }
 
 
@@ -2296,6 +2517,7 @@ function formatarDiferenca(
             </span>
 
         `;
+
     }
 
 
@@ -2310,6 +2532,7 @@ function formatarDiferenca(
         </span>
 
     `;
+
 }
 
 
@@ -2339,6 +2562,7 @@ function formatarMoeda(
 
         }
     );
+
 }
 
 
@@ -2373,6 +2597,7 @@ function escaparHTML(
             /'/g,
             "&#039;"
         );
+
 }
 
 
@@ -2419,12 +2644,13 @@ document.addEventListener(
                                 this.dataset.filtro;
 
 
-                            // --------------------------------
+                            // ==================================
                             // TODOS
-                            // --------------------------------
+                            // ==================================
 
                             if (
-                                filtro === "TODOS"
+                                filtro ===
+                                "TODOS"
                             ) {
 
                                 renderizarTabela(
@@ -2432,12 +2658,13 @@ document.addEventListener(
                                 );
 
                                 return;
+
                             }
 
 
-                            // --------------------------------
+                            // ==================================
                             // FILTRAR
-                            // --------------------------------
+                            // ==================================
 
                             const filtrados =
                                 resultadosConferencia.filter(
