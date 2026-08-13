@@ -137,13 +137,13 @@
         >
 
             Premmia:
-            <strong>0</strong>
+            <strong id="contadorPremmia">0</strong>
             registros
 
-            |
+            &nbsp; | &nbsp;
 
             Interno:
-            <strong>0</strong>
+            <strong id="contadorInterno">0</strong>
             registros
 
         </div>
@@ -208,7 +208,6 @@
         =================================== -->
 
         <div class="resumo-grid">
-
 
 
             <!-- =================================
@@ -441,35 +440,6 @@
             </div>
 
 
-
-
-            <!-- =================================
-                 AUTORIZAÇÃO
-            ================================== -->
-
-            <div class="resumo-item autorizacao">
-
-                <span>
-                    Autorização divergente
-                </span>
-
-
-                <strong id="totalAutorizacao">
-
-                    0
-
-                </strong>
-
-
-                <small id="valorAutorizacao">
-
-                    R$ 0,00
-
-                </small>
-
-            </div>
-
-
         </div>
 
     </section>
@@ -590,19 +560,6 @@
 
             </button>
 
-
-
-            <button
-                type="button"
-                class="filtro"
-                data-filtro="AUTORIZACAO_DIVERGENTE"
-            >
-
-                Autorização divergente
-
-            </button>
-
-
         </div>
 
 
@@ -712,6 +669,11 @@
     <footer>
 
         Conferência Premmia
+        <br>
+
+        <small>
+            Tolerância de conferência: 10 minutos
+        </small>
 
     </footer>
 
