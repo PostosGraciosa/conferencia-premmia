@@ -1,32 +1,43 @@
 // ============================================================
-// LEITURA E NORMALIZAÇÃO DAS PLANILHAS
 // CONFERÊNCIA PREMMIA
+// conferencia.js
 // ============================================================
 
 console.log("================================");
-console.log("leituraExcel.js iniciado");
+console.log("conferencia.js iniciado");
 console.log("================================");
 
-window.dadosPremmia = [];
-window.dadosInterno = [];
 
-window.resumoPremmia = {
-    quantidade: 0,
-    total: 0
-};
+// ============================================================
+// CONFIGURAÇÕES
+// ============================================================
 
-window.resumoInterno = {
-    quantidade: 0,
-    totalCalculado: 0,
-    totalInformado: null
+const TOLERANCIA_HORARIO_MINUTOS = 10;
+const TOLERANCIA_VALOR = 0.01;
+
+
+// ============================================================
+// VARIÁVEIS GLOBAIS
+// ============================================================
+
+window.resultadosConferencia = [];
+
+window.resumoConferencia = {};
+
+window.filtrosConferencia = {
+    valor: [],
+    data: [],
+    codigoTransacao: [],
+    formaPagamento: [],
+    horario: []
 };
 
 
 // ============================================================
-// LIMPA TEXTO
+// NORMALIZAR TEXTO
 // ============================================================
 
-function limparTexto(valor) {
+function normalizarTexto(valor) {
 
     if (
         valor === null ||
@@ -45,22 +56,10 @@ function limparTexto(valor) {
 
 
 // ============================================================
-// NORMALIZA CABEÇALHO
+// NORMALIZAR VALOR
 // ============================================================
 
-function normalizarCabecalho(valor) {
-
-    return limparTexto(valor)
-        .replace(/[^A-Z0-9]/g, "");
-
-}
-
-
-// ============================================================
-// CONVERTE VALOR
-// ============================================================
-
-function converterValor(valor) {
+function normalizarValor(valor) {
 
     if (
         valor === null ||
@@ -70,45 +69,38 @@ function converterValor(valor) {
         return 0;
     }
 
-    if (typeof valor === "number") {
-
+    if (
+        typeof valor === "number"
+    ) {
         return Number(
             valor.toFixed(2)
         );
-
     }
 
-    let texto = String(valor)
-        .trim()
-        .replace(/\s/g, "")
-        .replace(/R\$/gi, "");
+    let texto =
+        String(valor)
+            .trim()
+            .replace(/\s/g, "")
+            .replace(/R\$/gi, "");
 
+    // Formato brasileiro
     if (
-        texto.includes(",") &&
-        texto.includes(".")
-    ) {
-
-        texto = texto
-            .replace(/\./g, "")
-            .replace(",", ".");
-
-    }
-    else if (
         texto.includes(",")
     ) {
 
-        texto = texto.replace(",", ".");
+        texto =
+            texto
+                .replace(/\./g, "")
+                .replace(",", ".");
 
     }
 
-    texto = texto.replace(
-        /[^\d.-]/g,
-        ""
-    );
+    const numero =
+        Number(texto);
 
-    const numero = Number(texto);
-
-    if (!Number.isFinite(numero)) {
+    if (
+        !Number.isFinite(numero)
+    ) {
         return 0;
     }
 
@@ -120,356 +112,138 @@ function converterValor(valor) {
 
 
 // ============================================================
-// FORMATA VALOR
+// ARREDONDAR
 // ============================================================
 
-function formatarValor(valor) {
-
-    return Number(valor || 0)
-        .toLocaleString(
-            "pt-BR",
-            {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }
-        );
-
-}
-
-
-// ============================================================
-// NORMALIZA DATA
-// ============================================================
-
-function normalizarData(valor) {
-
-    if (
-        valor === null ||
-        valor === undefined ||
-        valor === ""
-    ) {
-        return "";
-    }
-
-    if (
-        valor instanceof Date &&
-        !isNaN(valor.getTime())
-    ) {
-
-        const dia =
-            String(
-                valor.getDate()
-            ).padStart(2, "0");
-
-        const mes =
-            String(
-                valor.getMonth() + 1
-            ).padStart(2, "0");
-
-        const ano =
-            valor.getFullYear();
-
-        return `${ano}-${mes}-${dia}`;
-
-    }
-
-    let texto =
-        String(valor).trim();
-
-
-    // dd/mm/yyyy
-    let match =
-        texto.match(
-            /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/
-        );
-
-
-    if (match) {
-
-        const dia =
-            match[1].padStart(2, "0");
-
-        const mes =
-            match[2].padStart(2, "0");
-
-        const ano =
-            match[3];
-
-        return `${ano}-${mes}-${dia}`;
-
-    }
-
-
-    // yyyy-mm-dd
-    match =
-        texto.match(
-            /^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/
-        );
-
-
-    if (match) {
-
-        const ano =
-            match[1];
-
-        const mes =
-            match[2].padStart(2, "0");
-
-        const dia =
-            match[3].padStart(2, "0");
-
-        return `${ano}-${mes}-${dia}`;
-
-    }
-
-
-    return "";
-
-}
-
-
-// ============================================================
-// FORMATA DATA
-// ============================================================
-
-function formatarData(data) {
-
-    if (!data) {
-        return "";
-    }
-
-    const partes =
-        data.split("-");
-
-    if (partes.length !== 3) {
-        return data;
-    }
-
-    return `${partes[2]}/${partes[1]}/${partes[0]}`;
-
-}
-
-
-// ============================================================
-// NORMALIZA HORA
-// ============================================================
-
-function normalizarHora(valor) {
-
-    if (
-        valor === null ||
-        valor === undefined ||
-        valor === ""
-    ) {
-        return "";
-    }
-
-
-    if (
-        valor instanceof Date &&
-        !isNaN(valor.getTime())
-    ) {
-
-        const horas =
-            String(
-                valor.getHours()
-            ).padStart(2, "0");
-
-        const minutos =
-            String(
-                valor.getMinutes()
-            ).padStart(2, "0");
-
-        const segundos =
-            String(
-                valor.getSeconds()
-            ).padStart(2, "0");
-
-        return `${horas}:${minutos}:${segundos}`;
-
-    }
-
-
-    let texto =
-        String(valor).trim();
-
-
-    const match =
-        texto.match(
-            /(\d{1,2}):(\d{2})(?::(\d{2}))?/
-        );
-
-
-    if (!match) {
-        return "";
-    }
-
-
-    const horas =
-        match[1].padStart(2, "0");
-
-    const minutos =
-        match[2].padStart(2, "0");
-
-    const segundos =
-        (match[3] || "00")
-            .padStart(2, "0");
-
-
-    return `${horas}:${minutos}:${segundos}`;
-
-}
-
-
-// ============================================================
-// EXTRAI DATA + HORA
-// ============================================================
-
-function extrairDataHora(valor) {
-
-    if (
-        valor instanceof Date &&
-        !isNaN(valor.getTime())
-    ) {
-
-        return {
-
-            data:
-                normalizarData(valor),
-
-            hora:
-                normalizarHora(valor)
-
-        };
-
-    }
-
-
-    const texto =
-        String(valor || "").trim();
-
-
-    return {
-
-        data:
-            normalizarData(texto),
-
-        hora:
-            normalizarHora(texto)
-
-    };
-
-}
-
-
-// ============================================================
-// HORA EM SEGUNDOS
-// ============================================================
-
-function horaParaSegundos(hora) {
-
-    if (!hora) {
-        return null;
-    }
-
-    const partes =
-        hora.split(":");
-
-    if (partes.length < 2) {
-        return null;
-    }
-
-
-    const h =
-        Number(partes[0]);
-
-    const m =
-        Number(partes[1]);
-
-    const s =
-        Number(partes[2] || 0);
-
-
-    if (
-        !Number.isFinite(h) ||
-        !Number.isFinite(m) ||
-        !Number.isFinite(s)
-    ) {
-        return null;
-    }
-
-
-    return (
-        h * 3600 +
-        m * 60 +
-        s
+function arredondar(valor) {
+
+    return Number(
+        Number(valor || 0)
+            .toFixed(2)
     );
 
 }
 
 
 // ============================================================
-// NORMALIZA CARTÃO
+// COMPARAR VALORES
 // ============================================================
 
-function normalizarCartao(valor) {
+function valoresIguais(
+    valor1,
+    valor2
+) {
 
-    const texto =
-        limparTexto(valor);
+    return (
+        Math.abs(
+            normalizarValor(valor1) -
+            normalizarValor(valor2)
+        ) < TOLERANCIA_VALOR
+    );
+
+}
 
 
-    if (!texto) {
+// ============================================================
+// NORMALIZAR DATA
+// ============================================================
+
+function normalizarDataConferencia(
+    valor
+) {
+
+    if (
+        !valor
+    ) {
         return "";
     }
 
 
+    // Date
     if (
-        texto.includes("CRED")
+        valor instanceof Date &&
+        !isNaN(valor.getTime())
     ) {
-        return "CREDITO";
+
+        return (
+            `${valor.getFullYear()}-${String(
+                valor.getMonth() + 1
+            ).padStart(2, "0")}-${String(
+                valor.getDate()
+            ).padStart(2, "0")}`
+        );
+
     }
 
 
+    const texto =
+        String(valor)
+            .trim();
+
+
+    // yyyy-mm-dd
+    let match =
+        texto.match(
+            /^(\d{4})-(\d{1,2})-(\d{1,2})/
+        );
+
+
     if (
-        texto.includes("DEB")
+        match
     ) {
-        return "DEBITO";
+
+        return (
+            `${match[1]}-${String(
+                match[2]
+            ).padStart(2, "0")}-${String(
+                match[3]
+            ).padStart(2, "0")}`
+        );
+
     }
 
 
+    // dd/mm/yyyy
+    match =
+        texto.match(
+            /^(\d{1,2})\/(\d{1,2})\/(\d{4})/
+        );
+
+
     if (
-        texto.includes("PIX")
+        match
     ) {
-        return "PIX";
+
+        return (
+            `${match[3]}-${String(
+                match[2]
+            ).padStart(2, "0")}-${String(
+                match[1]
+            ).padStart(2, "0")}`
+        );
+
     }
 
 
-    if (
-        texto.includes("DINHEIRO")
-    ) {
-        return "DINHEIRO";
-    }
+    // dd-mm-yyyy
+    match =
+        texto.match(
+            /^(\d{1,2})-(\d{1,2})-(\d{4})/
+        );
 
 
     if (
-        texto.includes("VOUCHER") ||
-        texto.includes("VALE")
+        match
     ) {
-        return "VOUCHER";
-    }
 
+        return (
+            `${match[3]}-${String(
+                match[2]
+            ).padStart(2, "0")}-${String(
+                match[1]
+            ).padStart(2, "0")}`
+        );
 
-    if (
-        texto.includes("QR")
-    ) {
-        return "QR";
-    }
-
-
-    if (
-        texto.includes("DESCONTO")
-    ) {
-        return "DESCONTO";
     }
 
 
@@ -479,952 +253,1141 @@ function normalizarCartao(valor) {
 
 
 // ============================================================
-// ENCONTRA COLUNA EXATA
+// NORMALIZAR HORA
 // ============================================================
 
-function encontrarColuna(
-    cabecalhos,
-    nomes
-) {
-
-    for (
-        const nome of nomes
-    ) {
-
-        const procurado =
-            normalizarCabecalho(nome);
-
-
-        const indice =
-            cabecalhos.findIndex(
-                cab =>
-                    normalizarCabecalho(
-                        cab
-                    ) === procurado
-            );
-
-
-        if (indice >= 0) {
-            return indice;
-        }
-
-    }
-
-
-    return -1;
-
-}
-
-
-// ============================================================
-// ENCONTRA COLUNA PARCIAL
-// ============================================================
-
-function encontrarColunaParcial(
-    cabecalhos,
-    termos
-) {
-
-    for (
-        let i = 0;
-        i < cabecalhos.length;
-        i++
-    ) {
-
-        const cab =
-            normalizarCabecalho(
-                cabecalhos[i]
-            );
-
-
-        for (
-            const termo of termos
-        ) {
-
-            const palavra =
-                normalizarCabecalho(
-                    termo
-                );
-
-
-            if (
-                cab.includes(palavra)
-            ) {
-
-                return i;
-
-            }
-
-        }
-
-    }
-
-
-    return -1;
-
-}
-
-
-// ============================================================
-// DETECTA SE UMA LINHA É TOTAL
-// ============================================================
-
-function linhaEhTotal(
-    linha
+function normalizarHoraConferencia(
+    valor
 ) {
 
     if (
-        !Array.isArray(linha) ||
-        !linha.length
+        !valor
     ) {
-        return false;
+        return "";
     }
 
 
-    const textos =
-        linha.map(
-            valor =>
-                limparTexto(valor)
+    // Date
+    if (
+        valor instanceof Date &&
+        !isNaN(valor.getTime())
+    ) {
+
+        return (
+            `${String(
+                valor.getHours()
+            ).padStart(2, "0")}:${String(
+                valor.getMinutes()
+            ).padStart(2, "0")}:${String(
+                valor.getSeconds()
+            ).padStart(2, "0")}`
+        );
+
+    }
+
+
+    const texto =
+        String(valor)
+            .trim();
+
+
+    const match =
+        texto.match(
+            /(\d{1,2}):(\d{2})(?::(\d{2}))?/
         );
 
 
-    const textoCompleto =
-        textos.join(" ");
-
-
-    // Palavras claramente indicativas
     if (
-        textoCompleto.includes("TOTAL GERAL") ||
-        textoCompleto.includes("TOTAL") ||
-        textoCompleto.includes("VALOR TOTAL") ||
-        textoCompleto.includes("TOTAL LIQUIDO") ||
-        textoCompleto.includes("TOTAL LIQUIDA")
+        !match
     ) {
-
-        return true;
-
+        return "";
     }
 
 
-    return false;
+    return (
+        `${String(
+            match[1]
+        ).padStart(2, "0")}:${match[2]}:${String(
+            match[3] || "00"
+        ).padStart(2, "0")}`
+    );
 
 }
 
 
 // ============================================================
-// DETECTA LINHA FINAL DE RESUMO DO SISTEMA
+// HORA → SEGUNDOS
 // ============================================================
-//
-// Algumas planilhas possuem uma linha final sem a palavra
-// "TOTAL", mas com somente um valor preenchido.
-// Para não correr o risco de transformar essa linha em venda,
-// ela só será considerada total quando:
-// - estiver depois dos lançamentos;
-// - não possuir data;
-// - não possuir horário;
-// - não possuir transação/autorização/NSU;
-// - possuir valor;
-// - e estiver entre as últimas linhas da planilha.
-//
 
-function linhaPodeSerTotalSistema(
-    linha,
-    indices,
-    numeroLinha,
-    totalLinhas
+function horaParaSegundosConferencia(
+    hora
+) {
+
+    const normalizada =
+        normalizarHoraConferencia(
+            hora
+        );
+
+
+    if (
+        !normalizada
+    ) {
+        return null;
+    }
+
+
+    const partes =
+        normalizada.split(":");
+
+
+    const horas =
+        Number(partes[0]);
+
+    const minutos =
+        Number(partes[1]);
+
+    const segundos =
+        Number(partes[2]);
+
+
+    if (
+        !Number.isFinite(horas) ||
+        !Number.isFinite(minutos) ||
+        !Number.isFinite(segundos)
+    ) {
+        return null;
+    }
+
+
+    return (
+        horas * 3600 +
+        minutos * 60 +
+        segundos
+    );
+
+}
+
+
+// ============================================================
+// DIFERENÇA DE HORÁRIO
+// ============================================================
+
+function diferencaHorarioSegundos(
+    hora1,
+    hora2
+) {
+
+    const segundos1 =
+        horaParaSegundosConferencia(
+            hora1
+        );
+
+
+    const segundos2 =
+        horaParaSegundosConferencia(
+            hora2
+        );
+
+
+    if (
+        segundos1 === null ||
+        segundos2 === null
+    ) {
+        return null;
+    }
+
+
+    let diferenca =
+        Math.abs(
+            segundos1 -
+            segundos2
+        );
+
+
+    // Trata virada da meia-noite
+    if (
+        diferenca > 43200
+    ) {
+
+        diferenca =
+            86400 -
+            diferenca;
+
+    }
+
+
+    return diferenca;
+
+}
+
+
+// ============================================================
+// HORÁRIOS COMPATÍVEIS
+// ============================================================
+
+function horariosCompativeis(
+    hora1,
+    hora2,
+    toleranciaMinutos =
+        TOLERANCIA_HORARIO_MINUTOS
+) {
+
+    const diferenca =
+        diferencaHorarioSegundos(
+            hora1,
+            hora2
+        );
+
+
+    // Se uma das planilhas não possui horário,
+    // não impede a correspondência.
+    if (
+        diferenca === null
+    ) {
+        return true;
+    }
+
+
+    return (
+        diferenca <=
+        toleranciaMinutos * 60
+    );
+
+}
+
+
+// ============================================================
+// NORMALIZAR CARTÃO / FORMA DE PAGAMENTO
+// ============================================================
+
+function normalizarCartaoConferencia(
+    valor
+) {
+
+    const texto =
+        normalizarTexto(
+            valor
+        );
+
+
+    if (
+        !texto
+    ) {
+        return "";
+    }
+
+
+    // PIX
+    if (
+        texto.includes("PIX")
+    ) {
+        return "PIX";
+    }
+
+
+    // CRÉDITO
+    if (
+        texto.includes("CRED")
+    ) {
+        return "CREDITO";
+    }
+
+
+    // DÉBITO
+    if (
+        texto.includes("DEB")
+    ) {
+        return "DEBITO";
+    }
+
+
+    // DINHEIRO
+    if (
+        texto.includes("DINHEIRO")
+    ) {
+        return "DINHEIRO";
+    }
+
+
+    // VOUCHER
+    if (
+        texto.includes("VOUCHER") ||
+        texto.includes("VALE")
+    ) {
+        return "VOUCHER";
+    }
+
+
+    // DESCONTO
+    if (
+        texto.includes("DESCONTO")
+    ) {
+        return "DESCONTO";
+    }
+
+
+    // QR CODE
+    if (
+        texto.includes("QR")
+    ) {
+        return "QR";
+    }
+
+
+    return texto;
+
+}
+
+
+// ============================================================
+// OBTER CARTÃO
+// ============================================================
+
+function obterCartao(
+    registro
 ) {
 
     if (
-        !Array.isArray(linha) ||
-        !linha.length
+        !registro
     ) {
-        return false;
+        return "";
     }
 
 
-    // Se já possui texto TOTAL,
-    // é definitivamente uma linha de resumo.
+    return normalizarCartaoConferencia(
+
+        registro.tipoCartao ||
+
+        registro.formaPagamento ||
+
+        registro.tipo ||
+
+        registro.bandeira ||
+
+        ""
+
+    );
+
+}
+
+
+// ============================================================
+// CHAVE PRINCIPAL
+// DATA + VALOR + CARTÃO
+// ============================================================
+
+function criarChavePrincipal(
+    registro
+) {
+
     if (
-        linhaEhTotal(linha)
+        !registro
     ) {
-
-        return true;
-
+        return "";
     }
 
 
-    // Só analisamos as últimas 5 linhas.
+    const data =
+        normalizarDataConferencia(
+            registro.data
+        );
+
+
+    const valor =
+        normalizarValor(
+            registro.valor
+        );
+
+
+    const cartao =
+        obterCartao(
+            registro
+        );
+
+
     if (
-        numeroLinha <
-        totalLinhas - 5
+        !data ||
+        !cartao
     ) {
+        return "";
+    }
 
-        return false;
 
+    return (
+        `${data}|${valor.toFixed(2)}|${cartao}`
+    );
+
+}
+
+
+// ============================================================
+// CHAVE DATA + VALOR
+// ============================================================
+
+function criarChaveDataValor(
+    registro
+) {
+
+    if (
+        !registro
+    ) {
+        return "";
+    }
+
+
+    const data =
+        normalizarDataConferencia(
+            registro.data
+        );
+
+
+    const valor =
+        normalizarValor(
+            registro.valor
+        );
+
+
+    if (
+        !data
+    ) {
+        return "";
+    }
+
+
+    return (
+        `${data}|${valor.toFixed(2)}`
+    );
+
+}
+
+
+// ============================================================
+// CHAVE DATA + CARTÃO
+// ============================================================
+
+function criarChaveDataCartao(
+    registro
+) {
+
+    if (
+        !registro
+    ) {
+        return "";
+    }
+
+
+    const data =
+        normalizarDataConferencia(
+            registro.data
+        );
+
+
+    const cartao =
+        obterCartao(
+            registro
+        );
+
+
+    if (
+        !data ||
+        !cartao
+    ) {
+        return "";
+    }
+
+
+    return (
+        `${data}|${cartao}`
+    );
+
+}
+
+
+// ============================================================
+// CHAVE VALOR + CARTÃO
+// ============================================================
+
+function criarChaveValorCartao(
+    registro
+) {
+
+    if (
+        !registro
+    ) {
+        return "";
     }
 
 
     const valor =
-        converterValor(
-            indices.valor >= 0
-                ? linha[indices.valor]
-                : 0
+        normalizarValor(
+            registro.valor
         );
 
 
-    if (!valor) {
-        return false;
-    }
-
-
-    const movimento =
-        indices.movimento >= 0
-            ? linha[indices.movimento]
-            : "";
-
-
-    const dataFiscal =
-        indices.dataFiscal >= 0
-            ? linha[indices.dataFiscal]
-            : "";
-
-
-    const horario =
-        indices.horario >= 0
-            ? linha[indices.horario]
-            : "";
-
-
-    const transacao =
-        indices.transacao >= 0
-            ? linha[indices.transacao]
-            : "";
-
-
-    const autorizacao =
-        indices.autorizacao >= 0
-            ? linha[indices.autorizacao]
-            : "";
-
-
-    const nsu =
-        indices.nsu >= 0
-            ? linha[indices.nsu]
-            : "";
-
-
-    const temData =
-        !!normalizarData(
-            movimento
-        ) ||
-        !!normalizarData(
-            dataFiscal
+    const cartao =
+        obterCartao(
+            registro
         );
 
 
-    const temHora =
-        !!normalizarHora(
-            horario
-        );
-
-
-    const temIdentificador =
-        !!limparTexto(
-            transacao
-        ) ||
-        !!limparTexto(
-            autorizacao
-        ) ||
-        !!limparTexto(
-            nsu
-        );
-
-
-    // Linha sem características de lançamento
-    // e localizada no final da planilha.
     if (
-        !temData &&
-        !temHora &&
-        !temIdentificador
+        !cartao
     ) {
-
-        return true;
-
+        return "";
     }
 
 
-    return false;
+    return (
+        `${valor.toFixed(2)}|${cartao}`
+    );
 
 }
 
 
 // ============================================================
-// EXTRAI VALOR DO TOTAL
+// CRIAR ÍNDICE
 // ============================================================
 
-function extrairValorTotal(
-    linha,
-    indiceValor
+function criarIndice(
+    registros,
+    funcaoChave
 ) {
 
-    if (
-        indiceValor >= 0
-    ) {
-
-        const valor =
-            converterValor(
-                linha[indiceValor]
-            );
-
-
-        if (valor > 0) {
-            return valor;
-        }
-
-    }
-
-
-    // Procura o último número válido
-    // da linha.
-    for (
-        let i = linha.length - 1;
-        i >= 0;
-        i--
-    ) {
-
-        const valor =
-            converterValor(
-                linha[i]
-            );
-
-
-        if (valor > 0) {
-            return valor;
-        }
-
-    }
-
-
-    return 0;
-
-}
-
-
-// ============================================================
-// TRANSFORMA PORTAL
-// ============================================================
-
-function transformarPremmia(
-    linhas
-) {
-
-    if (
-        !linhas ||
-        !linhas.length
-    ) {
-        return [];
-    }
-
-
-    const cabecalhos =
-        linhas[0];
-
-
-    const colunaValor =
-        encontrarColuna(
-            cabecalhos,
-            [
-                "Valor líquido",
-                "Valor liquido"
-            ]
-        );
-
-
-    const colunaDataHora =
-        encontrarColuna(
-            cabecalhos,
-            [
-                "Data/Hora da transação",
-                "Data/Hora da transacao",
-                "Data Hora da transação",
-                "Data Hora da transacao"
-            ]
-        );
-
-
-    const colunaCodigo =
-        encontrarColuna(
-            cabecalhos,
-            [
-                "Código Transação",
-                "Codigo Transacao",
-                "Código da Transação",
-                "Codigo da Transacao"
-            ]
-        );
-
-
-    const colunaPagamento =
-        encontrarColuna(
-            cabecalhos,
-            [
-                "Forma de Pagamento"
-            ]
-        );
-
-
-    console.log(
-        "COLUNAS PORTAL"
-    );
-
-    console.log({
-
-        colunaValor,
-
-        colunaDataHora,
-
-        colunaCodigo,
-
-        colunaPagamento
-
-    });
-
-
-    const registros = [];
-
-
-    for (
-        let i = 1;
-        i < linhas.length;
-        i++
-    ) {
-
-        const linha =
-            linhas[i];
-
-
-        if (
-            !linha ||
-            !linha.length
-        ) {
-            continue;
-        }
-
-
-        if (
-            linhaEhTotal(linha)
-        ) {
-            continue;
-        }
-
-
-        const valor =
-            converterValor(
-                colunaValor >= 0
-                    ? linha[colunaValor]
-                    : 0
-            );
-
-
-        const dataHora =
-            extrairDataHora(
-                colunaDataHora >= 0
-                    ? linha[colunaDataHora]
-                    : ""
-            );
-
-
-        const codigo =
-            limparTexto(
-                colunaCodigo >= 0
-                    ? linha[colunaCodigo]
-                    : ""
-            );
-
-
-        const pagamento =
-            normalizarCartao(
-                colunaPagamento >= 0
-                    ? linha[colunaPagamento]
-                    : ""
-            );
-
-
-        if (
-            !valor &&
-            !dataHora.data &&
-            !codigo &&
-            !pagamento
-        ) {
-            continue;
-        }
-
-
-        registros.push({
-
-            origem:
-                "PORTAL",
-
-            linhaOriginal:
-                i + 1,
-
-            valor,
-
-            data:
-                dataHora.data,
-
-            hora:
-                dataHora.hora,
-
-            codigoTransacao:
-                codigo,
-
-            formaPagamento:
-                pagamento,
-
-            usado:
-                false
-
-        });
-
-    }
-
-
-    return registros;
-
-}
-
-
-// ============================================================
-// TRANSFORMA SISTEMA
-// ============================================================
-
-function transformarInterno(
-    linhas
-) {
-
-    if (
-        !linhas ||
-        !linhas.length
-    ) {
-
-        return {
-
-            registros: [],
-
-            totalInformado: null
-
-        };
-
-    }
-
-
-    const cabecalhos =
-        linhas[0];
-
-
-    const indices = {
-
-        valor:
-            encontrarColuna(
-                cabecalhos,
-                [
-                    "Valor",
-                    "Valor líquido",
-                    "Valor liquido"
-                ]
-            ),
-
-        horario:
-            encontrarColuna(
-                cabecalhos,
-                [
-                    "Horário",
-                    "Horario"
-                ]
-            ),
-
-        movimento:
-            encontrarColuna(
-                cabecalhos,
-                [
-                    "Movimento"
-                ]
-            ),
-
-        dataFiscal:
-            encontrarColuna(
-                cabecalhos,
-                [
-                    "Data Fiscal"
-                ]
-            ),
-
-        transacao:
-            encontrarColuna(
-                cabecalhos,
-                [
-                    "Transação",
-                    "Transacao"
-                ]
-            ),
-
-        autorizacao:
-            encontrarColuna(
-                cabecalhos,
-                [
-                    "Autorização",
-                    "Autorizacao"
-                ]
-            ),
-
-        nsu:
-            encontrarColuna(
-                cabecalhos,
-                [
-                    "NSU"
-                ]
-            ),
-
-        tipoCartao:
-            encontrarColuna(
-                cabecalhos,
-                [
-                    "Tipo Cartão",
-                    "Tipo Cartao"
-                ]
-            ),
-
-        tipo:
-            encontrarColuna(
-                cabecalhos,
-                [
-                    "Tipo"
-                ]
-            ),
-
-        bandeira:
-            encontrarColuna(
-                cabecalhos,
-                [
-                    "Código - Nome Bandeira",
-                    "Codigo - Nome Bandeira"
-                ]
-            )
-
-    };
-
-
-    console.log(
-        "COLUNAS SISTEMA"
-    );
-
-    console.log(
-        indices
-    );
-
-
-    const registros = [];
-
-    let totalInformado = null;
-
-
-    // ========================================================
-    // PRIMEIRA PASSAGEM
-    // Procura a linha de total
-    // ========================================================
-
-    for (
-        let i = 1;
-        i < linhas.length;
-        i++
-    ) {
-
-        const linha =
-            linhas[i];
-
-
-        if (
-            !linha ||
-            !linha.length
-        ) {
-            continue;
-        }
-
-
-        const ehTotal =
-            linhaPodeSerTotalSistema(
-                linha,
-                indices,
-                i,
-                linhas.length
-            );
-
-
-        if (!ehTotal) {
-            continue;
-        }
-
-
-        const valorTotal =
-            extrairValorTotal(
-                linha,
-                indices.valor
-            );
-
-
-        if (
-            valorTotal > 0
-        ) {
-
-            totalInformado =
-                valorTotal;
-
-            console.log(
-                "TOTAL DO SISTEMA IDENTIFICADO:",
-                totalInformado,
-                "linha:",
-                i + 1
-            );
-
-        }
-
-    }
-
-
-    // ========================================================
-    // SEGUNDA PASSAGEM
-    // Lê somente lançamentos reais
-    // ========================================================
-
-    for (
-        let i = 1;
-        i < linhas.length;
-        i++
-    ) {
-
-        const linha =
-            linhas[i];
-
-
-        if (
-            !linha ||
-            !linha.length
-        ) {
-            continue;
-        }
-
-
-        // IMPORTANTE:
-        // Se for linha de total, NÃO entra
-        // nos dados da conciliação.
-        if (
-            linhaPodeSerTotalSistema(
-                linha,
-                indices,
-                i,
-                linhas.length
-            )
-        ) {
-
-            continue;
-
-        }
-
-
-        const valor =
-            converterValor(
-                indices.valor >= 0
-                    ? linha[indices.valor]
-                    : 0
-            );
-
-
-        const movimento =
-            indices.movimento >= 0
-                ? linha[indices.movimento]
-                : "";
-
-
-        const dataFiscal =
-            indices.dataFiscal >= 0
-                ? linha[indices.dataFiscal]
-                : "";
-
-
-        const horario =
-            indices.horario >= 0
-                ? linha[indices.horario]
-                : "";
-
-
-        let data =
-            normalizarData(
-                movimento
-            );
-
-
-        if (!data) {
-
-            data =
-                normalizarData(
-                    dataFiscal
-                );
-
-        }
-
-
-        let hora =
-            normalizarHora(
-                horario
-            );
-
-
-        // Se Movimento possui data + hora
-        if (
-            movimento &&
-            (
-                !data ||
-                !hora
-            )
-        ) {
-
-            const dataHora =
-                extrairDataHora(
-                    movimento
+    const indice =
+        new Map();
+
+
+    registros.forEach(
+        (
+            registro,
+            index
+        ) => {
+
+            const chave =
+                funcaoChave(
+                    registro
                 );
 
 
             if (
-                !data &&
-                dataHora.data
+                !chave
             ) {
-
-                data =
-                    dataHora.data;
-
+                return;
             }
 
 
             if (
-                !hora &&
-                dataHora.hora
+                !indice.has(chave)
             ) {
 
-                hora =
-                    dataHora.hora;
+                indice.set(
+                    chave,
+                    []
+                );
+
+            }
+
+
+            indice
+                .get(chave)
+                .push(index);
+
+        }
+    );
+
+
+    return indice;
+
+}
+
+
+// ============================================================
+// ENCONTRAR CORRESPONDÊNCIA PRINCIPAL
+// ============================================================
+
+function encontrarCorrespondenciaPrincipal(
+    portal,
+    internos,
+    indices,
+    internosUtilizados,
+    toleranciaMinutos =
+        TOLERANCIA_HORARIO_MINUTOS
+) {
+
+    const chave =
+        criarChavePrincipal(
+            portal
+        );
+
+
+    if (
+        !chave
+    ) {
+        return null;
+    }
+
+
+    const candidatos =
+        indices.principal.get(
+            chave
+        ) || [];
+
+
+    let melhor =
+        null;
+
+
+    let menorDiferenca =
+        Infinity;
+
+
+    candidatos.forEach(
+        index => {
+
+            if (
+                internosUtilizados.has(
+                    index
+                )
+            ) {
+                return;
+            }
+
+
+            const interno =
+                internos[index];
+
+
+            if (
+                !interno
+            ) {
+                return;
+            }
+
+
+            if (
+                !horariosCompativeis(
+                    portal.hora,
+                    interno.hora,
+                    toleranciaMinutos
+                )
+            ) {
+                return;
+            }
+
+
+            const diferenca =
+                diferencaHorarioSegundos(
+                    portal.hora,
+                    interno.hora
+                );
+
+
+            const distancia =
+                diferenca === null
+                    ? 0
+                    : diferenca;
+
+
+            if (
+                distancia <
+                menorDiferenca
+            ) {
+
+                menorDiferenca =
+                    distancia;
+
+                melhor = {
+                    index: index,
+                    registro: interno
+                };
 
             }
 
         }
+    );
 
 
-        const transacao =
-            limparTexto(
-                indices.transacao >= 0
-                    ? linha[indices.transacao]
-                    : ""
-            );
+    return melhor;
+
+}
 
 
-        const autorizacao =
-            limparTexto(
-                indices.autorizacao >= 0
-                    ? linha[indices.autorizacao]
-                    : ""
-            );
+// ============================================================
+// DATA + VALOR
+// DETECTA CARTÃO DIVERGENTE
+// ============================================================
+
+function encontrarPorDataValor(
+    portal,
+    internos,
+    indices,
+    internosUtilizados,
+    toleranciaMinutos =
+        TOLERANCIA_HORARIO_MINUTOS
+) {
+
+    const chave =
+        criarChaveDataValor(
+            portal
+        );
 
 
-        const nsu =
-            limparTexto(
-                indices.nsu >= 0
-                    ? linha[indices.nsu]
-                    : ""
-            );
+    const candidatos =
+        indices.dataValor.get(
+            chave
+        ) || [];
 
 
-        let tipoCartao =
-            normalizarCartao(
-                indices.tipoCartao >= 0
-                    ? linha[indices.tipoCartao]
-                    : ""
-            );
+    let melhor =
+        null;
 
 
-        if (
-            !tipoCartao &&
-            indices.tipo >= 0
-        ) {
+    let menorDiferenca =
+        Infinity;
 
-            tipoCartao =
-                normalizarCartao(
-                    linha[indices.tipo]
+
+    candidatos.forEach(
+        index => {
+
+            if (
+                internosUtilizados.has(
+                    index
+                )
+            ) {
+                return;
+            }
+
+
+            const interno =
+                internos[index];
+
+
+            if (
+                !interno
+            ) {
+                return;
+            }
+
+
+            if (
+                !horariosCompativeis(
+                    portal.hora,
+                    interno.hora,
+                    toleranciaMinutos
+                )
+            ) {
+                return;
+            }
+
+
+            const diferenca =
+                diferencaHorarioSegundos(
+                    portal.hora,
+                    interno.hora
                 );
 
+
+            const distancia =
+                diferenca === null
+                    ? 0
+                    : diferenca;
+
+
+            if (
+                distancia <
+                menorDiferenca
+            ) {
+
+                menorDiferenca =
+                    distancia;
+
+                melhor = {
+                    index: index,
+                    registro: interno
+                };
+
+            }
+
         }
+    );
 
 
-        const bandeira =
-            limparTexto(
-                indices.bandeira >= 0
-                    ? linha[indices.bandeira]
-                    : ""
-            );
+    return melhor;
+
+}
 
 
-        // Linha completamente vazia
-        if (
-            !valor &&
-            !data &&
-            !hora &&
-            !transacao &&
-            !autorizacao &&
-            !nsu
-        ) {
+// ============================================================
+// DATA + CARTÃO
+// DETECTA VALOR DIVERGENTE
+// ============================================================
 
-            continue;
+function encontrarPorDataCartao(
+    portal,
+    internos,
+    indices,
+    internosUtilizados,
+    toleranciaMinutos =
+        TOLERANCIA_HORARIO_MINUTOS
+) {
+
+    const chave =
+        criarChaveDataCartao(
+            portal
+        );
+
+
+    const candidatos =
+        indices.dataCartao.get(
+            chave
+        ) || [];
+
+
+    let melhor =
+        null;
+
+
+    let menorDiferenca =
+        Infinity;
+
+
+    candidatos.forEach(
+        index => {
+
+            if (
+                internosUtilizados.has(
+                    index
+                )
+            ) {
+                return;
+            }
+
+
+            const interno =
+                internos[index];
+
+
+            if (
+                !interno
+            ) {
+                return;
+            }
+
+
+            if (
+                !horariosCompativeis(
+                    portal.hora,
+                    interno.hora,
+                    toleranciaMinutos
+                )
+            ) {
+                return;
+            }
+
+
+            const diferenca =
+                diferencaHorarioSegundos(
+                    portal.hora,
+                    interno.hora
+                );
+
+
+            const distancia =
+                diferenca === null
+                    ? 0
+                    : diferenca;
+
+
+            if (
+                distancia <
+                menorDiferenca
+            ) {
+
+                menorDiferenca =
+                    distancia;
+
+                melhor = {
+                    index: index,
+                    registro: interno
+                };
+
+            }
 
         }
+    );
 
 
-        registros.push({
+    return melhor;
 
-            origem:
-                "SISTEMA",
+}
 
-            linhaOriginal:
-                i + 1,
 
-            valor,
+// ============================================================
+// VALOR + CARTÃO
+// DETECTA DATA DIVERGENTE
+// ============================================================
 
-            data,
+function encontrarPorValorCartao(
+    portal,
+    internos,
+    indices,
+    internosUtilizados
+) {
 
-            hora,
+    const chave =
+        criarChaveValorCartao(
+            portal
+        );
 
-            codigoTransacao:
-                transacao,
 
-            autorizacao,
+    const candidatos =
+        indices.valorCartao.get(
+            chave
+        ) || [];
 
-            nsu,
 
-            tipoCartao,
+    let melhor =
+        null;
 
-            bandeira,
 
-            usado:
-                false
+    let menorDistancia =
+        Infinity;
 
-        });
 
-    }
+    candidatos.forEach(
+        index => {
 
+            if (
+                internosUtilizados.has(
+                    index
+                )
+            ) {
+                return;
+            }
+
+
+            const interno =
+                internos[index];
+
+
+            if (
+                !interno
+            ) {
+                return;
+            }
+
+
+            const dataPortal =
+                normalizarDataConferencia(
+                    portal.data
+                );
+
+
+            const dataInterno =
+                normalizarDataConferencia(
+                    interno.data
+                );
+
+
+            if (
+                !dataPortal ||
+                !dataInterno
+            ) {
+                return;
+            }
+
+
+            const distancia =
+                Math.abs(
+                    new Date(
+                        dataPortal
+                    ).getTime() -
+
+                    new Date(
+                        dataInterno
+                    ).getTime()
+                );
+
+
+            if (
+                distancia <
+                menorDistancia
+            ) {
+
+                menorDistancia =
+                    distancia;
+
+                melhor = {
+                    index: index,
+                    registro: interno
+                };
+
+            }
+
+        }
+    );
+
+
+    return melhor;
+
+}
+
+
+// ============================================================
+// CRIAR RESULTADO
+// ============================================================
+
+function criarResultado(
+    status,
+    portal,
+    interno,
+    observacao = ""
+) {
 
     return {
 
-        registros,
+        status: status,
 
-        totalInformado
+        observacao: observacao,
+
+
+        // ================================================
+        // OBJETOS ORIGINAIS
+        // ================================================
+
+        portal:
+            portal || null,
+
+        interno:
+            interno || null,
+
+
+        // ================================================
+        // PORTAL
+        // ================================================
+
+        dataPortal:
+            portal
+                ? portal.data
+                : "",
+
+        valorPortal:
+            portal
+                ? normalizarValor(
+                    portal.valor
+                )
+                : null,
+
+        cartaoPortal:
+            portal
+                ? obterCartao(
+                    portal
+                )
+                : "",
+
+        horaPortal:
+            portal
+                ? portal.hora
+                : "",
+
+        codigoPortal:
+            portal
+                ? (
+                    portal.codigoTransacao ||
+                    portal.codigo ||
+                    portal.transacao ||
+                    ""
+                )
+                : "",
+
+
+        // ================================================
+        // SISTEMA
+        // ================================================
+
+        dataSistema:
+            interno
+                ? interno.data
+                : "",
+
+        valorSistema:
+            interno
+                ? normalizarValor(
+                    interno.valor
+                )
+                : null,
+
+        cartaoSistema:
+            interno
+                ? obterCartao(
+                    interno
+                )
+                : "",
+
+        horaSistema:
+            interno
+                ? interno.hora
+                : "",
+
+        codigoSistema:
+            interno
+                ? (
+                    interno.codigoTransacao ||
+                    interno.codigo ||
+                    interno.transacao ||
+                    ""
+                )
+                : "",
+
+        autorizacao:
+            interno
+                ? (
+                    interno.autorizacao ||
+                    ""
+                )
+                : "",
+
+        nsu:
+            interno
+                ? (
+                    interno.nsu ||
+                    ""
+                )
+                : "",
+
+
+        // ================================================
+        // DIFERENÇAS
+        // ================================================
+
+        diferencaValor:
+
+            portal &&
+            interno
+
+                ? arredondar(
+                    normalizarValor(
+                        portal.valor
+                    ) -
+                    normalizarValor(
+                        interno.valor
+                    )
+                )
+
+                : null,
+
+
+        diferencaHorario:
+
+            portal &&
+            interno
+
+                ? diferencaHorarioSegundos(
+                    portal.hora,
+                    interno.hora
+                )
+
+                : null
 
     };
 
@@ -1432,335 +1395,1367 @@ function transformarInterno(
 
 
 // ============================================================
-// LEITURA DO ARQUIVO
+// CONFERÊNCIA PRINCIPAL
 // ============================================================
 
-function lerArquivoExcel(
-    arquivo,
-    tipo
+function executarConferencia(
+    config = {}
 ) {
 
-    return new Promise(
-        (
-            resolve,
-            reject
-        ) => {
+    console.log(
+        "================================"
+    );
 
-            if (!arquivo) {
+    console.log(
+        "INICIANDO CONFERÊNCIA"
+    );
 
-                reject(
-                    "Arquivo não informado."
+    console.log(
+        "================================"
+    );
+
+
+    const portal =
+        Array.isArray(
+            window.dadosPremmia
+        )
+            ? window.dadosPremmia
+            : [];
+
+
+    const internos =
+        Array.isArray(
+            window.dadosInterno
+        )
+            ? window.dadosInterno
+            : [];
+
+
+    if (
+        !portal.length &&
+        !internos.length
+    ) {
+
+        console.warn(
+            "Nenhuma planilha carregada."
+        );
+
+
+        window.resultadosConferencia =
+            [];
+
+
+        return [];
+
+    }
+
+
+    console.log(
+        "Portal:",
+        portal.length,
+        "lançamentos"
+    );
+
+
+    console.log(
+        "Sistema:",
+        internos.length,
+        "lançamentos"
+    );
+
+
+    const toleranciaMinutos =
+        Number(
+            config.toleranciaMinutos
+        ) ||
+        TOLERANCIA_HORARIO_MINUTOS;
+
+
+    const internosUtilizados =
+        new Set();
+
+
+    // ========================================================
+    // ÍNDICES
+    // ========================================================
+
+    const indices = {
+
+        principal:
+            criarIndice(
+                internos,
+                criarChavePrincipal
+            ),
+
+        dataValor:
+            criarIndice(
+                internos,
+                criarChaveDataValor
+            ),
+
+        dataCartao:
+            criarIndice(
+                internos,
+                criarChaveDataCartao
+            ),
+
+        valorCartao:
+            criarIndice(
+                internos,
+                criarChaveValorCartao
+            )
+
+    };
+
+
+    const resultados = [];
+
+
+    // ========================================================
+    // PROCESSAR PORTAL
+    // ========================================================
+
+    portal.forEach(
+        portalRegistro => {
+
+            let correspondencia;
+
+
+            // =================================================
+            // 1
+            // DATA + VALOR + CARTÃO
+            // =================================================
+
+            correspondencia =
+                encontrarCorrespondenciaPrincipal(
+                    portalRegistro,
+                    internos,
+                    indices,
+                    internosUtilizados,
+                    toleranciaMinutos
                 );
+
+
+            if (
+                correspondencia
+            ) {
+
+                internosUtilizados.add(
+                    correspondencia.index
+                );
+
+
+                resultados.push(
+                    criarResultado(
+                        "CONFERIDA",
+                        portalRegistro,
+                        correspondencia.registro,
+                        "Data, valor e tipo de cartão correspondentes."
+                    )
+                );
+
 
                 return;
 
             }
 
 
-            const leitor =
-                new FileReader();
+            // =================================================
+            // 2
+            // DATA + VALOR
+            // CARTÃO DIVERGENTE
+            // =================================================
 
+            correspondencia =
+                encontrarPorDataValor(
+                    portalRegistro,
+                    internos,
+                    indices,
+                    internosUtilizados,
+                    toleranciaMinutos
+                );
 
-            leitor.onload =
-                function (evento) {
 
-                    try {
+            if (
+                correspondencia
+            ) {
 
-                        const dados =
-                            new Uint8Array(
-                                evento.target.result
-                            );
+                internosUtilizados.add(
+                    correspondencia.index
+                );
 
 
-                        const workbook =
-                            XLSX.read(
-                                dados,
-                                {
-                                    type:
-                                        "array",
+                resultados.push(
+                    criarResultado(
+                        "TIPO DE PAGAMENTO DIVERGENTE",
+                        portalRegistro,
+                        correspondencia.registro,
+                        "Data e valor correspondem, mas o tipo de cartão/pagamento é diferente."
+                    )
+                );
 
-                                    cellDates:
-                                        true
-                                }
-                            );
 
+                return;
 
-                        let linhas = [];
+            }
 
 
-                        // Procura a primeira aba com conteúdo
-                        for (
-                            let i = 0;
-                            i <
-                            workbook.SheetNames.length;
-                            i++
-                        ) {
+            // =================================================
+            // 3
+            // DATA + CARTÃO
+            // VALOR DIVERGENTE
+            // =================================================
 
-                            const nomeAba =
-                                workbook.SheetNames[i];
+            correspondencia =
+                encontrarPorDataCartao(
+                    portalRegistro,
+                    internos,
+                    indices,
+                    internosUtilizados,
+                    toleranciaMinutos
+                );
 
 
-                            const planilha =
-                                workbook.Sheets[
-                                    nomeAba
-                                ];
+            if (
+                correspondencia
+            ) {
+
+                internosUtilizados.add(
+                    correspondencia.index
+                );
 
 
-                            const dadosAba =
-                                XLSX.utils.sheet_to_json(
-                                    planilha,
-                                    {
-                                        header:
-                                            1,
+                resultados.push(
+                    criarResultado(
+                        "VALOR DIVERGENTE",
+                        portalRegistro,
+                        correspondencia.registro,
+                        "Data e tipo de cartão correspondem, mas o valor é diferente."
+                    )
+                );
+
+
+                return;
 
-                                        defval:
-                                            "",
+            }
+
 
-                                        raw:
-                                            true
-                                    }
-                                );
+            // =================================================
+            // 4
+            // VALOR + CARTÃO
+            // DATA DIVERGENTE
+            // =================================================
 
+            correspondencia =
+                encontrarPorValorCartao(
+                    portalRegistro,
+                    internos,
+                    indices,
+                    internosUtilizados
+                );
 
-                            if (
-                                dadosAba &&
-                                dadosAba.length
-                            ) {
 
-                                linhas =
-                                    dadosAba;
+            if (
+                correspondencia
+            ) {
 
-                                break;
+                internosUtilizados.add(
+                    correspondencia.index
+                );
 
-                            }
 
-                        }
+                resultados.push(
+                    criarResultado(
+                        "DATA DIVERGENTE",
+                        portalRegistro,
+                        correspondencia.registro,
+                        "Valor e tipo de cartão correspondem, mas a data é diferente."
+                    )
+                );
 
 
-                        if (
-                            !linhas.length
-                        ) {
+                return;
 
-                            reject(
-                                "A planilha está vazia."
-                            );
+            }
 
-                            return;
 
-                        }
+            // =================================================
+            // 5
+            // NÃO LANÇADA
+            // =================================================
 
+            resultados.push(
+                criarResultado(
+                    "NÃO LANÇADA",
+                    portalRegistro,
+                    null,
+                    "Lançamento encontrado no Portal, mas não localizado no Sistema."
+                )
+            );
 
-                        // ====================================================
-                        // PORTAL
-                        // ====================================================
+        }
+    );
 
-                        if (
-                            tipo === "premmia"
-                        ) {
 
-                            const registros =
-                                transformarPremmia(
-                                    linhas
-                                );
+    // ========================================================
+    // LANÇADAS A MAIS
+    // ========================================================
+    //
+    // SOMENTE lançamentos reais do sistema.
+    //
+    // O TOTAL da planilha NÃO entra aqui.
+    //
+    // ========================================================
 
+    internos.forEach(
+        (
+            interno,
+            index
+        ) => {
 
-                            window.dadosPremmia =
-                                registros;
+            if (
+                internosUtilizados.has(
+                    index
+                )
+            ) {
+                return;
+            }
 
 
-                            window.resumoPremmia = {
+            resultados.push(
+                criarResultado(
+                    "LANÇADA A MAIS",
+                    null,
+                    interno,
+                    "Lançamento encontrado no Sistema, mas não localizado no Portal."
+                )
+            );
 
-                                quantidade:
-                                    registros.length,
+        }
+    );
 
-                                total:
-                                    registros.reduce(
-                                        (
-                                            soma,
-                                            registro
-                                        ) =>
-                                            soma +
-                                            registro.valor,
 
-                                        0
-                                    )
+    // ========================================================
+    // SALVAR
+    // ========================================================
 
-                            };
+    window.resultadosConferencia =
+        resultados;
 
 
-                            console.log(
-                                "Premmia carregado:",
-                                registros.length,
-                                "lançamentos"
-                            );
+    // ========================================================
+    // RESUMO
+    // ========================================================
 
+    window.resumoConferencia =
+        calcularResumoConferencia(
+            resultados
+        );
 
-                            console.log(
-                                "Total Portal:",
-                                window.resumoPremmia.total
-                            );
 
+    console.log(
+        "================================"
+    );
 
-                            resolve(
-                                registros
-                            );
+    console.log(
+        "CONFERÊNCIA FINALIZADA"
+    );
 
+    console.log(
+        "Resultados:",
+        resultados.length
+    );
 
-                            return;
+    console.log(
+        "================================"
+    );
 
-                        }
 
+    console.table(
+        resultados
+    );
 
-                        // ====================================================
-                        // SISTEMA
-                        // ====================================================
 
-                        if (
-                            tipo === "interno"
-                        ) {
+    // ========================================================
+    // MOSTRAR
+    // ========================================================
 
-                            const resultado =
-                                transformarInterno(
-                                    linhas
-                                );
+    mostrarResultados(
+        resultados
+    );
 
 
-                            window.dadosInterno =
-                                resultado.registros;
+    atualizarResumoConferencia();
 
 
-                            window.resumoInterno = {
+    return resultados;
 
-                                quantidade:
-                                    resultado.registros.length,
+}
 
-                                totalCalculado:
-                                    resultado.registros.reduce(
-                                        (
-                                            soma,
-                                            registro
-                                        ) =>
-                                            soma +
-                                            registro.valor,
 
-                                        0
-                                    ),
+// ============================================================
+// CALCULAR RESUMO
+// ============================================================
 
-                                totalInformado:
-                                    resultado.totalInformado
+function calcularResumoConferencia(
+    resultados
+) {
 
-                            };
+    const resumo = {
 
+        totalResultados:
+            resultados.length,
 
-                            console.log(
-                                "Sistema carregado:",
-                                resultado.registros.length,
-                                "lançamentos"
-                            );
+        conferidas:
+            0,
 
+        naoLancadas:
+            0,
 
-                            console.log(
-                                "Total calculado:",
-                                window.resumoInterno
-                                    .totalCalculado
-                            );
+        lancadasAMais:
+            0,
 
+        tipoCartaoDivergente:
+            0,
 
-                            console.log(
-                                "Total informado:",
-                                window.resumoInterno
-                                    .totalInformado
-                            );
+        valorDivergente:
+            0,
 
+        dataDivergente:
+            0,
 
-                            // =================================================
-                            // ALERTA DE CONFERÊNCIA DO PRÓPRIO ARQUIVO
-                            // =================================================
 
-                            if (
-                                resultado.totalInformado !==
-                                null
-                            ) {
+        valorPortal:
+            0,
 
-                                const diferenca =
-                                    Number(
-                                        (
-                                            resultado.totalCalculado -
-                                            resultado.totalInformado
-                                        ).toFixed(2)
-                                    );
+        valorSistema:
+            0,
 
+        valorSistemaCalculado:
+            0,
 
-                                if (
-                                    Math.abs(diferenca) >
-                                    0.01
-                                ) {
+        diferencaValor:
+            0
 
-                                    console.warn(
-                                        "ATENÇÃO: total informado pelo Sistema",
-                                        resultado.totalInformado,
-                                        "é diferente do total calculado",
-                                        resultado.totalCalculado,
-                                        "Diferença:",
-                                        diferenca
-                                    );
+    };
 
-                                }
-                                else {
 
-                                    console.log(
-                                        "OK: total do Sistema confere com os lançamentos."
-                                    );
+    // ========================================================
+    // CONTAGEM
+    // ========================================================
 
-                                }
+    resultados.forEach(
+        resultado => {
 
-                            }
+            switch (
+                resultado.status
+            ) {
 
+                case "CONFERIDA":
 
-                            resolve(
-                                resultado.registros
-                            );
+                    resumo.conferidas++;
 
+                    break;
 
-                            return;
 
-                        }
+                case "NÃO LANÇADA":
 
+                    resumo.naoLancadas++;
 
-                        reject(
-                            "Tipo de arquivo desconhecido."
+                    break;
+
+
+                case "LANÇADA A MAIS":
+
+                    resumo.lancadasAMais++;
+
+                    break;
+
+
+                case "TIPO DE PAGAMENTO DIVERGENTE":
+
+                    resumo.tipoCartaoDivergente++;
+
+                    break;
+
+
+                case "VALOR DIVERGENTE":
+
+                    resumo.valorDivergente++;
+
+                    break;
+
+
+                case "DATA DIVERGENTE":
+
+                    resumo.dataDivergente++;
+
+                    break;
+
+            }
+
+        }
+    );
+
+
+    // ========================================================
+    // TOTAL PORTAL
+    // ========================================================
+
+    if (
+        window.resumoPremmia
+    ) {
+
+        if (
+            window.resumoPremmia.total !==
+            undefined
+        ) {
+
+            resumo.valorPortal =
+                normalizarValor(
+                    window.resumoPremmia.total
+                );
+
+        }
+
+    }
+
+
+    // ========================================================
+    // SE NÃO EXISTIR RESUMO DO PORTAL,
+    // CALCULA PELAS LINHAS
+    // ========================================================
+
+    if (
+        resumo.valorPortal === 0
+    ) {
+
+        resumo.valorPortal =
+            resultados.reduce(
+                (
+                    total,
+                    resultado
+                ) => {
+
+                    if (
+                        resultado.portal
+                    ) {
+
+                        return (
+                            total +
+                            normalizarValor(
+                                resultado.portal.valor
+                            )
                         );
 
                     }
-                    catch (erro) {
 
-                        console.error(
-                            "Erro ao processar Excel:",
-                            erro
-                        );
+                    return total;
 
+                },
+                0
+            );
 
-                        reject(
-                            "Erro ao processar a planilha."
-                        );
-
-                    }
-
-                };
+    }
 
 
-            leitor.onerror =
-                function () {
+    // ========================================================
+    // TOTAL SISTEMA
+    //
+    // PRIORIDADE:
+    // 1 - total informado pela planilha
+    // 2 - total calculado pelas linhas
+    // ========================================================
 
-                    reject(
-                        "Não foi possível ler o arquivo."
+    if (
+        window.resumoInterno
+    ) {
+
+        if (
+            window.resumoInterno.totalInformado !==
+            undefined &&
+            window.resumoInterno.totalInformado !==
+            null
+        ) {
+
+            resumo.valorSistema =
+                normalizarValor(
+                    window.resumoInterno.totalInformado
+                );
+
+        }
+
+        else if (
+            window.resumoInterno.total !==
+            undefined
+        ) {
+
+            resumo.valorSistema =
+                normalizarValor(
+                    window.resumoInterno.total
+                );
+
+        }
+
+        else if (
+            window.resumoInterno.totalCalculado !==
+            undefined
+        ) {
+
+            resumo.valorSistema =
+                normalizarValor(
+                    window.resumoInterno.totalCalculado
+                );
+
+        }
+
+    }
+
+
+    // ========================================================
+    // TOTAL CALCULADO DAS LINHAS
+    // ========================================================
+
+    if (
+        window.resumoInterno
+    ) {
+
+        if (
+            window.resumoInterno.totalCalculado !==
+            undefined
+        ) {
+
+            resumo.valorSistemaCalculado =
+                normalizarValor(
+                    window.resumoInterno.totalCalculado
+                );
+
+        }
+
+    }
+
+
+    // Se não tiver cálculo fornecido
+    if (
+        resumo.valorSistemaCalculado === 0 &&
+        window.dadosInterno
+    ) {
+
+        resumo.valorSistemaCalculado =
+            window.dadosInterno.reduce(
+                (
+                    total,
+                    registro
+                ) => {
+
+                    return (
+                        total +
+                        normalizarValor(
+                            registro.valor
+                        )
                     );
 
-                };
+                },
+                0
+            );
+
+    }
 
 
-            leitor.readAsArrayBuffer(
-                arquivo
+    // ========================================================
+    // DIFERENÇA TOTAL
+    // ========================================================
+
+    resumo.valorPortal =
+        arredondar(
+            resumo.valorPortal
+        );
+
+
+    resumo.valorSistema =
+        arredondar(
+            resumo.valorSistema
+        );
+
+
+    resumo.valorSistemaCalculado =
+        arredondar(
+            resumo.valorSistemaCalculado
+        );
+
+
+    resumo.diferencaValor =
+        arredondar(
+            resumo.valorPortal -
+            resumo.valorSistema
+        );
+
+
+    return resumo;
+
+}
+
+
+// ============================================================
+// ATUALIZAR RESUMO DA TELA
+// ============================================================
+
+function atualizarResumoConferencia() {
+
+    const resumo =
+        window.resumoConferencia ||
+        {};
+
+
+    function preencher(
+        id,
+        valor
+    ) {
+
+        const elemento =
+            document.getElementById(
+                id
+            );
+
+
+        if (
+            elemento
+        ) {
+
+            elemento.textContent =
+                valor;
+
+        }
+
+    }
+
+
+    // ========================================================
+    // TOTAIS
+    // ========================================================
+
+    preencher(
+        "totalPortal",
+        formatarMoeda(
+            resumo.valorPortal || 0
+        )
+    );
+
+
+    preencher(
+        "totalSistema",
+        formatarMoeda(
+            resumo.valorSistema || 0
+        )
+    );
+
+
+    // ========================================================
+    // QUANTIDADES
+    // ========================================================
+
+    preencher(
+        "qtdPortal",
+        `${window.dadosPremmia?.length || 0} lançamentos`
+    );
+
+
+    preencher(
+        "qtdSistema",
+        `${window.dadosInterno?.length || 0} lançamentos`
+    );
+
+
+    preencher(
+        "qtdConferidas",
+        resumo.conferidas || 0
+    );
+
+
+    preencher(
+        "qtdNaoLancadas",
+        resumo.naoLancadas || 0
+    );
+
+
+    preencher(
+        "qtdLancadasAMais",
+        resumo.lancadasAMais || 0
+    );
+
+
+    // ========================================================
+    // DIFERENÇA TOTAL
+    // ========================================================
+
+    preencher(
+        "diferencaTotal",
+        formatarMoeda(
+            resumo.diferencaValor || 0
+        )
+    );
+
+
+    // ========================================================
+    // OUTROS IDs, SE EXISTIREM
+    // ========================================================
+
+    preencher(
+        "totalResultados",
+        resumo.totalResultados || 0
+    );
+
+
+    preencher(
+        "valorPortal",
+        formatarMoeda(
+            resumo.valorPortal || 0
+        )
+    );
+
+
+    preencher(
+        "valorSistema",
+        formatarMoeda(
+            resumo.valorSistema || 0
+        )
+    );
+
+
+    preencher(
+        "valorSistemaCalculado",
+        formatarMoeda(
+            resumo.valorSistemaCalculado || 0
+        )
+    );
+
+
+    preencher(
+        "totalSistemaCalculado",
+        formatarMoeda(
+            resumo.valorSistemaCalculado || 0
+        )
+    );
+
+
+    preencher(
+        "totalConferidas",
+        resumo.conferidas || 0
+    );
+
+
+    preencher(
+        "totalNaoLancadas",
+        resumo.naoLancadas || 0
+    );
+
+
+    preencher(
+        "totalLancadasAMais",
+        resumo.lancadasAMais || 0
+    );
+
+
+    preencher(
+        "totalValorDivergente",
+        resumo.valorDivergente || 0
+    );
+
+
+    preencher(
+        "totalDataDivergente",
+        resumo.dataDivergente || 0
+    );
+
+
+    preencher(
+        "totalCartaoDivergente",
+        resumo.tipoCartaoDivergente || 0
+    );
+
+}
+
+
+// ============================================================
+// FILTROS
+// ============================================================
+
+function aplicarFiltrosConferencia(
+    resultados,
+    filtros = {}
+) {
+
+    if (
+        !Array.isArray(
+            resultados
+        )
+    ) {
+
+        return [];
+
+    }
+
+
+    const filtroValor =
+        Array.isArray(
+            filtros.valor
+        )
+            ? filtros.valor
+            : [];
+
+
+    const filtroData =
+        Array.isArray(
+            filtros.data
+        )
+            ? filtros.data
+            : [];
+
+
+    const filtroCodigo =
+        Array.isArray(
+            filtros.codigoTransacao
+        )
+            ? filtros.codigoTransacao
+            : [];
+
+
+    const filtroPagamento =
+        Array.isArray(
+            filtros.formaPagamento
+        )
+            ? filtros.formaPagamento
+            : [];
+
+
+    const filtroHorario =
+        Array.isArray(
+            filtros.horario
+        )
+            ? filtros.horario
+            : [];
+
+
+    return resultados.filter(
+        resultado => {
+
+            // =================================================
+            // VALOR
+            // =================================================
+
+            if (
+                filtroValor.length
+            ) {
+
+                const valorPortal =
+                    resultado.valorPortal;
+
+
+                const valorSistema =
+                    resultado.valorSistema;
+
+
+                const encontrou =
+                    filtroValor.some(
+                        valor => {
+
+                            const numero =
+                                normalizarValor(
+                                    valor
+                                );
+
+
+                            return (
+
+                                valoresIguais(
+                                    valorPortal,
+                                    numero
+                                )
+
+                                ||
+
+                                valoresIguais(
+                                    valorSistema,
+                                    numero
+                                )
+
+                            );
+
+                        }
+                    );
+
+
+                if (
+                    !encontrou
+                ) {
+
+                    return false;
+
+                }
+
+            }
+
+
+            // =================================================
+            // DATA
+            // =================================================
+
+            if (
+                filtroData.length
+            ) {
+
+                const dataPortal =
+                    normalizarDataConferencia(
+                        resultado.dataPortal
+                    );
+
+
+                const dataSistema =
+                    normalizarDataConferencia(
+                        resultado.dataSistema
+                    );
+
+
+                const encontrou =
+                    filtroData.some(
+                        data => {
+
+                            const normalizada =
+                                normalizarDataConferencia(
+                                    data
+                                );
+
+
+                            return (
+
+                                dataPortal ===
+                                normalizada
+
+                                ||
+
+                                dataSistema ===
+                                normalizada
+
+                            );
+
+                        }
+                    );
+
+
+                if (
+                    !encontrou
+                ) {
+
+                    return false;
+
+                }
+
+            }
+
+
+            // =================================================
+            // CÓDIGO
+            // =================================================
+
+            if (
+                filtroCodigo.length
+            ) {
+
+                const codigoPortal =
+                    normalizarTexto(
+                        resultado.codigoPortal
+                    );
+
+
+                const codigoSistema =
+                    normalizarTexto(
+                        resultado.codigoSistema
+                    );
+
+
+                const encontrou =
+                    filtroCodigo.some(
+                        codigo => {
+
+                            const termo =
+                                normalizarTexto(
+                                    codigo
+                                );
+
+
+                            return (
+
+                                codigoPortal.includes(
+                                    termo
+                                )
+
+                                ||
+
+                                codigoSistema.includes(
+                                    termo
+                                )
+
+                            );
+
+                        }
+                    );
+
+
+                if (
+                    !encontrou
+                ) {
+
+                    return false;
+
+                }
+
+            }
+
+
+            // =================================================
+            // FORMA DE PAGAMENTO
+            // =================================================
+
+            if (
+                filtroPagamento.length
+            ) {
+
+                const portalCartao =
+                    normalizarCartaoConferencia(
+                        resultado.cartaoPortal
+                    );
+
+
+                const sistemaCartao =
+                    normalizarCartaoConferencia(
+                        resultado.cartaoSistema
+                    );
+
+
+                const encontrou =
+                    filtroPagamento.some(
+                        pagamento => {
+
+                            const termo =
+                                normalizarCartaoConferencia(
+                                    pagamento
+                                );
+
+
+                            return (
+
+                                portalCartao ===
+                                termo
+
+                                ||
+
+                                sistemaCartao ===
+                                termo
+
+                            );
+
+                        }
+                    );
+
+
+                if (
+                    !encontrou
+                ) {
+
+                    return false;
+
+                }
+
+            }
+
+
+            // =================================================
+            // HORÁRIO
+            // =================================================
+
+            if (
+                filtroHorario.length
+            ) {
+
+                const encontrou =
+                    filtroHorario.some(
+                        horario => {
+
+                            return (
+
+                                horariosCompativeis(
+                                    horario,
+                                    resultado.horaPortal
+                                )
+
+                                ||
+
+                                horariosCompativeis(
+                                    horario,
+                                    resultado.horaSistema
+                                )
+
+                            );
+
+                        }
+                    );
+
+
+                if (
+                    !encontrou
+                ) {
+
+                    return false;
+
+                }
+
+            }
+
+
+            return true;
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// ATUALIZAR RESULTADOS COM FILTROS
+// ============================================================
+
+function atualizarResultadosComFiltros(
+    filtros = {}
+) {
+
+    window.filtrosConferencia =
+        filtros;
+
+
+    const resultados =
+        window.resultadosConferencia ||
+        [];
+
+
+    const filtrados =
+        aplicarFiltrosConferencia(
+            resultados,
+            filtros
+        );
+
+
+    mostrarResultados(
+        filtrados
+    );
+
+
+    return filtrados;
+
+}
+
+
+// ============================================================
+// LIMPAR FILTROS
+// ============================================================
+
+function limparFiltrosConferencia() {
+
+    window.filtrosConferencia = {
+
+        valor: [],
+
+        data: [],
+
+        codigoTransacao: [],
+
+        formaPagamento: [],
+
+        horario: []
+
+    };
+
+
+    mostrarResultados(
+        window.resultadosConferencia || []
+    );
+
+}
+
+
+// ============================================================
+// ORDENAR RESULTADOS
+// ============================================================
+
+function ordenarResultados(
+    resultados
+) {
+
+    const ordem = {
+
+        "NÃO LANÇADA": 1,
+
+        "LANÇADA A MAIS": 2,
+
+        "TIPO DE PAGAMENTO DIVERGENTE": 3,
+
+        "VALOR DIVERGENTE": 4,
+
+        "DATA DIVERGENTE": 5,
+
+        "CONFERIDA": 6
+
+    };
+
+
+    return [
+        ...(resultados || [])
+    ].sort(
+        (
+            a,
+            b
+        ) => {
+
+            const ordemA =
+                ordem[
+                    a.status
+                ] || 99;
+
+
+            const ordemB =
+                ordem[
+                    b.status
+                ] || 99;
+
+
+            if (
+                ordemA !==
+                ordemB
+            ) {
+
+                return (
+                    ordemA -
+                    ordemB
+                );
+
+            }
+
+
+            const dataA =
+                normalizarDataConferencia(
+                    a.dataPortal ||
+                    a.dataSistema
+                );
+
+
+            const dataB =
+                normalizarDataConferencia(
+                    b.dataPortal ||
+                    b.dataSistema
+                );
+
+
+            return dataA.localeCompare(
+                dataB
             );
 
         }
@@ -1770,40 +2765,615 @@ function lerArquivoExcel(
 
 
 // ============================================================
-// EXPORTAÇÕES GLOBAIS
+// MOSTRAR RESULTADOS
 // ============================================================
 
-window.lerArquivoExcel =
-    lerArquivoExcel;
+function mostrarResultados(
+    resultados
+) {
 
-window.transformarPremmia =
-    transformarPremmia;
+    // ========================================================
+    // ATENÇÃO:
+    //
+    // #tabelaResultados É O PRÓPRIO <tbody>
+    //
+    // Não usar:
+    //
+    // #tabelaResultados tbody
+    //
+    // ========================================================
 
-window.transformarInterno =
-    transformarInterno;
-
-window.normalizarCartao =
-    normalizarCartao;
-
-window.normalizarData =
-    normalizarData;
-
-window.normalizarHora =
-    normalizarHora;
-
-window.horaParaSegundos =
-    horaParaSegundos;
-
-window.converterValor =
-    converterValor;
-
-window.formatarValor =
-    formatarValor;
-
-window.formatarData =
-    formatarData;
+    const tabela =
+        document.getElementById(
+            "tabelaResultados"
+        );
 
 
-console.log("================================");
-console.log("leituraExcel.js carregado");
-console.log("================================");
+    if (
+        !tabela
+    ) {
+
+        console.error(
+            "Elemento #tabelaResultados não encontrado."
+        );
+
+        return;
+
+    }
+
+
+    // ========================================================
+    // NENHUM RESULTADO
+    // ========================================================
+
+    if (
+        !resultados ||
+        !resultados.length
+    ) {
+
+        tabela.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="9"
+                    class="sem-resultados"
+                >
+
+                    Nenhum resultado encontrado.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    // ========================================================
+    // ORDENA
+    // ========================================================
+
+    const dados =
+        ordenarResultados(
+            resultados
+        );
+
+
+    // ========================================================
+    // MONTA LINHAS
+    // ========================================================
+
+    tabela.innerHTML =
+
+        dados
+            .map(
+                resultado => {
+
+                    // ----------------------------------------
+                    // OBJETOS
+                    // ----------------------------------------
+
+                    const portal =
+                        resultado.portal ||
+                        {};
+
+                    const interno =
+                        resultado.interno ||
+                        {};
+
+
+                    // ----------------------------------------
+                    // PORTAL
+                    // ----------------------------------------
+
+                    const dataPortal =
+                        resultado.dataPortal ||
+                        portal.data ||
+                        "";
+
+
+                    const valorPortal =
+                        resultado.valorPortal !==
+                            null &&
+
+                        resultado.valorPortal !==
+                            undefined
+
+                            ? resultado.valorPortal
+
+                            : portal.valor;
+
+
+                    const cartaoPortal =
+                        resultado.cartaoPortal ||
+                        portal.tipoCartao ||
+                        portal.formaPagamento ||
+                        "";
+
+
+                    const horaPortal =
+                        resultado.horaPortal ||
+                        portal.hora ||
+                        "";
+
+
+                    // ----------------------------------------
+                    // SISTEMA
+                    // ----------------------------------------
+
+                    const dataSistema =
+                        resultado.dataSistema ||
+                        interno.data ||
+                        "";
+
+
+                    const valorSistema =
+                        resultado.valorSistema !==
+                            null &&
+
+                        resultado.valorSistema !==
+                            undefined
+
+                            ? resultado.valorSistema
+
+                            : interno.valor;
+
+
+                    const cartaoSistema =
+                        resultado.cartaoSistema ||
+                        interno.tipoCartao ||
+                        interno.formaPagamento ||
+                        "";
+
+
+                    const horaSistema =
+                        resultado.horaSistema ||
+                        interno.hora ||
+                        "";
+
+
+                    // ----------------------------------------
+                    // STATUS
+                    // ----------------------------------------
+
+                    const status =
+                        resultado.status ||
+                        "";
+
+
+                    return `
+
+                        <tr
+                            data-status="${escapeHtml(
+                                status
+                            )}"
+                        >
+
+                            <td>
+
+                                <span
+                                    class="status ${classeStatus(
+                                        status
+                                    )}"
+                                >
+
+                                    ${escapeHtml(
+                                        status
+                                    )}
+
+                                </span>
+
+                            </td>
+
+
+                            <td>
+
+                                ${formatarDataSegura(
+                                    dataPortal
+                                )}
+
+                            </td>
+
+
+                            <td>
+
+                                ${formatarMoeda(
+                                    valorPortal
+                                )}
+
+                            </td>
+
+
+                            <td>
+
+                                ${escapeHtml(
+                                    cartaoPortal ||
+                                    "—"
+                                )}
+
+                            </td>
+
+
+                            <td>
+
+                                ${escapeHtml(
+                                    horaPortal ||
+                                    "—"
+                                )}
+
+                            </td>
+
+
+                            <td>
+
+                                ${formatarDataSegura(
+                                    dataSistema
+                                )}
+
+                            </td>
+
+
+                            <td>
+
+                                ${
+                                    valorSistema !==
+                                        null &&
+
+                                    valorSistema !==
+                                        undefined &&
+
+                                    valorSistema !==
+                                        ""
+
+                                        ? formatarMoeda(
+                                            valorSistema
+                                        )
+
+                                        : "—"
+                                }
+
+                            </td>
+
+
+                            <td>
+
+                                ${escapeHtml(
+                                    cartaoSistema ||
+                                    "—"
+                                )}
+
+                            </td>
+
+
+                            <td>
+
+                                ${escapeHtml(
+                                    horaSistema ||
+                                    "—"
+                                )}
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+}
+
+
+// ============================================================
+// FORMATA MOEDA
+// ============================================================
+
+function formatarMoeda(
+    valor
+) {
+
+    if (
+        valor === null ||
+        valor === undefined ||
+        valor === ""
+    ) {
+
+        return "—";
+
+    }
+
+
+    return normalizarValor(
+        valor
+    ).toLocaleString(
+        "pt-BR",
+        {
+            style: "currency",
+            currency: "BRL"
+        }
+    );
+
+}
+
+
+// ============================================================
+// FORMATA DATA
+// ============================================================
+
+function formatarDataSegura(
+    data
+) {
+
+    if (
+        !data
+    ) {
+
+        return "—";
+
+    }
+
+
+    if (
+        typeof window.formatarData ===
+        "function"
+    ) {
+
+        const resultado =
+            window.formatarData(
+                data
+            );
+
+
+        if (
+            resultado
+        ) {
+
+            return resultado;
+
+        }
+
+    }
+
+
+    const normalizada =
+        normalizarDataConferencia(
+            data
+        );
+
+
+    const partes =
+        normalizada.split("-");
+
+
+    if (
+        partes.length === 3 &&
+        partes[0].length === 4
+    ) {
+
+        return (
+            `${partes[2]}/${partes[1]}/${partes[0]}`
+        );
+
+    }
+
+
+    return escapeHtml(
+        String(data)
+    );
+
+}
+
+
+// ============================================================
+// STATUS
+// ============================================================
+
+function classeStatus(
+    status
+) {
+
+    switch (
+        status
+    ) {
+
+        case "CONFERIDA":
+
+            return "conferida";
+
+
+        case "NÃO LANÇADA":
+
+            return "nao-lancada";
+
+
+        case "LANÇADA A MAIS":
+
+            return "lancada-mais";
+
+
+        case "VALOR DIVERGENTE":
+
+            return "valor-divergente";
+
+
+        case "DATA DIVERGENTE":
+
+            return "data-divergente";
+
+
+        case "TIPO DE PAGAMENTO DIVERGENTE":
+
+            return "cartao-divergente";
+
+
+        default:
+
+            return "divergente";
+
+    }
+
+}
+
+
+// ============================================================
+// FORMATA STATUS
+// ============================================================
+
+function formatarStatusConferencia(
+    status
+) {
+
+    switch (
+        status
+    ) {
+
+        case "CONFERIDA":
+
+            return "🟢 CONFERIDA";
+
+
+        case "NÃO LANÇADA":
+
+            return "🔴 NÃO LANÇADA";
+
+
+        case "LANÇADA A MAIS":
+
+            return "🟠 LANÇADA A MAIS";
+
+
+        case "VALOR DIVERGENTE":
+
+            return "🟡 VALOR DIVERGENTE";
+
+
+        case "DATA DIVERGENTE":
+
+            return "🔵 DATA DIVERGENTE";
+
+
+        case "TIPO DE PAGAMENTO DIVERGENTE":
+
+            return "🟣 TIPO DE CARTÃO DIVERGENTE";
+
+
+        default:
+
+            return status || "";
+
+    }
+
+}
+
+
+// ============================================================
+// ESCAPE HTML
+// ============================================================
+
+function escapeHtml(
+    valor
+) {
+
+    return String(
+        valor === null ||
+        valor === undefined
+            ? ""
+            : valor
+    )
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+// ============================================================
+// EXPOR FUNÇÕES
+// ============================================================
+
+window.executarConferencia =
+    executarConferencia;
+
+window.calcularResumoConferencia =
+    calcularResumoConferencia;
+
+window.atualizarResumoConferencia =
+    atualizarResumoConferencia;
+
+window.mostrarResultados =
+    mostrarResultados;
+
+window.aplicarFiltrosConferencia =
+    aplicarFiltrosConferencia;
+
+window.atualizarResultadosComFiltros =
+    atualizarResultadosComFiltros;
+
+window.limparFiltrosConferencia =
+    limparFiltrosConferencia;
+
+window.normalizarCartaoConferencia =
+    normalizarCartaoConferencia;
+
+window.normalizarDataConferencia =
+    normalizarDataConferencia;
+
+window.normalizarHoraConferencia =
+    normalizarHoraConferencia;
+
+window.horaParaSegundosConferencia =
+    horaParaSegundosConferencia;
+
+window.diferencaHorarioSegundos =
+    diferencaHorarioSegundos;
+
+window.horariosCompativeis =
+    horariosCompativeis;
+
+window.formatarMoeda =
+    formatarMoeda;
+
+window.formatarDataSegura =
+    formatarDataSegura;
+
+window.formatarStatusConferencia =
+    formatarStatusConferencia;
+
+window.ordenarResultados =
+    ordenarResultados;
+
+window.escapeHtml =
+    escapeHtml;
+
+
+console.log(
+    "conferencia.js carregado corretamente."
+);
+
+console.log(
+    "Tolerância de horário:",
+    TOLERANCIA_HORARIO_MINUTOS,
+    "minutos"
+);
